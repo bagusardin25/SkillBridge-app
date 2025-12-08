@@ -1,3 +1,4 @@
+import React from "react";
 import { Sidebar } from "./Sidebar";
 import { ChatPanel } from "./ChatPanel";
 import { Header } from "./Header";
@@ -6,7 +7,16 @@ import { ReactFlowProvider } from "@xyflow/react";
 import { useRoadmapStore } from "@/store/useRoadmapStore";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
-    const { isAiPanelOpen, isSidebarOpen } = useRoadmapStore();
+    const { isAiPanelOpen, isSidebarOpen, isDarkMode } = useRoadmapStore();
+
+    // Sync theme with store on mount
+    React.useEffect(() => {
+        if (isDarkMode) {
+            document.documentElement.classList.add("dark");
+        } else {
+            document.documentElement.classList.remove("dark");
+        }
+    }, [isDarkMode]);
 
     return (
         <ReactFlowProvider>
@@ -37,11 +47,14 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 {/* Right Chat Panel - Collapsible */}
                 <div
                     className={`
-            transition-all duration-300 ease-in-out border-l
-            ${isAiPanelOpen ? "w-80" : "w-0 overflow-hidden border-l-0"}
+            border-l bg-background h-full
+            transition-all duration-300 ease-in-out
+            ${isAiPanelOpen ? "w-80 translate-x-0" : "w-0 translate-x-full border-l-0"}
           `}
                 >
-                    {isAiPanelOpen && <ChatPanel />}
+                    <div className="w-80 h-full">
+                        <ChatPanel />
+                    </div>
                 </div>
             </div>
         </ReactFlowProvider>

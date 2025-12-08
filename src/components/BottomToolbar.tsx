@@ -1,30 +1,36 @@
 import {
+    Undo2,
+    Redo2,
+    Trash2,
+    Copy,
+    MoreVertical,
+    MousePointer2,
+    Hand,
+    Image,
     Square,
     Diamond,
     Circle,
-    Hammer,
-    Undo2,
-    Redo2,
-    MousePointer2,
-    Hand,
-    ImagePlus,
-    Copy,
-    Trash2,
-    Minus,
-    MoreHorizontal,
+    ZoomIn,
+    ZoomOut,
+    Maximize,
 } from "lucide-react";
 import type { DragEvent } from "react";
 import { useRoadmapStore, useTemporalStore } from "@/store/useRoadmapStore";
-import { Separator } from "@/components/ui/separator";
 import type { RoadmapNode } from "@/types/roadmap";
-
-// Shape items for drag and drop
-const shapeItems = [
-    { type: "default", label: "Topic Node", icon: Square },
-    { type: "decision", label: "Decision Node", icon: Diamond },
-    { type: "start-end", label: "Start/End", icon: Circle },
-    { type: "project", label: "Project", icon: Hammer },
-];
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useReactFlow } from "@xyflow/react";
 
 let nodeIdCounter = 100;
 const getNodeId = () => `node_${nodeIdCounter++}`;
@@ -37,9 +43,12 @@ export function BottomToolbar() {
         deleteSelectedNodes,
         duplicateSelectedNodes,
         selectedNodeIds,
+        setNodes,
+        setEdges
     } = useRoadmapStore();
 
     const { undo, redo } = useTemporalStore();
+    const { zoomIn, zoomOut, fitView } = useReactFlow();
 
     // Handle drag start for shape items
     const onDragStart = (event: DragEvent<HTMLButtonElement>, nodeType: string) => {
@@ -47,7 +56,6 @@ export function BottomToolbar() {
         event.dataTransfer.effectAllowed = "move";
     };
 
-    // Add image node to center
     const handleAddImage = () => {
         const imageUrl = prompt("Enter image URL:", "https://via.placeholder.com/150");
         if (imageUrl) {
@@ -66,103 +74,192 @@ export function BottomToolbar() {
         }
     };
 
-    const buttonClass = (isActive = false) =>
-        `flex items-center justify-center w-10 h-10 rounded-md transition-colors cursor-pointer ${isActive
+    const handleClearCanvas = () => {
+        if (confirm("Are you sure you want to clear the canvas? This action cannot be undone.")) {
+            setNodes([]);
+            setEdges([]);
+        }
+    };
+
+    const actionButtonClass = (isDisabled = false) =>
+        `flex items-center justify-center w-8 h-8 rounded-md transition-colors ${isDisabled
+            ? "text-muted-foreground opacity-50 cursor-not-allowed"
+            : "hover:bg-muted text-foreground cursor-pointer"
+        }`;
+
+    const toolButtonClass = (isActive = false) =>
+        `flex items-center justify-center w-10 h-10 rounded-lg transition-colors ${isActive
             ? "bg-primary text-primary-foreground"
-            : "hover:bg-accent text-foreground"
+            : "hover:bg-muted text-foreground cursor-pointer"
         }`;
 
     return (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50">
-            <div className="flex items-center gap-2 p-4 bg-card border border-border rounded-xl shadow-2xl">
-                {/* Group 1: Shapes (Drag & Drop) */}
-                {shapeItems.map(({ type, label, icon: Icon }) => (
-                    <button
-                        key={type}
-                        draggable
-                        onDragStart={(e) => onDragStart(e, type)}
-                        title={`Drag to add: ${label}`}
-                        className={`${buttonClass()} cursor-grab active:cursor-grabbing`}
-                    >
-                        <Icon className="h-5 w-5" />
-                    </button>
-                ))}
+        <TooltipProvider delayDuration={0}>
+            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-3">
 
-                <Separator orientation="vertical" className="h-8 mx-1" />
+                {/* Secondary Actions Bar */}
+                <div className="flex items-center gap-1 p-1.5 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 border border-border/50 rounded-lg shadow-sm">
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <button onClick={() => undo()} className={actionButtonClass()}>
+                                <Undo2 className="h-4 w-4" />
+                            </button>
+                        </TooltipTrigger>
+                        <TooltipContent>Undo (Ctrl+Z)</TooltipContent>
+                    </Tooltip>
 
-                {/* Group 2: History */}
-                <button
-                    onClick={() => undo()}
-                    title="Undo (Ctrl+Z)"
-                    className={buttonClass()}
-                >
-                    <Undo2 className="h-5 w-5" />
-                </button>
-                <button
-                    onClick={() => redo()}
-                    title="Redo (Ctrl+Y)"
-                    className={buttonClass()}
-                >
-                    <Redo2 className="h-5 w-5" />
-                </button>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <button onClick={() => redo()} className={actionButtonClass()}>
+                                <Redo2 className="h-4 w-4" />
+                            </button>
+                        </TooltipTrigger>
+                        <TooltipContent>Redo (Ctrl+Y)</TooltipContent>
+                    </Tooltip>
 
-                <Separator orientation="vertical" className="h-8 mx-1" />
+                    <div className="w-px h-4 bg-border/50 mx-1" />
 
-                {/* Group 3: Tools (Mode Switching) */}
-                <button
-                    onClick={() => setInteractionMode("select")}
-                    title="Select Mode"
-                    className={buttonClass(interactionMode === "select")}
-                >
-                    <MousePointer2 className="h-5 w-5" />
-                </button>
-                <button
-                    onClick={() => setInteractionMode("pan")}
-                    title="Pan Mode"
-                    className={buttonClass(interactionMode === "pan")}
-                >
-                    <Hand className="h-5 w-5" />
-                </button>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <button
+                                onClick={deleteSelectedNodes}
+                                disabled={selectedNodeIds.length === 0}
+                                className={actionButtonClass(selectedNodeIds.length === 0)}
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </button>
+                        </TooltipTrigger>
+                        <TooltipContent>Delete (Del)</TooltipContent>
+                    </Tooltip>
 
-                <Separator orientation="vertical" className="h-8 mx-1" />
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <button
+                                onClick={duplicateSelectedNodes}
+                                disabled={selectedNodeIds.length === 0}
+                                className={actionButtonClass(selectedNodeIds.length === 0)}
+                            >
+                                <Copy className="h-4 w-4" />
+                            </button>
+                        </TooltipTrigger>
+                        <TooltipContent>Duplicate</TooltipContent>
+                    </Tooltip>
 
-                {/* Group 4: Actions */}
-                <button
-                    onClick={handleAddImage}
-                    title="Add Image Node"
-                    className={buttonClass()}
-                >
-                    <ImagePlus className="h-5 w-5" />
-                </button>
-                <button
-                    onClick={duplicateSelectedNodes}
-                    title="Duplicate Selected"
-                    disabled={selectedNodeIds.length === 0}
-                    className={`${buttonClass()} ${selectedNodeIds.length === 0 ? "opacity-50 cursor-not-allowed" : ""
-                        }`}
-                >
-                    <Copy className="h-5 w-5" />
-                </button>
-                <button
-                    onClick={deleteSelectedNodes}
-                    title="Delete Selected"
-                    disabled={selectedNodeIds.length === 0}
-                    className={`${buttonClass()} ${selectedNodeIds.length === 0 ? "opacity-50 cursor-not-allowed" : ""
-                        }`}
-                >
-                    <Trash2 className="h-5 w-5" />
-                </button>
+                    <div className="w-px h-4 bg-border/50 mx-1" />
 
-                <Separator orientation="vertical" className="h-8 mx-1" />
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <button className={actionButtonClass()}>
+                                <MoreVertical className="h-4 w-4" />
+                            </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" side="top">
+                            <DropdownMenuItem onClick={() => zoomIn()}>
+                                <ZoomIn className="mr-2 h-4 w-4" />
+                                Zoom In
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => zoomOut()}>
+                                <ZoomOut className="mr-2 h-4 w-4" />
+                                Zoom Out
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => fitView()}>
+                                <Maximize className="mr-2 h-4 w-4" />
+                                Fit View
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={handleClearCanvas} className="text-destructive focus:text-destructive">
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Clear Canvas
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
 
-                {/* Edge Style */}
-                <button title="Solid Line" className={buttonClass()}>
-                    <Minus className="h-5 w-5" />
-                </button>
-                <button title="Dashed Line" className={buttonClass()}>
-                    <MoreHorizontal className="h-5 w-5" />
-                </button>
+                {/* Main Tools Bar */}
+                <div className="flex items-center gap-1 p-1.5 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 border border-border/50 rounded-xl shadow-xl">
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <button
+                                onClick={() => setInteractionMode("select")}
+                                className={toolButtonClass(interactionMode === "select")}
+                            >
+                                <MousePointer2 className="h-5 w-5" />
+                            </button>
+                        </TooltipTrigger>
+                        <TooltipContent>Select Tool</TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <button
+                                onClick={() => setInteractionMode("pan")}
+                                className={toolButtonClass(interactionMode === "pan")}
+                            >
+                                <Hand className="h-5 w-5" />
+                            </button>
+                        </TooltipTrigger>
+                        <TooltipContent>Hand Tool</TooltipContent>
+                    </Tooltip>
+
+                    <div className="w-px h-6 bg-border/50 mx-1" />
+
+                    {/* Implemented Tools */}
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <button
+                                onClick={handleAddImage}
+                                className={toolButtonClass()}
+                            >
+                                <Image className="h-5 w-5" />
+                            </button>
+                        </TooltipTrigger>
+                        <TooltipContent>Add Image</TooltipContent>
+                    </Tooltip>
+
+
+                    <div className="w-px h-6 bg-border/50 mx-1" />
+
+                    {/* Draggable Shapes */}
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <button
+                                draggable
+                                onDragStart={(e) => onDragStart(e, "default")}
+                                className={`${toolButtonClass()} cursor-grab active:cursor-grabbing`}
+                            >
+                                <Square className="h-5 w-5" />
+                            </button>
+                        </TooltipTrigger>
+                        <TooltipContent>Rectangle Node</TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <button
+                                draggable
+                                onDragStart={(e) => onDragStart(e, "decision")}
+                                className={`${toolButtonClass()} cursor-grab active:cursor-grabbing`}
+                            >
+                                <Diamond className="h-5 w-5" />
+                            </button>
+                        </TooltipTrigger>
+                        <TooltipContent>Decision Node</TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <button
+                                draggable
+                                onDragStart={(e) => onDragStart(e, "start-end")}
+                                className={`${toolButtonClass()} cursor-grab active:cursor-grabbing`}
+                            >
+                                <Circle className="h-5 w-5" />
+                            </button>
+                        </TooltipTrigger>
+                        <TooltipContent>Start/End Node</TooltipContent>
+                    </Tooltip>
+                </div>
             </div>
-        </div>
+        </TooltipProvider>
     );
 }

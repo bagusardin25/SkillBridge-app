@@ -1,0 +1,5 @@
+﻿src/components/layout/Header.tsx(1,16): error TS6133: 'Eye' is declared but its value is never read.
+src/components/layout/Header.tsx(1,21): error TS6133: 'Pencil' is declared but its value is never read.
+src/components/layout/Header.tsx(3,1): error TS6133: 'Switch' is declared but its value is never read.
+src/components/layout/Header.tsx(7,13): error TS6133: 'isEditMode' is declared but its value is never read.
+src/components/layout/Header.tsx(7,25): error TS6133: 'toggleEditMode' is declared but its value is never read.

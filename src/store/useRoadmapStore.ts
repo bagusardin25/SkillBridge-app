@@ -81,10 +81,12 @@ interface RoadmapStore {
     isAiPanelOpen: boolean;
     isSidebarOpen: boolean;
     isDarkMode: boolean;
+    currentProjectTitle: string; // Add this
     onNodesChange: (changes: NodeChange<RoadmapNode>[]) => void;
     onEdgesChange: (changes: EdgeChange<RoadmapEdge>[]) => void;
     setNodes: (nodes: RoadmapNode[]) => void;
     setEdges: (edges: RoadmapEdge[]) => void;
+    setProjectTitle: (title: string) => void; // Add this
     addNode: (node: RoadmapNode) => void;
     deleteSelectedNodes: () => void;
     duplicateSelectedNodes: () => void;
@@ -108,6 +110,7 @@ export const useRoadmapStore = create<RoadmapStore>()(
             isAiPanelOpen: true,
             isSidebarOpen: true,
             isDarkMode: true,
+            currentProjectTitle: "Learn React", // Default value
 
             onNodesChange: (changes) => {
                 set({
@@ -127,6 +130,10 @@ export const useRoadmapStore = create<RoadmapStore>()(
 
             setEdges: (edges) => {
                 set({ edges });
+            },
+            
+            setProjectTitle: (title) => {
+                set({ currentProjectTitle: title });
             },
 
             addNode: (node) => {

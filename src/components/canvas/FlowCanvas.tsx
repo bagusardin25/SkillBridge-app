@@ -8,14 +8,17 @@ import {
     type Connection,
     type OnSelectionChangeParams,
     BackgroundVariant,
+    MarkerType,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import type { DragEvent } from "react";
 import { useRoadmapStore, useTemporalStore } from "@/store/useRoadmapStore";
 import type { RoadmapNode } from "@/types/roadmap";
 import { CustomNode } from "@/components/nodes/CustomNode";
 import { ImageNode } from "@/components/nodes/ImageNode";
+import { Button } from "@/components/ui/button";
+import { Sparkles, ArrowRight } from "lucide-react";
 
 const nodeTypes = {
     default: CustomNode,
@@ -42,10 +45,27 @@ export function FlowCanvas() {
         isEditMode,
         interactionMode,
         setSelectedNodeIds,
+        toggleAiPanel,
+        isAiPanelOpen,
     } = useRoadmapStore();
 
     const { undo, redo } = useTemporalStore();
     const { screenToFlowPosition } = useReactFlow();
+
+    const defaultEdgeOptions = useMemo(() => ({
+        type: 'smoothstep',
+        markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 20,
+            height: 20,
+            color: 'hsl(var(--primary))',
+        },
+        style: {
+            strokeWidth: 2,
+            stroke: 'hsl(var(--primary))',
+        },
+        animated: true,
+    }), []);
 
     // Keyboard shortcuts
     useEffect(() => {
@@ -111,8 +131,32 @@ export function FlowCanvas() {
         [screenToFlowPosition, addNode]
     );
 
+    const handleOpenAi = () => {
+        if (!isAiPanelOpen) {
+            toggleAiPanel();
+        }
+    };
+
     return (
-        <div className="w-full h-full">
+        <div className="w-full h-full relative">
+            {nodes.length === 0 && (
+                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center pointer-events-none">
+                    <div className="bg-background/80 backdrop-blur-sm border border-border p-8 rounded-xl shadow-xl max-w-md text-center pointer-events-auto">
+                        <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Sparkles className="h-8 w-8 text-primary" />
+                        </div>
+                        <h3 className="text-xl font-semibold mb-2">Start Your Roadmap</h3>
+                        <p className="text-muted-foreground mb-6">
+                            Your canvas is empty. Ask our AI Assistant to generate a learning path or drag nodes to build manually.
+                        </p>
+                        <Button onClick={handleOpenAi} size="lg" className="w-full">
+                            Ask AI Assistant
+                            <ArrowRight className="ml-2 h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
+            )}
+            
             <ReactFlow
                 nodes={nodes}
                 edges={edges}
@@ -128,6 +172,7 @@ export function FlowCanvas() {
                 panOnDrag={interactionMode === "pan"}
                 selectionOnDrag={interactionMode === "select"}
                 nodeTypes={nodeTypes}
+                defaultEdgeOptions={defaultEdgeOptions}
                 deleteKeyCode={["Delete", "Backspace"]}
                 fitView
                 className="bg-background"
@@ -135,11 +180,23 @@ export function FlowCanvas() {
                 <Background variant={BackgroundVariant.Dots} gap={16} size={1} />
                 <Controls className="bg-background border-border" />
                 <MiniMap
-                    className="bg-background border-border"
-                    nodeColor="#6366f1"
-                    maskColor="rgba(0, 0, 0, 0.8)"
+                    position="bottom-right"
+                    className="!bg-card !border !border-border rounded-lg shadow-lg m-4"
+                    maskColor="rgba(0, 0, 0, 0.3)"
+                    zoomable
+                    pannable
+                    nodeColor={(node) => {
+                        switch (node.type) {
+                            case "decision": return "#f59e0b"; // amber-500
+                            case "start-end": return "#10b981"; // emerald-500
+                            case "project": return "#8b5cf6"; // violet-500
+                            case "image": return "#06b6d4"; // cyan-500
+                            default: return "#6366f1"; // indigo-500
+                        }
+                    }}
                 />
             </ReactFlow>
         </div>
     );
 }
+
