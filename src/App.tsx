@@ -4,7 +4,7 @@ function App() {
   return (
     <AppLayout>
       <div className="flex items-center justify-center h-full text-muted-foreground">
-        React Flow Canvas Placeholder
+        SkillBridge AI Tools
       </div>
     </AppLayout>
   );
