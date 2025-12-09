@@ -1,11 +1,12 @@
 import { AppLayout } from "@/components/layout/AppLayout";
+import { FlowCanvas } from "@/components/canvas/FlowCanvas";
+import { Toaster } from "sonner";
 
 function App() {
   return (
     <AppLayout>
-      <div className="flex items-center justify-center h-full text-muted-foreground">
-        SkillBridge AI Tools
-      </div>
+      <FlowCanvas />
+      <Toaster />
     </AppLayout>
   );
 }

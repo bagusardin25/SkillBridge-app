@@ -53,7 +53,107 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@layer utilities {
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* React Flow Controls Styling */
+.react-flow__controls {
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.dark .react-flow__controls {
+  background-color: hsl(var(--card));
+  border-color: hsl(var(--border));
+}
+
+.react-flow__controls-button {
+  background-color: hsl(var(--card));
+  border-bottom: 1px solid hsl(var(--border));
+  fill: hsl(var(--foreground));
+  transition: all 0.2s;
+}
+
+.dark .react-flow__controls-button {
+  background-color: hsl(var(--card));
+  border-bottom-color: hsl(var(--border));
+  fill: hsl(var(--foreground));
+}
+
+.react-flow__controls-button:hover {
+  background-color: hsl(var(--accent));
+  fill: hsl(var(--accent-foreground));
+}
+
+.dark .react-flow__controls-button:hover {
+  background-color: hsl(var(--accent));
+  fill: hsl(var(--accent-foreground));
+}
+
+.react-flow__controls-button:last-child {
+  border-bottom: none;
+}
+
+.react-flow__controls-button svg {
+  fill: currentColor;
+}
+
+/* React Flow MiniMap Styling */
+.react-flow__minimap {
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+}
+
+.dark .react-flow__minimap {
+  background-color: hsl(var(--card));
+  border-color: hsl(var(--border));
+}
+
+.react-flow__minimap-mask {
+  fill: hsl(var(--muted) / 0.6);
+}
+
+.dark .react-flow__minimap-mask {
+  fill: hsl(var(--muted) / 0.6);
+}
+
+.react-flow__minimap-node {
+  fill: hsl(var(--muted-foreground));
+}
+
+/* React Flow Background */
+.react-flow__background pattern circle {
+  fill: hsl(var(--muted-foreground) / 0.3);
+}
+
+/* Fix for default node white background bleeding through */
+.react-flow__node,
+.react-flow__node-default {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Ensure selected state doesn't add a default border if handled by component */
+.react-flow__node.selected {
+  outline: none;
 }
