@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Plus, Folder, MoreHorizontal, Settings, LogOut, User, Globe, CreditCard, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -12,21 +13,22 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRoadmapStore } from "@/store/useRoadmapStore";
+import { useAuthStore } from "@/store/useAuthStore";
 import { NewProjectDialog } from "@/components/ui/NewProjectDialog";
 import { createProject, getProjects, type Project } from "@/lib/api";
 import { toast } from "sonner";
-
-const DUMMY_USER_ID = "dummy-user-123";
 
 export function Sidebar({ className }: { className?: string }) {
     const [projects, setProjects] = useState<Project[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const { currentProjectTitle, setProjectTitle } = useRoadmapStore();
+    const { user, logout } = useAuthStore();
+    const navigate = useNavigate();
 
     const fetchProjects = async () => {
         try {
-            const data = await getProjects();
+            const data = await getProjects(user?.id);
             setProjects(data);
         } catch (error) {
             console.error("Failed to fetch projects:", error);
@@ -37,14 +39,42 @@ export function Sidebar({ className }: { className?: string }) {
     };
 
     useEffect(() => {
-        fetchProjects();
-    }, []);
+        if (user?.id) {
+            fetchProjects();
+        }
+    }, [user?.id]);
 
     const handleCreateProject = async (title: string) => {
-        const newProject = await createProject(title, DUMMY_USER_ID);
+        if (!user?.id) {
+            toast.error("User not authenticated");
+            return;
+        }
+        const newProject = await createProject(title, user.id);
         setProjects((prev) => [newProject, ...prev]);
         setProjectTitle(newProject.title);
         toast.success("Project created successfully");
+    };
+
+    const handleLogout = () => {
+        logout();
+        navigate("/login");
+        toast.success("Logged out successfully");
+    };
+
+    const getInitials = (name: string | null, email: string) => {
+        if (name) {
+            return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+        }
+        return email.slice(0, 2).toUpperCase();
+    };
+
+    const getTierLabel = (tier: string) => {
+        const labels: Record<string, string> = {
+            FREE: "Free Plan",
+            PRO: "Pro Plan",
+            ENTERPRISE: "Enterprise",
+        };
+        return labels[tier] || tier;
     };
 
     return (
@@ -96,56 +126,61 @@ export function Sidebar({ className }: { className?: string }) {
             </div>
 
             {/* User Profile Section - Now fixed at bottom */}
-            <div className="px-3 py-2 mt-auto">
-                <div className="p-4 border-t bg-muted/20 rounded-lg">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <Avatar className="h-9 w-9 border">
-                                <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-                                <AvatarFallback>CN</AvatarFallback>
-                            </Avatar>
-                            <div className="flex flex-col">
-                                <span className="text-sm font-medium">Bagus Ardin</span>
-                                <span className="text-xs text-muted-foreground">Pro Plan</span>
+            {user && (
+                <div className="px-3 py-2 mt-auto">
+                    <div className="p-4 border-t bg-muted/20 rounded-lg">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <Avatar className="h-9 w-9 border">
+                                    <AvatarImage src="" alt={user.name || user.email} />
+                                    <AvatarFallback>{getInitials(user.name, user.email)}</AvatarFallback>
+                                </Avatar>
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-medium">{user.name || user.email}</span>
+                                    <span className="text-xs text-muted-foreground">{getTierLabel(user.tier)}</span>
+                                </div>
                             </div>
-                        </div>
 
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                    <span className="sr-only">Open menu</span>
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-56">
-                                <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem>
-                                    <User className="mr-2 h-4 w-4" />
-                                    Profile
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                    <Settings className="mr-2 h-4 w-4" />
-                                    Settings
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                    <CreditCard className="mr-2 h-4 w-4" />
-                                    Billing
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem>
-                                    <Globe className="mr-2 h-4 w-4" />
-                                    Language
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="text-destructive focus:text-destructive">
-                                    <LogOut className="mr-2 h-4 w-4" />
-                                    Log out
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
+                                        <MoreHorizontal className="h-4 w-4" />
+                                        <span className="sr-only">Open menu</span>
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-56">
+                                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem>
+                                        <User className="mr-2 h-4 w-4" />
+                                        Profile
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem>
+                                        <Settings className="mr-2 h-4 w-4" />
+                                        Settings
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem>
+                                        <CreditCard className="mr-2 h-4 w-4" />
+                                        Billing
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem>
+                                        <Globe className="mr-2 h-4 w-4" />
+                                        Language
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem 
+                                        className="text-destructive focus:text-destructive"
+                                        onClick={handleLogout}
+                                    >
+                                        <LogOut className="mr-2 h-4 w-4" />
+                                        Log out
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
                     </div>
                 </div>
-            </div>
+            )}
 
             <NewProjectDialog
                 open={isDialogOpen}
