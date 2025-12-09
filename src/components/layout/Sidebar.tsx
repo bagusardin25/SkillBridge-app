@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, Folder, MoreHorizontal, Settings, LogOut, User, Globe, CreditCard } from "lucide-react";
+import { Plus, Folder, MoreHorizontal, Settings, LogOut, User, Globe, CreditCard, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
     DropdownMenu,
@@ -12,10 +12,40 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRoadmapStore } from "@/store/useRoadmapStore";
+import { NewProjectDialog } from "@/components/ui/NewProjectDialog";
+import { createProject, getProjects, type Project } from "@/lib/api";
+import { toast } from "sonner";
+
+const DUMMY_USER_ID = "dummy-user-123";
 
 export function Sidebar({ className }: { className?: string }) {
-    const [projects] = useState(["Learn Go", "System Design", "React Roadmap"]);
+    const [projects, setProjects] = useState<Project[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
     const { currentProjectTitle, setProjectTitle } = useRoadmapStore();
+
+    const fetchProjects = async () => {
+        try {
+            const data = await getProjects();
+            setProjects(data);
+        } catch (error) {
+            console.error("Failed to fetch projects:", error);
+            toast.error("Failed to load projects");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchProjects();
+    }, []);
+
+    const handleCreateProject = async (title: string) => {
+        const newProject = await createProject(title, DUMMY_USER_ID);
+        setProjects((prev) => [newProject, ...prev]);
+        setProjectTitle(newProject.title);
+        toast.success("Project created successfully");
+    };
 
     return (
         <div className={cn("pb-4 w-64 border-r bg-background h-full flex flex-col", className)}>
@@ -25,7 +55,11 @@ export function Sidebar({ className }: { className?: string }) {
                         Projects
                     </h2>
                     <div className="space-y-1">
-                        <Button variant="secondary" className="w-full justify-start">
+                        <Button 
+                            variant="secondary" 
+                            className="w-full justify-start"
+                            onClick={() => setIsDialogOpen(true)}
+                        >
                             <Plus className="mr-2 h-4 w-4" />
                             New Project
                         </Button>
@@ -36,17 +70,27 @@ export function Sidebar({ className }: { className?: string }) {
                         Library
                     </h2>
                     <div className="space-y-1">
-                        {projects.map((project) => (
-                            <Button
-                                key={project}
-                                variant={currentProjectTitle === project ? "secondary" : "ghost"}
-                                className="w-full justify-start font-normal"
-                                onClick={() => setProjectTitle(project)}
-                            >
-                                <Folder className="mr-2 h-4 w-4" />
-                                {project}
-                            </Button>
-                        ))}
+                        {isLoading ? (
+                            <div className="flex items-center justify-center py-4">
+                                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                            </div>
+                        ) : projects.length === 0 ? (
+                            <p className="px-4 py-2 text-sm text-muted-foreground">
+                                No projects yet
+                            </p>
+                        ) : (
+                            projects.map((project) => (
+                                <Button
+                                    key={project.id}
+                                    variant={currentProjectTitle === project.title ? "secondary" : "ghost"}
+                                    className="w-full justify-start font-normal"
+                                    onClick={() => setProjectTitle(project.title)}
+                                >
+                                    <Folder className="mr-2 h-4 w-4" />
+                                    {project.title}
+                                </Button>
+                            ))
+                        )}
                     </div>
                 </div>
             </div>
@@ -102,6 +146,12 @@ export function Sidebar({ className }: { className?: string }) {
                     </div>
                 </div>
             </div>
+
+            <NewProjectDialog
+                open={isDialogOpen}
+                onOpenChange={setIsDialogOpen}
+                onCreateProject={handleCreateProject}
+            />
         </div>
     );
 }
