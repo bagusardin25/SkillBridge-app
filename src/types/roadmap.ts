@@ -1,11 +1,14 @@
 import type { Node, Edge } from "@xyflow/react";
 
+export type NodeCategory = "core" | "optional" | "advanced" | "project";
+
 // Node data structure following RoadmapResponse interface
 // Index signature required for React Flow compatibility
 export interface RoadmapNodeData extends Record<string, unknown> {
     label: string;
     description: string;
     resources: string[];
+    category?: NodeCategory;
 }
 
 export type RoadmapNode = Node<RoadmapNodeData>;
@@ -18,6 +21,7 @@ export interface RoadmapResponse {
         id: string;
         label: string;
         type: "default" | "input" | "output";
+        category?: NodeCategory;
         data: {
             description: string;
             resources: string[];
@@ -27,5 +31,6 @@ export interface RoadmapResponse {
         id: string;
         source: string;
         target: string;
+        edgeType?: "main" | "branch";
     }[];
 }

@@ -15,6 +15,14 @@ const shapeStyles = {
     roadmapCard: "rounded-lg border shadow-md",
 };
 
+// Category-based styling for roadmap.sh style
+const categoryStyles = {
+    core: "border-l-4 border-l-primary bg-card",
+    optional: "border-l-4 border-l-slate-400 bg-slate-50 dark:bg-slate-900/50",
+    advanced: "border-l-4 border-l-violet-500 bg-violet-50 dark:bg-violet-900/20",
+    project: "border-l-4 border-l-emerald-500 bg-emerald-50 dark:bg-emerald-900/20",
+};
+
 function CustomNodeComponent({ id, data, type, selected }: CustomNodeProps) {
     const { updateNodeData, setNodes, getNode } = useReactFlow();
     const [isEditing, setIsEditing] = useState(false);
@@ -22,6 +30,9 @@ function CustomNodeComponent({ id, data, type, selected }: CustomNodeProps) {
     const inputRef = useRef<HTMLInputElement>(null);
     const isDecision = type === "decision";
     const shapeClass = shapeStyles[type as keyof typeof shapeStyles] || shapeStyles.default;
+    const categoryClass = data.category 
+        ? categoryStyles[data.category as keyof typeof categoryStyles] || ""
+        : "";
 
     useEffect(() => {
         if (isEditing) {
@@ -95,8 +106,9 @@ function CustomNodeComponent({ id, data, type, selected }: CustomNodeProps) {
     return (
         <div
             className={`
-        px-4 py-3 bg-card text-card-foreground border-border
+        px-4 py-3 text-card-foreground border-border
         ${shapeClass}
+        ${categoryClass}
         ${selected ? "ring-2 ring-primary" : ""}
         h-full w-full
         transition-all duration-200

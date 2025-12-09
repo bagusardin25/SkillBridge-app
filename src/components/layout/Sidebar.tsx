@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Plus, Folder, MoreHorizontal, Settings, LogOut, User, Globe, CreditCard, Loader2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Plus, Folder, MoreHorizontal, Settings, LogOut, User, Globe, CreditCard, Loader2, Trash2, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
     DropdownMenu,
@@ -11,18 +12,47 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRoadmapStore } from "@/store/useRoadmapStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { NewProjectDialog } from "@/components/ui/NewProjectDialog";
-import { createProject, getProjects, type Project } from "@/lib/api";
+import { createProject, getProjects, deleteProject, updateProject, type Project } from "@/lib/api";
 import { toast } from "sonner";
 
 export function Sidebar({ className }: { className?: string }) {
     const [projects, setProjects] = useState<Project[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const { currentProjectTitle, setProjectTitle } = useRoadmapStore();
+    const [renameDialogOpen, setRenameDialogOpen] = useState(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+    const [newTitle, setNewTitle] = useState("");
+    const { 
+        currentProjectId,
+        setCurrentProject, 
+        setNodes, 
+        setEdges, 
+        clearRoadmap,
+        setCurrentRoadmapId
+    } = useRoadmapStore();
     const { user, logout } = useAuthStore();
     const navigate = useNavigate();
 
@@ -51,14 +81,90 @@ export function Sidebar({ className }: { className?: string }) {
         }
         const newProject = await createProject(title, user.id);
         setProjects((prev) => [newProject, ...prev]);
-        setProjectTitle(newProject.title);
+        
+        // Clear roadmap for new project and set as current
+        clearRoadmap();
+        setCurrentProject(newProject.id, newProject.title);
         toast.success("Project created successfully");
+    };
+
+    const handleSelectProject = (project: Project) => {
+        // Don't reload if already selected
+        if (project.id === currentProjectId) return;
+
+        // Load roadmap from project if exists
+        if (project.roadmaps && project.roadmaps.length > 0) {
+            const roadmap = project.roadmaps[0];
+            // roadmap.nodes and roadmap.edges are stored as JSON
+            const nodes = Array.isArray(roadmap.nodes) ? roadmap.nodes : [];
+            const edges = Array.isArray(roadmap.edges) ? roadmap.edges : [];
+            setNodes(nodes);
+            setEdges(edges);
+            setCurrentRoadmapId(roadmap.id); // Track roadmap ID for updates
+        } else {
+            // No roadmap yet - clear canvas
+            clearRoadmap();
+        }
+        
+        setCurrentProject(project.id, project.title);
     };
 
     const handleLogout = () => {
         logout();
         navigate("/login");
         toast.success("Logged out successfully");
+    };
+
+    const handleRenameClick = (project: Project, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setSelectedProject(project);
+        setNewTitle(project.title);
+        setRenameDialogOpen(true);
+    };
+
+    const handleDeleteClick = (project: Project, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setSelectedProject(project);
+        setDeleteDialogOpen(true);
+    };
+
+    const handleRename = async () => {
+        if (!selectedProject || !newTitle.trim()) return;
+        
+        try {
+            const updated = await updateProject(selectedProject.id, newTitle.trim());
+            setProjects(prev => prev.map(p => p.id === updated.id ? updated : p));
+            
+            // Update current project title if it's the one being renamed
+            if (currentProjectId === selectedProject.id) {
+                setCurrentProject(updated.id, updated.title);
+            }
+            
+            toast.success("Project renamed successfully");
+            setRenameDialogOpen(false);
+        } catch (error) {
+            toast.error("Failed to rename project");
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!selectedProject) return;
+        
+        try {
+            await deleteProject(selectedProject.id);
+            setProjects(prev => prev.filter(p => p.id !== selectedProject.id));
+            
+            // Clear canvas if deleting current project
+            if (currentProjectId === selectedProject.id) {
+                clearRoadmap();
+                setCurrentProject(null, "");
+            }
+            
+            toast.success("Project deleted successfully");
+            setDeleteDialogOpen(false);
+        } catch (error) {
+            toast.error("Failed to delete project");
+        }
     };
 
     const getInitials = (name: string | null, email: string) => {
@@ -110,15 +216,42 @@ export function Sidebar({ className }: { className?: string }) {
                             </p>
                         ) : (
                             projects.map((project) => (
-                                <Button
-                                    key={project.id}
-                                    variant={currentProjectTitle === project.title ? "secondary" : "ghost"}
-                                    className="w-full justify-start font-normal"
-                                    onClick={() => setProjectTitle(project.title)}
-                                >
-                                    <Folder className="mr-2 h-4 w-4" />
-                                    {project.title}
-                                </Button>
+                                <div key={project.id} className="group relative flex items-center">
+                                    <Button
+                                        variant={currentProjectId === project.id ? "secondary" : "ghost"}
+                                        className="w-full justify-start font-normal pr-8"
+                                        onClick={() => handleSelectProject(project)}
+                                    >
+                                        <Folder className="mr-2 h-4 w-4" />
+                                        <span className="truncate">{project.title}</span>
+                                    </Button>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="absolute right-0 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                <MoreHorizontal className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end" className="w-40">
+                                            <DropdownMenuItem onClick={(e) => handleRenameClick(project, e)}>
+                                                <Pencil className="mr-2 h-4 w-4" />
+                                                Rename
+                                            </DropdownMenuItem>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem 
+                                                className="text-destructive focus:text-destructive"
+                                                onClick={(e) => handleDeleteClick(project, e)}
+                                            >
+                                                <Trash2 className="mr-2 h-4 w-4" />
+                                                Delete
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </div>
                             ))
                         )}
                     </div>
@@ -187,6 +320,55 @@ export function Sidebar({ className }: { className?: string }) {
                 onOpenChange={setIsDialogOpen}
                 onCreateProject={handleCreateProject}
             />
+
+            {/* Rename Dialog */}
+            <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Rename Project</DialogTitle>
+                        <DialogDescription>
+                            Enter a new name for your project.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4">
+                        <Input
+                            value={newTitle}
+                            onChange={(e) => setNewTitle(e.target.value)}
+                            placeholder="Project name"
+                            onKeyDown={(e) => e.key === "Enter" && handleRename()}
+                        />
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setRenameDialogOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button onClick={handleRename} disabled={!newTitle.trim()}>
+                            Save
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Delete Confirmation Dialog */}
+            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Project</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Are you sure you want to delete "{selectedProject?.title}"? This action cannot be undone. All roadmaps in this project will also be deleted.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleDelete}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

@@ -1,7 +1,10 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import OpenAI from "openai";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+const MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 
 // Set to true to use mock responses (useful when API quota is exceeded)
 const USE_MOCK = process.env.USE_MOCK === "true";
@@ -12,6 +15,7 @@ export interface RoadmapResponse {
     id: string;
     label: string;
     type: "input" | "default" | "output";
+    category: "core" | "optional" | "advanced" | "project";
     data: {
       description: string;
       resources: string[];
@@ -21,19 +25,21 @@ export interface RoadmapResponse {
     id: string;
     source: string;
     target: string;
+    edgeType?: "main" | "branch";
   }[];
 }
 
-export const SYSTEM_PROMPT = `You are SkillBridge, an AI that creates structured learning roadmaps.
+export const SYSTEM_PROMPT = `You are SkillBridge, an AI that creates structured BRANCHING learning roadmaps similar to roadmap.sh style.
 
-When given a learning goal, generate a roadmap in this EXACT JSON format (no markdown, pure JSON only):
+Generate a roadmap with a MAIN PATH (core topics) and BRANCH NODES (optional/advanced topics) in this EXACT JSON format:
 {
   "title": "Roadmap Title",
   "nodes": [
     {
       "id": "1",
-      "label": "Step Name",
+      "label": "Topic Name",
       "type": "input|default|output",
+      "category": "core|optional|advanced|project",
       "data": {
         "description": "What to learn and why",
         "resources": ["https://resource1.com", "https://resource2.com"]
@@ -41,91 +47,137 @@ When given a learning goal, generate a roadmap in this EXACT JSON format (no mar
     }
   ],
   "edges": [
-    { "id": "e1-2", "source": "1", "target": "2" }
+    { "id": "e1-2", "source": "1", "target": "2", "edgeType": "main|branch" }
   ]
 }
 
-Rules:
-- First node should be type "input" (starting point)
-- Last node(s) should be type "output" (goal achieved)
-- Middle nodes are type "default"
-- Maximum 10-15 nodes for clarity
+STRUCTURE RULES:
+- Create a MAIN PATH with 6-8 "core" category nodes (vertical flow)
+- Add 4-6 BRANCH NODES with "optional" or "advanced" category that connect from core nodes
+- Branch nodes represent alternative paths, deeper dives, or optional skills
+
+NODE TYPES:
+- "input": Starting point (first node only)
+- "default": Middle nodes
+- "output": Goal/completion nodes
+
+CATEGORIES:
+- "core": Essential topics on the main learning path (REQUIRED)
+- "optional": Nice-to-have topics, alternatives (branches left/right)
+- "advanced": Deep-dive or advanced topics (branches)
+- "project": Hands-on project suggestions (branches)
+
+EDGE TYPES:
+- "main": Connects core nodes in the main path
+- "branch": Connects core nodes to optional/advanced branches
+
+EXAMPLE STRUCTURE:
+- Core: Basics → Fundamentals → Intermediate → Advanced → Goal
+- Branches: Each core node can have 1-2 optional/advanced branches
+
+IMPORTANT:
+- Return ONLY valid JSON, no markdown
 - Include real, verified learning resources
-- Order nodes from beginner to advanced
-- IMPORTANT: Return ONLY valid JSON, no markdown code blocks`;
+- Total 10-15 nodes maximum
+- Ensure logical learning progression`;
 
 export const CHAT_PROMPT = `You are SkillBridge, a helpful AI assistant for learning and skill development.
 You help users with questions about their learning journey, provide explanations, and give advice.
 Be concise, friendly, and helpful. Respond in the same language as the user's message.`;
 
 export async function generateRoadmap(prompt: string): Promise<RoadmapResponse> {
-  const result = await model.generateContent([
-    SYSTEM_PROMPT,
-    `Create a learning roadmap for: ${prompt}`,
-  ]);
+  // Mock mode - throw error instead of returning fake data
+  if (USE_MOCK) {
+    throw new Error("Mock mode is enabled. Please set USE_MOCK=false in server/.env");
+  }
 
-  const text = result.response.text();
+  try {
+    const response = await openai.chat.completions.create({
+      model: MODEL,
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user", content: `Create a learning roadmap for: ${prompt}` },
+      ],
+      response_format: { type: "json_object" },
+    });
 
-  // Clean up response - remove markdown code blocks if present
-  const cleanedText = text
-    .replace(/```json\n?/g, "")
-    .replace(/```\n?/g, "")
-    .trim();
+    const text = response.choices[0]?.message?.content || "";
 
-  return JSON.parse(cleanedText);
+    // Clean up response - remove markdown code blocks if present
+    const cleanedText = text
+      .replace(/```json\n?/g, "")
+      .replace(/```\n?/g, "")
+      .trim();
+
+    return JSON.parse(cleanedText);
+  } catch (error: any) {
+    console.error("Generate roadmap error:", error.message);
+
+    // Throw specific errors - NO fallback to mock data
+    if (error.status === 429 || error.message?.includes("rate_limit")) {
+      throw new Error("API rate limit exceeded. Please wait 1-2 minutes and try again.");
+    }
+
+    if (error.status === 400) {
+      throw new Error("Invalid request. Please try a different prompt.");
+    }
+
+    if (error.status === 401) {
+      throw new Error("API key is invalid. Please check your OpenAI API key.");
+    }
+
+    throw new Error(`Failed to generate roadmap: ${error.message}`);
+  }
 }
+
+
 
 export async function chatWithAI(
   message: string,
   context?: { role: string; content: string }[]
 ): Promise<string> {
-  // Mock mode for development when API quota is exceeded
+  // Mock mode - return error message
   if (USE_MOCK) {
-    console.log("[MOCK MODE] Returning mock response");
-    return getMockResponse(message);
+    throw new Error("Mock mode is enabled. Please set USE_MOCK=false in server/.env");
   }
 
   try {
-    const chatHistory = context
-      ?.map((msg) => `${msg.role}: ${msg.content}`)
-      .join("\n") || "";
+    const messages: { role: "system" | "user" | "assistant"; content: string }[] = [
+      { role: "system", content: CHAT_PROMPT },
+    ];
 
-    const fullPrompt = chatHistory
-      ? `${CHAT_PROMPT}\n\nPrevious conversation:\n${chatHistory}\n\nUser: ${message}`
-      : `${CHAT_PROMPT}\n\nUser: ${message}`;
+    // Add conversation history
+    if (context) {
+      for (const msg of context) {
+        messages.push({
+          role: msg.role === "user" ? "user" : "assistant",
+          content: msg.content,
+        });
+      }
+    }
 
-    const result = await model.generateContent(fullPrompt);
-    return result.response.text();
+    // Add current user message
+    messages.push({ role: "user", content: message });
+
+    const response = await openai.chat.completions.create({
+      model: MODEL,
+      messages,
+    });
+
+    return response.choices[0]?.message?.content || "";
   } catch (error: any) {
     console.error("AI Error:", error.message);
 
-    // If API fails, return helpful error with fallback
-    if (error.message?.includes("429") || error.message?.includes("quota")) {
-      return "⚠️ API quota exceeded. The Gemini API free tier limit has been reached. Please wait a minute or enable mock mode by setting USE_MOCK=true in your .env file.";
+    // Throw specific errors
+    if (error.status === 429 || error.message?.includes("rate_limit")) {
+      throw new Error("API rate limit exceeded. Please wait 1-2 minutes and try again.");
     }
 
-    if (error.message?.includes("404")) {
-      return "⚠️ Model not found. Please check the model name in ai.ts";
+    if (error.status === 404) {
+      throw new Error("Model not found. Please check the model configuration.");
     }
 
-    // Return mock response as fallback
-    console.log("[FALLBACK] API failed, returning mock response");
-    return getMockResponse(message);
+    throw new Error(`AI chat failed: ${error.message}`);
   }
-}
-
-// Mock responses for development
-function getMockResponse(message: string): string {
-  const lowerMsg = message.toLowerCase();
-
-  if (lowerMsg.includes("roadmap") || lowerMsg.includes("learn")) {
-    return "🎯 Great choice! To create a learning roadmap, I would typically:\n\n1. **Identify your current skill level**\n2. **Break down the topic into core concepts**\n3. **Create a structured learning path**\n4. **Recommend resources for each step**\n\n*Note: This is a mock response. Connect your Gemini API key with sufficient quota to get real AI-generated roadmaps!*";
-  }
-
-  if (lowerMsg.includes("hello") || lowerMsg.includes("hi") || lowerMsg.includes("halo")) {
-    return "👋 Hello! I'm SkillBridge AI Assistant. I can help you create learning roadmaps and answer questions about skill development.\n\n*Note: This is a mock response - the real AI is not connected yet.*";
-  }
-
-  return `📝 I received your message: "${message}"\n\nThis is a **mock response** for development purposes. To get real AI responses:\n\n1. Make sure your Gemini API key is valid\n2. Check that you haven't exceeded the free tier quota\n3. Wait a minute if you're rate limited\n\nThe app UI and backend are working correctly! 🎉`;
 }
 

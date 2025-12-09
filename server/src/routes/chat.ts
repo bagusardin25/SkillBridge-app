@@ -16,7 +16,8 @@ router.post("/", async (req, res) => {
     res.json({ reply });
   } catch (error) {
     console.error("Error in chat:", error);
-    res.status(500).json({ error: "Failed to process chat" });
+    const message = error instanceof Error ? error.message : "Failed to process chat";
+    res.status(500).json({ error: message });
   }
 });
 

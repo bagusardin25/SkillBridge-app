@@ -1,15 +1,20 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, Bot, Sparkles, Trash2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { generateRoadmap, createProject, extractTopicFromPrompt } from "@/lib/api";
+import { convertToReactFlowNodes, isRoadmapRequest } from "@/lib/layoutUtils";
+import { useRoadmapStore } from "@/store/useRoadmapStore";
+import { useAuthStore } from "@/store/useAuthStore";
 
 type Message = {
     id: string;
     role: "user" | "assistant";
     content: string;
+    isStreaming?: boolean;
 };
 
 const SUGGESTIONS = [
@@ -18,11 +23,57 @@ const SUGGESTIONS = [
     "How to learn Go from scratch?",
 ];
 
+const TYPING_SPEED = 15; // ms per character
+const THINKING_DELAY = 800; // ms before starting to type
+
+// Typewriter component for streaming messages
+function TypewriterText({ text, onComplete }: { text: string; onComplete?: () => void }) {
+    const [displayedText, setDisplayedText] = useState("");
+    
+    useEffect(() => {
+        let charIndex = 0;
+        setDisplayedText("");
+        
+        // Start typing after thinking delay
+        const delayTimer = setTimeout(() => {
+            const typeInterval = setInterval(() => {
+                if (charIndex < text.length) {
+                    setDisplayedText(text.slice(0, charIndex + 1));
+                    charIndex++;
+                } else {
+                    clearInterval(typeInterval);
+                    onComplete?.();
+                }
+            }, TYPING_SPEED);
+            
+            return () => clearInterval(typeInterval);
+        }, THINKING_DELAY);
+        
+        return () => clearTimeout(delayTimer);
+    }, [text, onComplete]);
+    
+    return <>{displayedText}<span className="animate-pulse">|</span></>;
+}
+
 export function ChatPanel() {
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputValue, setInputValue] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
+    const { setNodes, setEdges, setProjectTitle, currentProjectId, setCurrentRoadmapId, setCurrentProject } = useRoadmapStore();
+    const { user } = useAuthStore();
+    
+    // Mark streaming message as complete
+    const handleStreamingComplete = useCallback((messageId: string) => {
+        setMessages(prev => prev.map(msg => 
+            msg.id === messageId ? { ...msg, isStreaming: false } : msg
+        ));
+    }, []);
+
+    // Clear messages when project changes
+    useEffect(() => {
+        setMessages([]);
+    }, [currentProjectId]);
 
     // Auto-scroll to bottom when messages change
     useEffect(() => {
@@ -35,54 +86,96 @@ export function ChatPanel() {
         e?.preventDefault();
         if (!inputValue.trim()) return;
 
+        const userMessage = inputValue;
         const newUserMessage: Message = {
             id: Date.now().toString(),
             role: "user",
-            content: inputValue,
+            content: userMessage,
         };
 
         setMessages((prev) => [...prev, newUserMessage]);
         setInputValue("");
         setIsLoading(true);
 
-        // Call real AI API
         try {
-            const response = await fetch("http://localhost:3001/api/chat", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    message: inputValue,
-                    context: messages.map((m) => ({
-                        role: m.role,
-                        content: m.content,
-                    })),
-                }),
-            });
+            // Check if this is a roadmap generation request
+            if (isRoadmapRequest(userMessage)) {
+                let projectId = currentProjectId;
+                
+                // Auto-create project if none selected
+                if (!projectId && user?.id) {
+                    const projectTitle = extractTopicFromPrompt(userMessage);
+                    const newProject = await createProject(projectTitle, user.id);
+                    projectId = newProject.id;
+                    setCurrentProject(newProject.id, newProject.title);
+                }
+                
+                // Generate roadmap using AI (pass projectId to save to DB)
+                const roadmap = await generateRoadmap(userMessage, projectId || undefined);
+                const { nodes, edges } = convertToReactFlowNodes(roadmap);
+                
+                // Update the canvas
+                setNodes(nodes);
+                setEdges(edges);
+                setProjectTitle(roadmap.title);
+                
+                // Track roadmap ID for future updates
+                if (roadmap.id) {
+                    setCurrentRoadmapId(roadmap.id);
+                }
 
-            const data = await response.json();
-
-            if (response.ok) {
-                const newAiMessage: Message = {
-                    id: (Date.now() + 1).toString(),
+                // Show success message with streaming effect
+                const messageId = (Date.now() + 1).toString();
+                const successMessage: Message = {
+                    id: messageId,
                     role: "assistant",
-                    content: data.reply,
+                    content: `🎉 Roadmap "${roadmap.title}" berhasil dibuat!\n\nRoadmap ini memiliki ${nodes.length} langkah pembelajaran. Klik pada setiap node untuk melihat detail dan sumber belajar.\n\nAda yang ingin kamu tanyakan tentang roadmap ini?`,
+                    isStreaming: true,
                 };
-                setMessages((prev) => [...prev, newAiMessage]);
+                setMessages((prev) => [...prev, successMessage]);
             } else {
-                const errorMessage: Message = {
-                    id: (Date.now() + 1).toString(),
-                    role: "assistant",
-                    content: `Error: ${data.error || "Failed to get response"}`,
-                };
-                setMessages((prev) => [...prev, errorMessage]);
+                // Regular chat - call chat API
+                const response = await fetch("http://localhost:3001/api/chat", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        message: userMessage,
+                        context: messages.map((m) => ({
+                            role: m.role,
+                            content: m.content,
+                        })),
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    const messageId = (Date.now() + 1).toString();
+                    const newAiMessage: Message = {
+                        id: messageId,
+                        role: "assistant",
+                        content: data.reply,
+                        isStreaming: true,
+                    };
+                    setMessages((prev) => [...prev, newAiMessage]);
+                } else {
+                    const errorMessage: Message = {
+                        id: (Date.now() + 1).toString(),
+                        role: "assistant",
+                        content: `Error: ${data.error || "Failed to get response"}`,
+                    };
+                    setMessages((prev) => [...prev, errorMessage]);
+                }
             }
         } catch (error) {
             const errorMessage: Message = {
                 id: (Date.now() + 1).toString(),
                 role: "assistant",
-                content: "Failed to connect to server. Make sure the backend is running on port 3001.",
+                content: error instanceof Error 
+                    ? `Error: ${error.message}` 
+                    : "Failed to connect to server. Make sure the backend is running on port 3001.",
             };
             setMessages((prev) => [...prev, errorMessage]);
         } finally {
@@ -173,13 +266,20 @@ export function ChatPanel() {
                                 </Avatar>
                                 <div
                                     className={cn(
-                                        "rounded-lg p-3 text-sm shadow-sm",
+                                        "rounded-lg p-3 text-sm shadow-sm whitespace-pre-wrap",
                                         msg.role === "user"
                                             ? "bg-primary text-primary-foreground"
                                             : "bg-muted text-foreground"
                                     )}
                                 >
-                                    {msg.content}
+                                    {msg.isStreaming ? (
+                                        <TypewriterText 
+                                            text={msg.content} 
+                                            onComplete={() => handleStreamingComplete(msg.id)} 
+                                        />
+                                    ) : (
+                                        msg.content
+                                    )}
                                 </div>
                             </div>
                         ))

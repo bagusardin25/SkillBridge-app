@@ -11,7 +11,7 @@ import {
     MarkerType,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import type { DragEvent } from "react";
 import { useRoadmapStore, useTemporalStore } from "@/store/useRoadmapStore";
 import type { RoadmapNode } from "@/types/roadmap";
@@ -19,6 +19,7 @@ import { CustomNode } from "@/components/nodes/CustomNode";
 import { ImageNode } from "@/components/nodes/ImageNode";
 import { Button } from "@/components/ui/button";
 import { Sparkles, ArrowRight } from "lucide-react";
+import { updateRoadmap } from "@/lib/api";
 
 const nodeTypes = {
     default: CustomNode,
@@ -34,6 +35,8 @@ const nodeTypes = {
 let id = 100;
 const getId = () => `node_${id++}`;
 
+const AUTO_SAVE_DELAY = 2000; // 2 seconds debounce
+
 export function FlowCanvas() {
     const {
         nodes,
@@ -47,10 +50,45 @@ export function FlowCanvas() {
         setSelectedNodeIds,
         toggleAiPanel,
         isAiPanelOpen,
+        currentRoadmapId,
     } = useRoadmapStore();
 
     const { undo, redo } = useTemporalStore();
     const { screenToFlowPosition } = useReactFlow();
+    const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const isInitialMount = useRef(true);
+
+    // Auto-save roadmap when nodes or edges change
+    useEffect(() => {
+        // Skip initial mount and when no roadmap is loaded
+        if (isInitialMount.current) {
+            isInitialMount.current = false;
+            return;
+        }
+
+        if (!currentRoadmapId || nodes.length === 0) return;
+
+        // Clear previous timeout
+        if (saveTimeoutRef.current) {
+            clearTimeout(saveTimeoutRef.current);
+        }
+
+        // Debounced save
+        saveTimeoutRef.current = setTimeout(async () => {
+            try {
+                await updateRoadmap(currentRoadmapId, { nodes, edges });
+                console.log("Roadmap auto-saved");
+            } catch (error) {
+                console.error("Failed to auto-save roadmap:", error);
+            }
+        }, AUTO_SAVE_DELAY);
+
+        return () => {
+            if (saveTimeoutRef.current) {
+                clearTimeout(saveTimeoutRef.current);
+            }
+        };
+    }, [nodes, edges, currentRoadmapId]);
 
     const defaultEdgeOptions = useMemo(() => ({
         type: 'smoothstep',

@@ -32,7 +32,8 @@ router.post("/generate", async (req, res) => {
     res.json(roadmapData);
   } catch (error) {
     console.error("Error generating roadmap:", error);
-    res.status(500).json({ error: "Failed to generate roadmap" });
+    const message = error instanceof Error ? error.message : "Failed to generate roadmap";
+    res.status(500).json({ error: message });
   }
 });
 

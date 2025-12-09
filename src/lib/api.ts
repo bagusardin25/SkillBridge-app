@@ -140,3 +140,116 @@ export async function deleteProject(id: string): Promise<void> {
     throw new Error("Failed to delete project");
   }
 }
+
+export async function updateProject(id: string, title: string): Promise<Project> {
+  const res = await fetch(`${API_URL}/project/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title }),
+  });
+  
+  if (!res.ok) {
+    throw new Error("Failed to update project");
+  }
+  
+  return res.json();
+}
+
+// Roadmap Types
+export type NodeCategory = "core" | "optional" | "advanced" | "project";
+
+export interface RoadmapNode {
+  id: string;
+  label: string;
+  type: "input" | "default" | "output";
+  category?: NodeCategory;
+  data: {
+    description: string;
+    resources: string[];
+  };
+}
+
+export interface RoadmapEdge {
+  id: string;
+  source: string;
+  target: string;
+  edgeType?: "main" | "branch";
+}
+
+export interface GeneratedRoadmap {
+  id?: string;
+  title: string;
+  nodes: RoadmapNode[];
+  edges: RoadmapEdge[];
+}
+
+// Roadmap Functions
+export async function generateRoadmap(prompt: string, projectId?: string): Promise<GeneratedRoadmap> {
+  const res = await fetch(`${API_URL}/roadmap/generate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt, projectId }),
+  });
+
+  const data = await res.json();
+  
+  if (!res.ok) {
+    throw new Error(data.error || "Failed to generate roadmap");
+  }
+
+  return data;
+}
+
+export async function updateRoadmap(
+  id: string, 
+  data: { nodes?: unknown; edges?: unknown; title?: string }
+): Promise<GeneratedRoadmap> {
+  const res = await fetch(`${API_URL}/roadmap/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+
+  const responseData = await res.json();
+  
+  if (!res.ok) {
+    throw new Error(responseData.error || "Failed to update roadmap");
+  }
+
+  return responseData;
+}
+
+export async function getRoadmap(id: string): Promise<GeneratedRoadmap> {
+  const res = await fetch(`${API_URL}/roadmap/${id}`);
+
+  const data = await res.json();
+  
+  if (!res.ok) {
+    throw new Error(data.error || "Failed to get roadmap");
+  }
+
+  return data;
+}
+
+// Helper to extract topic from prompt for project naming
+export function extractTopicFromPrompt(prompt: string): string {
+  // Remove common phrases to get the topic
+  const cleaned = prompt
+    .toLowerCase()
+    .replace(/create|make|generate|build|buat|bikin/gi, "")
+    .replace(/roadmap|path|jalur/gi, "")
+    .replace(/for|to|learn|learning|belajar|untuk/gi, "")
+    .replace(/from scratch|dari awal|dasar/gi, "")
+    .replace(/how to|cara/gi, "")
+    .replace(/i want to|saya ingin|saya mau/gi, "")
+    .trim();
+  
+  // Capitalize first letter of each word
+  const topic = cleaned
+    .split(" ")
+    .filter(word => word.length > 0)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+  
+  return topic || "New Project";
+}

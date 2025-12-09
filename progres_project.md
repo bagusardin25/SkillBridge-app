@@ -1,20 +1,20 @@
 # SkillBridge - Progress Project
 
-> **Last Updated:** 9 Desember 2024
+> **Last Updated:** 9 Desember 2025
 
 ---
 
 ## 📊 Overall Progress
 
 ```
-[██████████░░░░░░░░░░░░░░░] 40%
+[████████████████░░░░░░░░░] 65%
 ```
 
 | Area | Progress |
 |------|----------|
 | Infrastructure & Auth | 100% ✅ |
-| AI Integration | 0% 🔴 |
-| Roadmap CRUD | 20% 🟡 |
+| AI Integration | 100% ✅ |
+| Roadmap CRUD | 50% 🟡 |
 | Advanced Auth | 0% ⚪ |
 
 ---
@@ -65,16 +65,17 @@
 
 ---
 
-## 🔴 BELUM SELESAI - Core Features
+## 🟡 SEBAGIAN SELESAI - Core Features
 
-### 1. AI Integration (PRIORITAS TINGGI!)
+### 1. AI Integration ✅
 | Fitur | Status | Deskripsi |
 |-------|--------|-----------|
-| AI Service (OpenAI/Gemini) | ❌ Belum | Service untuk call AI API |
-| `/api/roadmap/generate` | ❌ Belum | Generate roadmap dari prompt |
-| `/api/chat` | ❌ Belum | Chat follow-up dengan AI |
-| ChatPanel → Real API | ❌ Belum | Ganti mock dengan real call |
-| Prompt Engineering | ❌ Belum | System prompt untuk roadmap |
+| AI Service (Gemini) | ✅ Done | `server/src/services/ai.ts` |
+| `/api/roadmap/generate` | ✅ Done | Generate roadmap dari prompt |
+| `/api/chat` | ✅ Done | Chat follow-up dengan AI |
+| ChatPanel → Real API | ✅ Done | Terintegrasi dengan canvas |
+| Prompt Engineering | ✅ Done | System prompt untuk roadmap |
+| Auto-layout (Dagre) | ✅ Done | `src/lib/layoutUtils.ts` |
 
 ### 2. Roadmap Persistence
 | Fitur | Status | Deskripsi |
@@ -117,9 +118,9 @@
 - [x] Backend setup
 - [x] Auth system
 - [x] Project CRUD
-- [ ] **AI Roadmap Generation** ← NEXT
-- [ ] **Roadmap save/load**
-- [ ] **ChatPanel integration**
+- [x] **AI Roadmap Generation** ✅
+- [x] **ChatPanel integration** ✅
+- [ ] **Roadmap save/load** ← NEXT
 
 ### V1.1
 - [ ] Email verification

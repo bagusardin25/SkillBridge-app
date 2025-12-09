@@ -8,68 +8,6 @@ import {
 } from "@xyflow/react";
 import type { RoadmapNode, RoadmapEdge } from "@/types/roadmap";
 
-// Dummy data matching the RoadmapResponse schema
-const initialNodes: RoadmapNode[] = [
-    {
-        id: "1",
-        type: "input",
-        position: { x: 250, y: 0 },
-        data: {
-            label: "Learn Programming",
-            description: "Start your journey into software development",
-            resources: ["https://freecodecamp.org", "https://codecademy.com"],
-        },
-    },
-    {
-        id: "2",
-        type: "default",
-        position: { x: 100, y: 100 },
-        data: {
-            label: "HTML & CSS",
-            description: "Learn the building blocks of the web",
-            resources: ["https://developer.mozilla.org/en-US/docs/Web/HTML"],
-        },
-    },
-    {
-        id: "3",
-        type: "default",
-        position: { x: 400, y: 100 },
-        data: {
-            label: "JavaScript",
-            description: "Add interactivity to your websites",
-            resources: ["https://javascript.info"],
-        },
-    },
-    {
-        id: "4",
-        type: "default",
-        position: { x: 250, y: 200 },
-        data: {
-            label: "React",
-            description: "Build modern user interfaces",
-            resources: ["https://react.dev"],
-        },
-    },
-    {
-        id: "5",
-        type: "output",
-        position: { x: 250, y: 300 },
-        data: {
-            label: "Build Projects",
-            description: "Apply your knowledge by building real-world projects",
-            resources: ["https://github.com"],
-        },
-    },
-];
-
-const initialEdges: RoadmapEdge[] = [
-    { id: "e1-2", source: "1", target: "2" },
-    { id: "e1-3", source: "1", target: "3" },
-    { id: "e2-4", source: "2", target: "4" },
-    { id: "e3-4", source: "3", target: "4" },
-    { id: "e4-5", source: "4", target: "5" },
-];
-
 type InteractionMode = "select" | "pan";
 
 interface RoadmapStore {
@@ -81,12 +19,17 @@ interface RoadmapStore {
     isAiPanelOpen: boolean;
     isSidebarOpen: boolean;
     isDarkMode: boolean;
-    currentProjectTitle: string; // Add this
+    currentProjectId: string | null;
+    currentProjectTitle: string;
+    currentRoadmapId: string | null;
     onNodesChange: (changes: NodeChange<RoadmapNode>[]) => void;
     onEdgesChange: (changes: EdgeChange<RoadmapEdge>[]) => void;
     setNodes: (nodes: RoadmapNode[]) => void;
     setEdges: (edges: RoadmapEdge[]) => void;
-    setProjectTitle: (title: string) => void; // Add this
+    setProjectTitle: (title: string) => void;
+    setCurrentProject: (id: string | null, title: string) => void;
+    setCurrentRoadmapId: (id: string | null) => void;
+    clearRoadmap: () => void;
     addNode: (node: RoadmapNode) => void;
     deleteSelectedNodes: () => void;
     duplicateSelectedNodes: () => void;
@@ -102,15 +45,17 @@ interface RoadmapStore {
 export const useRoadmapStore = create<RoadmapStore>()(
     temporal(
         (set, get) => ({
-            nodes: initialNodes,
-            edges: initialEdges,
+            nodes: [],
+            edges: [],
             selectedNodeIds: [],
             interactionMode: "select" as InteractionMode,
             isEditMode: true,
             isAiPanelOpen: true,
             isSidebarOpen: true,
             isDarkMode: true,
-            currentProjectTitle: "Learn React", // Default value
+            currentProjectId: null,
+            currentProjectTitle: "",
+            currentRoadmapId: null,
 
             onNodesChange: (changes) => {
                 set({
@@ -134,6 +79,18 @@ export const useRoadmapStore = create<RoadmapStore>()(
             
             setProjectTitle: (title) => {
                 set({ currentProjectTitle: title });
+            },
+
+            setCurrentProject: (id, title) => {
+                set({ currentProjectId: id, currentProjectTitle: title });
+            },
+
+            setCurrentRoadmapId: (id) => {
+                set({ currentRoadmapId: id });
+            },
+
+            clearRoadmap: () => {
+                set({ nodes: [], edges: [], currentRoadmapId: null });
             },
 
             addNode: (node) => {
