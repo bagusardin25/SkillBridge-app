@@ -74,6 +74,21 @@ export function Sidebar({ className }: { className?: string }) {
         }
     }, [user?.id]);
 
+    // Auto-load roadmap on mount if there's a saved project
+    useEffect(() => {
+        if (!isLoading && projects.length > 0 && currentProjectId) {
+            const savedProject = projects.find(p => p.id === currentProjectId);
+            if (savedProject && savedProject.roadmaps && savedProject.roadmaps.length > 0) {
+                const roadmap = savedProject.roadmaps[0];
+                const nodes = Array.isArray(roadmap.nodes) ? roadmap.nodes : [];
+                const edges = Array.isArray(roadmap.edges) ? roadmap.edges : [];
+                setNodes(nodes);
+                setEdges(edges);
+                setCurrentRoadmapId(roadmap.id);
+            }
+        }
+    }, [isLoading, projects, currentProjectId]);
+
     const handleCreateProject = async (title: string) => {
         if (!user?.id) {
             toast.error("User not authenticated");

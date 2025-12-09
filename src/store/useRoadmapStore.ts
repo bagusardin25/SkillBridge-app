@@ -52,10 +52,18 @@ export const useRoadmapStore = create<RoadmapStore>()(
             isEditMode: true,
             isAiPanelOpen: true,
             isSidebarOpen: true,
-            isDarkMode: true,
-            currentProjectId: null,
-            currentProjectTitle: "",
-            currentRoadmapId: null,
+            isDarkMode: typeof window !== 'undefined' 
+                ? localStorage.getItem('theme') !== 'light' 
+                : true,
+            currentProjectId: typeof window !== 'undefined' 
+                ? localStorage.getItem('currentProjectId') 
+                : null,
+            currentProjectTitle: typeof window !== 'undefined' 
+                ? localStorage.getItem('currentProjectTitle') || ''
+                : '',
+            currentRoadmapId: typeof window !== 'undefined' 
+                ? localStorage.getItem('currentRoadmapId') 
+                : null,
 
             onNodesChange: (changes) => {
                 set({
@@ -83,14 +91,27 @@ export const useRoadmapStore = create<RoadmapStore>()(
 
             setCurrentProject: (id, title) => {
                 set({ currentProjectId: id, currentProjectTitle: title });
+                if (id) {
+                    localStorage.setItem('currentProjectId', id);
+                    localStorage.setItem('currentProjectTitle', title);
+                } else {
+                    localStorage.removeItem('currentProjectId');
+                    localStorage.removeItem('currentProjectTitle');
+                }
             },
 
             setCurrentRoadmapId: (id) => {
                 set({ currentRoadmapId: id });
+                if (id) {
+                    localStorage.setItem('currentRoadmapId', id);
+                } else {
+                    localStorage.removeItem('currentRoadmapId');
+                }
             },
 
             clearRoadmap: () => {
                 set({ nodes: [], edges: [], currentRoadmapId: null });
+                localStorage.removeItem('currentRoadmapId');
             },
 
             addNode: (node) => {
@@ -145,6 +166,7 @@ export const useRoadmapStore = create<RoadmapStore>()(
             toggleTheme: () => {
                 const newDarkMode = !get().isDarkMode;
                 set({ isDarkMode: newDarkMode });
+                localStorage.setItem('theme', newDarkMode ? 'dark' : 'light');
                 if (newDarkMode) {
                     document.documentElement.classList.add("dark");
                 } else {
