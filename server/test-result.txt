@@ -1,0 +1,14 @@
+﻿=== Testing Gemini API ===
+
+Testing: gemini-2.0-flash-exp ...
+FAILED - gemini-2.0-flash-exp - [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googl
+
+Testing: gemini-1.5-flash-latest ...
+NOT FOUND - gemini-1.5-flash-latest
+
+Testing: gemini-1.5-pro-latest ...
+NOT FOUND - gemini-1.5-pro-latest
+
+Testing: gemini-pro ...
+NOT FOUND - gemini-pro
+

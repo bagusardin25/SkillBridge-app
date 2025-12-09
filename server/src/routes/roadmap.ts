@@ -1,23 +1,35 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
+import { generateRoadmap } from "../services/ai.js";
 
 const router = Router();
 
-// POST /api/roadmap/generate - Generate roadmap from AI (Phase 2)
+// POST /api/roadmap/generate - Generate roadmap from AI
 router.post("/generate", async (req, res) => {
   try {
-    const { prompt } = req.body;
+    const { prompt, projectId } = req.body;
 
     if (!prompt) {
       return res.status(400).json({ error: "Prompt is required" });
     }
 
-    // TODO: Implement AI generation in Phase 2
-    // For now, return a placeholder response
-    res.json({
-      message: "AI generation will be implemented in Phase 2",
-      prompt,
-    });
+    // Generate roadmap using AI
+    const roadmapData = await generateRoadmap(prompt);
+
+    // If projectId provided, save to database
+    if (projectId) {
+      const savedRoadmap = await prisma.roadmap.create({
+        data: {
+          title: roadmapData.title,
+          projectId,
+          nodes: roadmapData.nodes,
+          edges: roadmapData.edges,
+        },
+      });
+      return res.json({ ...roadmapData, id: savedRoadmap.id });
+    }
+
+    res.json(roadmapData);
   } catch (error) {
     console.error("Error generating roadmap:", error);
     res.status(500).json({ error: "Failed to generate roadmap" });

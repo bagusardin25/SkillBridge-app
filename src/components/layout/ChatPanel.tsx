@@ -31,7 +31,7 @@ export function ChatPanel() {
         }
     }, [messages]);
 
-    const handleSendMessage = (e?: React.FormEvent) => {
+    const handleSendMessage = async (e?: React.FormEvent) => {
         e?.preventDefault();
         if (!inputValue.trim()) return;
 
@@ -45,16 +45,49 @@ export function ChatPanel() {
         setInputValue("");
         setIsLoading(true);
 
-        // Mock AI response for now
-        setTimeout(() => {
-            const newAiMessage: Message = {
+        // Call real AI API
+        try {
+            const response = await fetch("http://localhost:3001/api/chat", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    message: inputValue,
+                    context: messages.map((m) => ({
+                        role: m.role,
+                        content: m.content,
+                    })),
+                }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                const newAiMessage: Message = {
+                    id: (Date.now() + 1).toString(),
+                    role: "assistant",
+                    content: data.reply,
+                };
+                setMessages((prev) => [...prev, newAiMessage]);
+            } else {
+                const errorMessage: Message = {
+                    id: (Date.now() + 1).toString(),
+                    role: "assistant",
+                    content: `Error: ${data.error || "Failed to get response"}`,
+                };
+                setMessages((prev) => [...prev, errorMessage]);
+            }
+        } catch (error) {
+            const errorMessage: Message = {
                 id: (Date.now() + 1).toString(),
                 role: "assistant",
-                content: "I'm a demo AI. I can't generate real roadmaps yet, but I'm looking good! 🚀",
+                content: "Failed to connect to server. Make sure the backend is running on port 3001.",
             };
-            setMessages((prev) => [...prev, newAiMessage]);
+            setMessages((prev) => [...prev, errorMessage]);
+        } finally {
             setIsLoading(false);
-        }, 1500);
+        }
     };
 
     const handleSuggestionClick = (suggestion: string) => {
@@ -153,7 +186,7 @@ export function ChatPanel() {
                     )}
                     {isLoading && (
                         <div className="flex gap-3 max-w-[90%]">
-                             <Avatar className="h-8 w-8 border">
+                            <Avatar className="h-8 w-8 border">
                                 <AvatarFallback className="bg-primary/10 text-primary">AI</AvatarFallback>
                             </Avatar>
                             <div className="bg-muted rounded-lg p-3 flex items-center gap-1 h-10">

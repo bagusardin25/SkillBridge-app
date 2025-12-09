@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import roadmapRouter from "./routes/roadmap.js";
 import chatRouter from "./routes/chat.js";
+import projectRouter from "./routes/project.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -14,6 +15,7 @@ app.use(express.json());
 // Routes
 app.use("/api/roadmap", roadmapRouter);
 app.use("/api/chat", chatRouter);
+app.use("/api/project", projectRouter);
 
 // Health check
 app.get("/api/health", (_, res) => {
