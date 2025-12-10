@@ -15,6 +15,22 @@ export interface AuthResponse {
   token: string;
 }
 
+export interface RegisterResponse {
+  message: string;
+  user?: AuthUser;
+  token?: string;
+}
+
+export interface VerificationResponse {
+  message: string;
+}
+
+export interface LoginErrorResponse {
+  error: string;
+  requiresVerification?: boolean;
+  email?: string;
+}
+
 export interface LoginCredentials {
   email: string;
   password: string;
@@ -43,7 +59,7 @@ export async function loginUser(credentials: LoginCredentials): Promise<AuthResp
   return data;
 }
 
-export async function registerUser(credentials: RegisterCredentials): Promise<AuthResponse> {
+export async function registerUser(credentials: RegisterCredentials): Promise<RegisterResponse> {
   const res = await fetch(`${API_URL}/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -54,6 +70,66 @@ export async function registerUser(credentials: RegisterCredentials): Promise<Au
   
   if (!res.ok) {
     throw new Error(data.error || "Failed to register");
+  }
+
+  return data;
+}
+
+export async function verifyEmail(token: string): Promise<VerificationResponse> {
+  const res = await fetch(`${API_URL}/auth/verify-email/${token}`);
+  
+  const data = await res.json();
+  
+  if (!res.ok) {
+    throw new Error(data.error || "Failed to verify email");
+  }
+  
+  return data;
+}
+
+export async function resendVerification(email: string): Promise<VerificationResponse> {
+  const res = await fetch(`${API_URL}/auth/resend-verification`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+
+  const data = await res.json();
+  
+  if (!res.ok) {
+    throw new Error(data.error || "Failed to resend verification");
+  }
+
+  return data;
+}
+
+export async function forgotPassword(email: string): Promise<VerificationResponse> {
+  const res = await fetch(`${API_URL}/auth/forgot-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+
+  const data = await res.json();
+  
+  if (!res.ok) {
+    throw new Error(data.error || "Failed to process request");
+  }
+
+  return data;
+}
+
+export async function resetPassword(token: string, password: string): Promise<VerificationResponse> {
+  const res = await fetch(`${API_URL}/auth/reset-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token, password }),
+  });
+
+  const data = await res.json();
+  
+  if (!res.ok) {
+    throw new Error(data.error || "Failed to reset password");
   }
 
   return data;

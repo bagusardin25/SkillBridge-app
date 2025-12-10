@@ -17,11 +17,13 @@ interface RoadmapStore {
     interactionMode: InteractionMode;
     isEditMode: boolean;
     isAiPanelOpen: boolean;
+    isDetailPanelOpen: boolean;
     isSidebarOpen: boolean;
     isDarkMode: boolean;
     currentProjectId: string | null;
     currentProjectTitle: string;
     currentRoadmapId: string | null;
+    contextualChatTopic: string | null;
     onNodesChange: (changes: NodeChange<RoadmapNode>[]) => void;
     onEdgesChange: (changes: EdgeChange<RoadmapEdge>[]) => void;
     setNodes: (nodes: RoadmapNode[]) => void;
@@ -37,9 +39,14 @@ interface RoadmapStore {
     setInteractionMode: (mode: InteractionMode) => void;
     toggleEditMode: () => void;
     toggleAiPanel: () => void;
+    toggleDetailPanel: () => void;
+    openDetailPanel: () => void;
+    closeDetailPanel: () => void;
     toggleSidebar: () => void;
     toggleTheme: () => void;
     saveToLocalStorage: () => void;
+    setContextualChatTopic: (topic: string | null) => void;
+    askAiAboutTopic: (topic: string) => void;
 }
 
 export const useRoadmapStore = create<RoadmapStore>()(
@@ -51,7 +58,9 @@ export const useRoadmapStore = create<RoadmapStore>()(
             interactionMode: "select" as InteractionMode,
             isEditMode: true,
             isAiPanelOpen: true,
+            isDetailPanelOpen: false,
             isSidebarOpen: true,
+            contextualChatTopic: null,
             isDarkMode: typeof window !== 'undefined' 
                 ? localStorage.getItem('theme') !== 'light' 
                 : true,
@@ -157,6 +166,30 @@ export const useRoadmapStore = create<RoadmapStore>()(
 
             toggleAiPanel: () => {
                 set({ isAiPanelOpen: !get().isAiPanelOpen });
+            },
+
+            toggleDetailPanel: () => {
+                set({ isDetailPanelOpen: !get().isDetailPanelOpen });
+            },
+
+            openDetailPanel: () => {
+                set({ isDetailPanelOpen: true });
+            },
+
+            closeDetailPanel: () => {
+                set({ isDetailPanelOpen: false });
+            },
+
+            setContextualChatTopic: (topic) => {
+                set({ contextualChatTopic: topic });
+            },
+
+            askAiAboutTopic: (topic) => {
+                set({ 
+                    contextualChatTopic: topic,
+                    isDetailPanelOpen: false,
+                    isAiPanelOpen: true,
+                });
             },
 
             toggleSidebar: () => {

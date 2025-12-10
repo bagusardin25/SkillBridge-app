@@ -1,13 +1,13 @@
 # SkillBridge - Progress Project
 
-> **Last Updated:** 9 Desember 2025 (OpenAI + Branching Roadmap)
+> **Last Updated:** 10 Desember 2025 (Node Detail Panel & Contextual Chat)
 
 ---
 
 ## 📊 Overall Progress
 
 ```
-[███████████████████░░░░░░] 75%
+[█████████████████████░░░░] 85%
 ```
 
 | Area | Progress |
@@ -15,7 +15,8 @@
 | Infrastructure & Auth | 100% ✅ |
 | AI Integration | 100% ✅ |
 | Roadmap CRUD | 100% ✅ |
-| Advanced Auth | 0% ⚪ |
+| Node Detail & Contextual Chat | 100% ✅ |
+| Auth Enhancements | 0% ⚪ (Skipped) |
 
 ---
 
@@ -91,20 +92,32 @@
 | Auto-save | ✅ Done | FlowCanvas auto-save (2s debounce) |
 | Track roadmapId | ✅ Done | `currentRoadmapId` di store |
 
+### 3. Node Detail & Contextual Chat ✅
+| Fitur | Status | Deskripsi |
+|-------|--------|-----------|
+| Node Detail Panel | ✅ Done | Klik node → tampilkan detail di panel kanan |
+| Show Description | ✅ Done | Deskripsi lengkap di detail panel |
+| Show Resources | ✅ Done | Resources/sumber belajar ditampilkan |
+| Mark as Complete | ✅ Done | Toggle completion dari detail panel |
+| Contextual Chat | ✅ Done | "Ask AI about this topic" → auto-fill chat |
+| Category Badge | ✅ Done | Core/Optional/Advanced/Project badge |
+
 ---
 
 ## 🟡 BELUM SELESAI - Enhancements
 
-### Auth Enhancements (dari auth.md)
+### Auth Enhancements (dari auth.md) - SKIPPED
 | Fitur | Status | Target Version |
 |-------|--------|----------------|
-| Email Verification | ❌ Belum | V1.1 |
-| Password Reset | ❌ Belum | V1.1 |
+| Email Verification | ⏸️ Skipped | V1.1 |
+| Password Reset | ⏸️ Skipped | V1.1 |
 | Google OAuth | ❌ Belum | V1.2 |
 | GitHub OAuth | ❌ Belum | V1.2 |
 | Refresh Token | ❌ Belum | V2.0 |
 | Remember Me | ❌ Belum | V2.0 |
 | Device/Session Tracking | ❌ Belum | V3.0 |
+
+> **Note:** Kode untuk Email Verification & Password Reset sudah ada tapi dinonaktifkan. Bisa diaktifkan kembali kapan saja dengan mengkonfigurasi SMTP.
 
 ### SaaS Features
 | Fitur | Status | Target Version |
@@ -126,9 +139,9 @@
 - [x] **Roadmap save/load** ✅
 - [x] **Branching Roadmap (roadmap.sh style)** ✅
 
-### V1.1
-- [ ] Email verification
-- [ ] Password reset
+### V1.1 (Skipped)
+- [ ] Email verification (kode ada, dinonaktifkan)
+- [ ] Password reset (kode ada, dinonaktifkan)
 
 ### V1.2
 - [ ] Google OAuth

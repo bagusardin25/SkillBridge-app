@@ -60,8 +60,18 @@ export function ChatPanel() {
     const [inputValue, setInputValue] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
-    const { setNodes, setEdges, setProjectTitle, currentProjectId, setCurrentRoadmapId, setCurrentProject } = useRoadmapStore();
+    const { 
+        setNodes, 
+        setEdges, 
+        setProjectTitle, 
+        currentProjectId, 
+        setCurrentRoadmapId, 
+        setCurrentProject,
+        contextualChatTopic,
+        setContextualChatTopic,
+    } = useRoadmapStore();
     const { user } = useAuthStore();
+    const hasHandledTopic = useRef(false);
     
     // Mark streaming message as complete
     const handleStreamingComplete = useCallback((messageId: string) => {
@@ -74,6 +84,21 @@ export function ChatPanel() {
     useEffect(() => {
         setMessages([]);
     }, [currentProjectId]);
+
+    // Handle contextual chat topic from node detail panel
+    useEffect(() => {
+        if (contextualChatTopic && !hasHandledTopic.current) {
+            hasHandledTopic.current = true;
+            const prompt = `Jelaskan lebih detail tentang "${contextualChatTopic}" dalam konteks roadmap pembelajaran. Apa saja yang perlu dipelajari dan bagaimana cara memulainya?`;
+            setInputValue(prompt);
+            // Clear the topic after setting
+            setContextualChatTopic(null);
+            // Reset the flag after a short delay
+            setTimeout(() => {
+                hasHandledTopic.current = false;
+            }, 100);
+        }
+    }, [contextualChatTopic, setContextualChatTopic]);
 
     // Auto-scroll to bottom when messages change
     useEffect(() => {

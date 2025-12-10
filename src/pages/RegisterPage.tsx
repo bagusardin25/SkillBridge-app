@@ -38,9 +38,11 @@ export function RegisterPage() {
 
     try {
       const response = await registerUser({ email, password, name: name || undefined });
-      setAuth(response.user, response.token);
-      toast.success("Account created successfully!");
-      navigate("/");
+      if (response.user && response.token) {
+        setAuth(response.user, response.token);
+        toast.success("Account created successfully!");
+        navigate("/");
+      }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Registration failed");
     } finally {

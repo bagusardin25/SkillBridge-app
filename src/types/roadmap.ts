@@ -1,6 +1,7 @@
 import type { Node, Edge } from "@xyflow/react";
 
 export type NodeCategory = "core" | "optional" | "advanced" | "project";
+export type NodeStatus = "pending" | "done" | "in-progress" | "skipped";
 
 // Node data structure following RoadmapResponse interface
 // Index signature required for React Flow compatibility
@@ -10,6 +11,7 @@ export interface RoadmapNodeData extends Record<string, unknown> {
     resources: string[];
     category?: NodeCategory;
     isCompleted?: boolean;
+    status?: NodeStatus;
 }
 
 export type RoadmapNode = Node<RoadmapNodeData>;

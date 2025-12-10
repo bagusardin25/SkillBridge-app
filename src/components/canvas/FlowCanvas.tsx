@@ -51,6 +51,7 @@ export function FlowCanvas() {
         toggleAiPanel,
         isAiPanelOpen,
         currentRoadmapId,
+        openDetailPanel,
     } = useRoadmapStore();
 
     const { undo, redo } = useTemporalStore();
@@ -132,8 +133,12 @@ export function FlowCanvas() {
     const onSelectionChange = useCallback(
         ({ nodes: selectedNodes }: OnSelectionChangeParams) => {
             setSelectedNodeIds(selectedNodes.map((n) => n.id));
+            // Open detail panel when a single node is selected
+            if (selectedNodes.length === 1) {
+                openDetailPanel();
+            }
         },
-        [setSelectedNodeIds]
+        [setSelectedNodeIds, openDetailPanel]
     );
 
     const onDragOver = useCallback((event: DragEvent<HTMLDivElement>) => {

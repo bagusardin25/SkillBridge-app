@@ -4,6 +4,9 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { FlowCanvas } from "@/components/canvas/FlowCanvas";
 import { LoginPage } from "@/pages/LoginPage";
 import { RegisterPage } from "@/pages/RegisterPage";
+import { ForgotPasswordPage } from "@/pages/ForgotPasswordPage";
+import { ResetPasswordPage } from "@/pages/ResetPasswordPage";
+import { VerifyEmailPage } from "@/pages/VerifyEmailPage";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Toaster } from "sonner";
@@ -30,6 +33,22 @@ function App() {
           element={
             isAuthenticated ? <Navigate to="/" replace /> : <RegisterPage />
           }
+        />
+        <Route
+          path="/forgot-password"
+          element={
+            isAuthenticated ? <Navigate to="/" replace /> : <ForgotPasswordPage />
+          }
+        />
+        <Route
+          path="/reset-password/:token"
+          element={
+            isAuthenticated ? <Navigate to="/" replace /> : <ResetPasswordPage />
+          }
+        />
+        <Route
+          path="/verify-email/:token"
+          element={<VerifyEmailPage />}
         />
         <Route
           path="/"

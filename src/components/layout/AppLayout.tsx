@@ -1,13 +1,18 @@
 import React from "react";
 import { Sidebar } from "./Sidebar";
 import { ChatPanel } from "./ChatPanel";
+import { NodeDetailPanel } from "./NodeDetailPanel";
 import { Header } from "./Header";
 import { BottomToolbar } from "@/components/BottomToolbar";
 import { ReactFlowProvider } from "@xyflow/react";
 import { useRoadmapStore } from "@/store/useRoadmapStore";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
-    const { isAiPanelOpen, isSidebarOpen, isDarkMode } = useRoadmapStore();
+    const { isAiPanelOpen, isDetailPanelOpen, isSidebarOpen, isDarkMode, selectedNodeIds } = useRoadmapStore();
+    
+    // Show detail panel when a node is selected and detail panel is open
+    const showDetailPanel = isDetailPanelOpen && selectedNodeIds.length > 0;
+    const showChatPanel = isAiPanelOpen && !showDetailPanel;
 
     // Sync theme with store on mount
     React.useEffect(() => {
@@ -44,18 +49,24 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     <BottomToolbar />
                 </div>
 
-                {/* Right Chat Panel - Collapsible */}
-                <div
-                    className={`
-            border-l bg-background h-full
-            transition-all duration-300 ease-in-out
-            ${isAiPanelOpen ? "w-80 translate-x-0" : "w-0 translate-x-full border-l-0"}
-          `}
-                >
-                    <div className="w-80 h-full">
-                        <ChatPanel />
+                {/* Right Panel - Chat or Detail */}
+                {showDetailPanel ? (
+                    <div className="h-full transition-all duration-300 ease-in-out">
+                        <NodeDetailPanel />
                     </div>
-                </div>
+                ) : (
+                    <div
+                        className={`
+                            border-l bg-background h-full
+                            transition-all duration-300 ease-in-out
+                            ${showChatPanel ? "w-80 translate-x-0" : "w-0 translate-x-full border-l-0"}
+                        `}
+                    >
+                        <div className="w-80 h-full">
+                            <ChatPanel />
+                        </div>
+                    </div>
+                )}
             </div>
         </ReactFlowProvider>
     );
