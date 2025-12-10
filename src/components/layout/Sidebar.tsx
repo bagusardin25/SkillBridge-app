@@ -46,11 +46,11 @@ export function Sidebar({ className }: { className?: string }) {
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
     const [newTitle, setNewTitle] = useState("");
     const [newProjectId, setNewProjectId] = useState<string | null>(null);
-    const { 
+    const {
         currentProjectId,
-        setCurrentProject, 
-        setNodes, 
-        setEdges, 
+        setCurrentProject,
+        setNodes,
+        setEdges,
         clearRoadmap,
         setCurrentRoadmapId,
         setOnProjectCreated
@@ -95,7 +95,7 @@ export function Sidebar({ className }: { className?: string }) {
         }
         const newProject = await createProject(title, user.id);
         setProjects((prev) => [newProject, ...prev]);
-        
+
         // Clear roadmap for new project and set as current
         clearRoadmap();
         setCurrentProject(newProject.id, newProject.title);
@@ -119,7 +119,7 @@ export function Sidebar({ className }: { className?: string }) {
             // No roadmap yet - clear canvas
             clearRoadmap();
         }
-        
+
         setCurrentProject(project.id, project.title);
     };
 
@@ -144,16 +144,16 @@ export function Sidebar({ className }: { className?: string }) {
 
     const handleRename = async () => {
         if (!selectedProject || !newTitle.trim()) return;
-        
+
         try {
             const updated = await updateProject(selectedProject.id, newTitle.trim());
             setProjects(prev => prev.map(p => p.id === updated.id ? updated : p));
-            
+
             // Update current project title if it's the one being renamed
             if (currentProjectId === selectedProject.id) {
                 setCurrentProject(updated.id, updated.title);
             }
-            
+
             toast.success("Project renamed successfully");
             setRenameDialogOpen(false);
         } catch (error) {
@@ -163,17 +163,17 @@ export function Sidebar({ className }: { className?: string }) {
 
     const handleDelete = async () => {
         if (!selectedProject) return;
-        
+
         try {
             await deleteProject(selectedProject.id);
             setProjects(prev => prev.filter(p => p.id !== selectedProject.id));
-            
+
             // Clear canvas if deleting current project
             if (currentProjectId === selectedProject.id) {
                 clearRoadmap();
                 setCurrentProject(null, "");
             }
-            
+
             toast.success("Project deleted successfully");
             setDeleteDialogOpen(false);
         } catch (error) {
@@ -205,8 +205,8 @@ export function Sidebar({ className }: { className?: string }) {
                         Projects
                     </h2>
                     <div className="space-y-1">
-                        <Button 
-                            variant="secondary" 
+                        <Button
+                            variant="secondary"
                             className="w-full justify-start"
                             onClick={() => setIsDialogOpen(true)}
                         >
@@ -230,8 +230,8 @@ export function Sidebar({ className }: { className?: string }) {
                             </p>
                         ) : (
                             projects.map((project) => (
-                                <div 
-                                    key={project.id} 
+                                <div
+                                    key={project.id}
                                     className={cn(
                                         "group relative flex items-center",
                                         newProjectId === project.id && "animate-in fade-in slide-in-from-left-2 duration-300"
@@ -262,7 +262,7 @@ export function Sidebar({ className }: { className?: string }) {
                                                 Rename
                                             </DropdownMenuItem>
                                             <DropdownMenuSeparator />
-                                            <DropdownMenuItem 
+                                            <DropdownMenuItem
                                                 className="text-destructive focus:text-destructive"
                                                 onClick={(e) => handleDeleteClick(project, e)}
                                             >
@@ -304,7 +304,7 @@ export function Sidebar({ className }: { className?: string }) {
                                 <DropdownMenuContent align="end" className="w-56">
                                     <DropdownMenuLabel>My Account</DropdownMenuLabel>
                                     <DropdownMenuSeparator />
-                                    <DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => navigate("/profile")}>
                                         <User className="mr-2 h-4 w-4" />
                                         Profile
                                     </DropdownMenuItem>
@@ -321,7 +321,7 @@ export function Sidebar({ className }: { className?: string }) {
                                         <Globe className="mr-2 h-4 w-4" />
                                         Language
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem 
+                                    <DropdownMenuItem
                                         className="text-destructive focus:text-destructive"
                                         onClick={handleLogout}
                                     >

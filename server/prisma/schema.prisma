@@ -32,6 +32,12 @@ model User {
   verifyExpires   DateTime?
   resetToken      String?
   resetExpires    DateTime?
+  bio             String?
+  location        String?
+  jobRole         String?
+  xp              Int              @default(0)
+  level           Int              @default(1)
+  avatarUrl       String?
   projects        Project[]
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt

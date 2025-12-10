@@ -433,3 +433,89 @@ export async function getQuizResult(
 
   return data;
 }
+
+// Profile Types
+export interface UserProfile {
+  id: string;
+  email: string;
+  name: string | null;
+  role: string;
+  tier: string;
+  bio: string | null;
+  location: string | null;
+  jobRole: string | null;
+  xp: number;
+  level: number;
+  avatarUrl: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RoadmapStats {
+  id: string;
+  title: string;
+  totalNodes: number;
+  completedNodes: number;
+  progress: number;
+}
+
+export interface ProjectWithStats {
+  id: string;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+  roadmaps: RoadmapStats[];
+  totalNodes: number;
+  completedNodes: number;
+  overallProgress: number;
+}
+
+export interface ProfileStats {
+  totalProjects: number;
+  totalRoadmaps: number;
+  totalQuizzesPassed: number;
+  totalQuizzesTaken: number;
+}
+
+export interface ProfileResponse {
+  user: UserProfile;
+  projects: ProjectWithStats[];
+  stats: ProfileStats;
+}
+
+// Profile Functions
+export async function getProfile(userId: string): Promise<ProfileResponse> {
+  const res = await fetch(`${API_URL}/profile/${userId}`);
+
+  const data = await res.json();
+  
+  if (!res.ok) {
+    throw new Error(data.error || "Failed to get profile");
+  }
+
+  return data;
+}
+
+export interface UpdateProfileParams {
+  name?: string;
+  bio?: string;
+  location?: string;
+  jobRole?: string;
+  avatarUrl?: string;
+}
+
+export async function updateProfile(userId: string, params: UpdateProfileParams): Promise<UserProfile> {
+  const res = await fetch(`${API_URL}/profile/${userId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(params),
+  });
+
+  const data = await res.json();
+  
+  if (!res.ok) {
+    throw new Error(data.error || "Failed to update profile");
+  }
+
+  return data;
+}

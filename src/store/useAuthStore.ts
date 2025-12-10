@@ -7,6 +7,8 @@ export interface User {
   name: string | null;
   role: string;
   tier: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface AuthState {

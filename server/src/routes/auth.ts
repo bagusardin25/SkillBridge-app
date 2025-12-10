@@ -37,7 +37,7 @@ function generateJwtToken(userId: string, email: string): string {
   if (!secret) {
     throw new Error("JWT_SECRET is not defined");
   }
-  
+
   const expiresIn = process.env.JWT_EXPIRES_IN || "7d";
   return jwt.sign({ userId, email }, secret, { expiresIn } as jwt.SignOptions);
 }
@@ -46,11 +46,11 @@ function generateJwtToken(userId: string, email: string): string {
 router.post("/register", async (req, res) => {
   try {
     const validation = registerSchema.safeParse(req.body);
-    
+
     if (!validation.success) {
-      return res.status(400).json({ 
-        error: "Validation failed", 
-        details: validation.error.errors 
+      return res.status(400).json({
+        error: "Validation failed",
+        details: validation.error.errors
       });
     }
 
@@ -100,11 +100,11 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const validation = loginSchema.safeParse(req.body);
-    
+
     if (!validation.success) {
-      return res.status(400).json({ 
-        error: "Validation failed", 
-        details: validation.error.errors 
+      return res.status(400).json({
+        error: "Validation failed",
+        details: validation.error.errors
       });
     }
 
@@ -134,6 +134,8 @@ router.post("/login", async (req, res) => {
         name: user.name,
         role: user.role,
         tier: user.tier,
+        createdAt: user.createdAt.toISOString(),
+        updatedAt: user.updatedAt.toISOString(),
       },
       token,
     });
@@ -207,11 +209,11 @@ router.get("/verify-email/:token", async (req, res) => {
 router.post("/resend-verification", async (req, res) => {
   try {
     const validation = resendVerificationSchema.safeParse(req.body);
-    
+
     if (!validation.success) {
-      return res.status(400).json({ 
-        error: "Validation failed", 
-        details: validation.error.errors 
+      return res.status(400).json({
+        error: "Validation failed",
+        details: validation.error.errors
       });
     }
 
@@ -251,11 +253,11 @@ router.post("/resend-verification", async (req, res) => {
 router.post("/forgot-password", async (req, res) => {
   try {
     const validation = forgotPasswordSchema.safeParse(req.body);
-    
+
     if (!validation.success) {
-      return res.status(400).json({ 
-        error: "Validation failed", 
-        details: validation.error.errors 
+      return res.status(400).json({
+        error: "Validation failed",
+        details: validation.error.errors
       });
     }
 
@@ -291,11 +293,11 @@ router.post("/forgot-password", async (req, res) => {
 router.post("/reset-password", async (req, res) => {
   try {
     const validation = resetPasswordSchema.safeParse(req.body);
-    
+
     if (!validation.success) {
-      return res.status(400).json({ 
-        error: "Validation failed", 
-        details: validation.error.errors 
+      return res.status(400).json({
+        error: "Validation failed",
+        details: validation.error.errors
       });
     }
 

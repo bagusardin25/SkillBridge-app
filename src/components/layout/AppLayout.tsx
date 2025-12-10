@@ -6,10 +6,18 @@ import { Header } from "./Header";
 import { BottomToolbar } from "@/components/BottomToolbar";
 import { ReactFlowProvider } from "@xyflow/react";
 import { useRoadmapStore } from "@/store/useRoadmapStore";
+import { useLocation } from "react-router-dom";
+
+// Helper component to conditionally render toolbar
+function BottomToolbarWrapper() {
+    const location = useLocation();
+    if (location.pathname === "/profile") return null;
+    return <BottomToolbar />;
+}
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
     const { isAiPanelOpen, isDetailPanelOpen, isSidebarOpen, isDarkMode, selectedNodeIds } = useRoadmapStore();
-    
+
     // Show detail panel when a node is selected and detail panel is open
     const showDetailPanel = isDetailPanelOpen && selectedNodeIds.length > 0;
     const showChatPanel = isAiPanelOpen && !showDetailPanel;
@@ -45,8 +53,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     <main className="flex-1 overflow-hidden relative bg-muted/10">
                         {children}
                     </main>
-                    {/* Floating Bottom Toolbar */}
-                    <BottomToolbar />
+                    {/* Floating Bottom Toolbar - Hide on Profile Page based on path */}
+                    <BottomToolbarWrapper />
                 </div>
 
                 {/* Right Panel - Chat or Detail */}
