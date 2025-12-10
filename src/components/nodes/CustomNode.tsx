@@ -2,7 +2,7 @@ import { memo, useState, useRef, useEffect } from "react";
 import { Handle, Position, type NodeProps, type Node, NodeResizer, useReactFlow } from "@xyflow/react";
 import type { RoadmapNodeData } from "@/types/roadmap";
 import { Input } from "@/components/ui/input";
-import { CheckCircle2, Circle } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 
 type CustomNodeProps = NodeProps<Node<RoadmapNodeData>>;
 
@@ -34,14 +34,9 @@ function CustomNodeComponent({ id, data, type, selected }: CustomNodeProps) {
     const categoryClass = data.category 
         ? categoryStyles[data.category as keyof typeof categoryStyles] || ""
         : "";
-    const completedClass = data.isCompleted 
+    const completedClass = (data.isCompleted || data.quizPassed)
         ? "!border-l-emerald-500 !bg-emerald-50 dark:!bg-emerald-900/30 ring-1 ring-emerald-500/30" 
         : "";
-
-    const handleToggleComplete = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        updateNodeData(id, { isCompleted: !data.isCompleted });
-    };
 
     useEffect(() => {
         if (isEditing) {
@@ -126,26 +121,15 @@ function CustomNodeComponent({ id, data, type, selected }: CustomNodeProps) {
       `}
             onDoubleClick={handleDoubleClick}
         >
-            {/* Completed Toggle Button */}
-            <button
-                onClick={handleToggleComplete}
-                className={`
-                    absolute -top-2 -right-2 z-10
-                    p-0.5 rounded-full
-                    transition-all duration-200
-                    ${data.isCompleted 
-                        ? "text-emerald-500 bg-white dark:bg-gray-900 shadow-sm" 
-                        : "text-muted-foreground/50 hover:text-muted-foreground bg-white dark:bg-gray-900 opacity-0 group-hover:opacity-100 shadow-sm"
-                    }
-                `}
-                title={data.isCompleted ? "Mark as not learned" : "Mark as learned"}
-            >
-                {data.isCompleted ? (
+            {/* Completed Badge (shown when quiz passed) */}
+            {(data.isCompleted || data.quizPassed) && (
+                <div
+                    className="absolute -top-2 -right-2 z-10 p-0.5 rounded-full text-emerald-500 bg-white dark:bg-gray-900 shadow-sm"
+                    title="Quiz passed"
+                >
                     <CheckCircle2 className="h-5 w-5" />
-                ) : (
-                    <Circle className="h-5 w-5" />
-                )}
-            </button>
+                </div>
+            )}
             <NodeResizer
                 isVisible={selected}
                 minWidth={50}

@@ -1,13 +1,13 @@
 # SkillBridge - Progress Project
 
-> **Last Updated:** 10 Desember 2025 (Node Detail Panel & Contextual Chat)
+> **Last Updated:** 10 Desember 2025 (Mini Quiz System)
 
 ---
 
 ## 📊 Overall Progress
 
 ```
-[█████████████████████░░░░] 85%
+[██████████████████████░░░] 90%
 ```
 
 | Area | Progress |
@@ -16,6 +16,7 @@
 | AI Integration | 100% ✅ |
 | Roadmap CRUD | 100% ✅ |
 | Node Detail & Contextual Chat | 100% ✅ |
+| Mini Quiz System | 100% ✅ |
 | Auth Enhancements | 0% ⚪ (Skipped) |
 
 ---
@@ -98,9 +99,19 @@
 | Node Detail Panel | ✅ Done | Klik node → tampilkan detail di panel kanan |
 | Show Description | ✅ Done | Deskripsi lengkap di detail panel |
 | Show Resources | ✅ Done | Resources/sumber belajar ditampilkan |
-| Mark as Complete | ✅ Done | Toggle completion dari detail panel |
 | Contextual Chat | ✅ Done | "Ask AI about this topic" → auto-fill chat |
 | Category Badge | ✅ Done | Core/Optional/Advanced/Project badge |
+
+### 4. Mini Quiz System ✅
+| Fitur | Status | Deskripsi |
+|-------|--------|-----------|
+| Quiz Generation API | ✅ Done | `POST /api/quiz/generate` - AI generate 5 soal |
+| Quiz Panel UI | ✅ Done | Tab "Quiz" di Node Detail Panel |
+| Multiple Choice | ✅ Done | 4 pilihan per soal |
+| Auto Mark Complete | ✅ Done | Lulus quiz → node otomatis "Done" |
+| Retry Quiz | ✅ Done | Bisa retry jika gagal |
+| Explanation | ✅ Done | Penjelasan jawaban yang benar |
+| Remove Manual Done | ✅ Done | Hapus tombol checkbox manual |
 
 ---
 

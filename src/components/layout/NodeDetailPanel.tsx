@@ -1,46 +1,31 @@
-import { useEffect, useCallback } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-    DropdownMenuShortcut,
-} from "@/components/ui/dropdown-menu";
 import { useRoadmapStore } from "@/store/useRoadmapStore";
 import {
     X,
     ExternalLink,
     Sparkles,
-    ChevronDown,
-    Circle,
     CheckCircle2,
-    Timer,
-    XCircle,
+    Circle,
     Heart,
     Globe,
     BookOpen,
     Video,
     Rss,
-    MessageSquare
+    MessageSquare,
+    GraduationCap
 } from "lucide-react";
 import { useReactFlow } from "@xyflow/react";
-import type { RoadmapNodeData, NodeStatus } from "@/types/roadmap";
+import type { RoadmapNodeData } from "@/types/roadmap";
+import { QuizFullScreen } from "@/components/quiz/QuizFullScreen";
 
 const categoryLabels: Record<string, { label: string; color: string }> = {
     core: { label: "Core", color: "bg-primary text-primary-foreground" },
     optional: { label: "Optional", color: "bg-slate-500 text-white" },
     advanced: { label: "Advanced", color: "bg-violet-500 text-white" },
     project: { label: "Project", color: "bg-emerald-500 text-white" },
-};
-
-const statusConfig: Record<NodeStatus, { label: string; icon: typeof Circle; color: string; shortcut: string }> = {
-    pending: { label: "Pending", icon: Circle, color: "text-muted-foreground", shortcut: "" },
-    done: { label: "Done", icon: CheckCircle2, color: "text-emerald-500", shortcut: "D" },
-    "in-progress": { label: "In Progress", icon: Timer, color: "text-amber-500", shortcut: "L" },
-    skipped: { label: "Skip", icon: XCircle, color: "text-slate-400", shortcut: "S" },
 };
 
 // Detect resource type from URL
@@ -56,7 +41,6 @@ function getResourceType(url: string): { type: string; color: string; icon: type
     if (lowerUrl.includes("reddit") || lowerUrl.includes("feed") || lowerUrl.includes("forum") || lowerUrl.includes("community")) {
         return { type: "Feed", color: "bg-orange-500 text-white", icon: Rss };
     }
-    // Default to Article
     return { type: "Article", color: "bg-slate-700 text-white", icon: BookOpen };
 }
 
@@ -64,11 +48,8 @@ function getResourceType(url: string): { type: string; color: string; icon: type
 function getResourceName(url: string): string {
     try {
         const urlObj = new URL(url);
-        // Get pathname and clean it up
         let name = urlObj.pathname.split("/").filter(Boolean).pop() || urlObj.hostname;
-        // Replace dashes/underscores with spaces and capitalize
         name = name.replace(/[-_]/g, " ").replace(/\.(html|htm|php|aspx)$/i, "");
-        // Capitalize first letter of each word
         return name.split(" ").map(word =>
             word.charAt(0).toUpperCase() + word.slice(1)
         ).join(" ") || urlObj.hostname;
@@ -80,47 +61,22 @@ function getResourceName(url: string): string {
 export function NodeDetailPanel() {
     const { nodes, selectedNodeIds, closeDetailPanel, askAiAboutTopic } = useRoadmapStore();
     const { updateNodeData } = useReactFlow();
+    const [showQuiz, setShowQuiz] = useState(false);
 
     const selectedNode = nodes.find((n) => selectedNodeIds.includes(n.id));
     const data = selectedNode?.data as RoadmapNodeData | undefined;
-    const currentStatus: NodeStatus = data?.status || "pending";
 
-    // Handle status change
-    const handleStatusChange = useCallback((newStatus: NodeStatus) => {
+    // Handle quiz completion
+    const handleQuizComplete = () => {
         if (selectedNode) {
             updateNodeData(selectedNode.id, {
-                status: newStatus,
-                isCompleted: newStatus === "done"
+                quizPassed: true,
+                isCompleted: true,
+                status: "done"
             });
         }
-    }, [selectedNode, updateNodeData]);
-
-    // Keyboard shortcuts
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (!selectedNode) return;
-
-            // Don't trigger if user is typing in an input
-            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-                return;
-            }
-
-            switch (e.key.toLowerCase()) {
-                case "d":
-                    handleStatusChange("done");
-                    break;
-                case "l":
-                    handleStatusChange("in-progress");
-                    break;
-                case "s":
-                    handleStatusChange("skipped");
-                    break;
-            }
-        };
-
-        window.addEventListener("keydown", handleKeyDown);
-        return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [selectedNode, handleStatusChange]);
+        setShowQuiz(false);
+    };
 
     if (!selectedNode || !data) {
         return (
@@ -141,53 +97,38 @@ export function NodeDetailPanel() {
     }
 
     const category = categoryLabels[data.category || ""] || null;
-    const StatusIcon = statusConfig[currentStatus].icon;
+    const isCompleted = data.quizPassed || data.isCompleted;
 
     return (
         <div className="flex flex-col h-full border-l bg-background w-96 shadow-xl">
             <Tabs defaultValue="resources" className="flex-1 flex flex-col overflow-hidden">
-                {/* Header with Tabs and Status */}
+                {/* Header with Tabs and Status Badge */}
                 <div className="p-3 border-b bg-muted/10">
                     <div className="flex items-center justify-between gap-2">
                         <TabsList className="h-8 flex-1">
-                            <TabsTrigger value="resources" className="text-xs px-3 gap-1.5">
+                            <TabsTrigger value="resources" className="text-xs px-2 gap-1">
                                 <Heart className="h-3.5 w-3.5" />
                                 Resources
                             </TabsTrigger>
-                            <TabsTrigger value="ai-tutor" className="text-xs px-3 gap-1.5">
+                            <TabsTrigger value="ai-tutor" className="text-xs px-2 gap-1">
                                 <Sparkles className="h-3.5 w-3.5" />
                                 AI Tutor
                             </TabsTrigger>
                         </TabsList>
 
-                        {/* Status Dropdown */}
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
-                                    <StatusIcon className={`h-3.5 w-3.5 ${statusConfig[currentStatus].color}`} />
-                                    {statusConfig[currentStatus].label}
-                                    <ChevronDown className="h-3 w-3 opacity-50" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-40">
-                                {Object.entries(statusConfig).map(([key, config]) => {
-                                    const Icon = config.icon;
-                                    return (
-                                        <DropdownMenuItem
-                                            key={key}
-                                            onClick={() => handleStatusChange(key as NodeStatus)}
-                                            className="gap-2"
-                                        >
-                                            <Icon className={`h-4 w-4 ${config.color}`} />
-                                            {config.label}
-                                            {config.shortcut && (
-                                                <DropdownMenuShortcut>{config.shortcut}</DropdownMenuShortcut>
-                                            )}
-                                        </DropdownMenuItem>
-                                    );
-                                })}
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                        {/* Status Badge (read-only) */}
+                        <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${
+                            isCompleted 
+                                ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400" 
+                                : "bg-muted text-muted-foreground"
+                        }`}>
+                            {isCompleted ? (
+                                <CheckCircle2 className="h-3.5 w-3.5" />
+                            ) : (
+                                <Circle className="h-3.5 w-3.5" />
+                            )}
+                            {isCompleted ? "Done" : "Pending"}
+                        </div>
 
                         {/* Close Button */}
                         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={closeDetailPanel}>
@@ -264,6 +205,30 @@ export function NodeDetailPanel() {
                                     </div>
                                 </div>
                             )}
+
+                            {/* Quiz Button - Large and Prominent */}
+                            <div className="pt-4 border-t">
+                                {isCompleted ? (
+                                    <div className="flex items-center gap-3 p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                                        <div className="h-10 w-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center flex-shrink-0">
+                                            <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                                        </div>
+                                        <div>
+                                            <p className="font-medium text-emerald-700 dark:text-emerald-400">Quiz Completed!</p>
+                                            <p className="text-sm text-emerald-600 dark:text-emerald-500">You've mastered this topic.</p>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <Button 
+                                        onClick={() => setShowQuiz(true)}
+                                        className="w-full h-14 text-base bg-primary hover:bg-primary/90"
+                                        size="lg"
+                                    >
+                                        <GraduationCap className="h-5 w-5 mr-2" />
+                                        Take Quiz to Complete This Topic
+                                    </Button>
+                                )}
+                            </div>
                         </div>
                     </ScrollArea>
                 </TabsContent>
@@ -319,14 +284,16 @@ export function NodeDetailPanel() {
                 </TabsContent>
             </Tabs>
 
-            {/* Footer with keyboard hints */}
-            <div className="p-2 border-t bg-muted/10">
-                <p className="text-xs text-muted-foreground text-center">
-                    Press <kbd className="px-1 py-0.5 rounded bg-muted text-[10px] font-mono">D</kbd> Done ·
-                    <kbd className="px-1 py-0.5 rounded bg-muted text-[10px] font-mono ml-1">L</kbd> In Progress ·
-                    <kbd className="px-1 py-0.5 rounded bg-muted text-[10px] font-mono ml-1">S</kbd> Skip
-                </p>
-            </div>
+            {/* Quiz Full Screen Overlay */}
+            {showQuiz && selectedNode && (
+                <QuizFullScreen
+                    topic={data.label}
+                    description={data.description}
+                    nodeId={selectedNode.id}
+                    onComplete={handleQuizComplete}
+                    onClose={() => setShowQuiz(false)}
+                />
+            )}
         </div>
     );
 }

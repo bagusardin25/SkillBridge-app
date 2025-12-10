@@ -57,3 +57,19 @@ model Roadmap {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model QuizResult {
+  id             String   @id @default(cuid())
+  roadmapId      String
+  nodeId         String   // ID node di roadmap
+  userId         String
+  score          Int      // Jumlah benar (0-5)
+  totalQuestions Int      // Total soal (5)
+  passed         Boolean  // score >= 90%
+  answers        Json     // Array jawaban user
+  questions      Json     // Soal yang digenerate (untuk review)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([roadmapId, nodeId, userId])
+}

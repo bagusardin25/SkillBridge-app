@@ -330,3 +330,97 @@ export function extractTopicFromPrompt(prompt: string): string {
   
   return topic || "New Project";
 }
+
+// Quiz Types
+export interface QuizQuestion {
+  question: string;
+  options: string[];
+  correctIndex: number;
+  explanation: string;
+}
+
+export interface QuizResponse {
+  questions: QuizQuestion[];
+}
+
+// Quiz Functions
+export async function generateQuiz(topic: string, description?: string): Promise<QuizResponse> {
+  const res = await fetch(`${API_URL}/quiz/generate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ topic, description }),
+  });
+
+  const data = await res.json();
+  
+  if (!res.ok) {
+    throw new Error(data.error || "Failed to generate quiz");
+  }
+
+  return data;
+}
+
+export interface SubmitQuizParams {
+  roadmapId: string;
+  nodeId: string;
+  userId: string;
+  answers: number[];
+  questions: QuizQuestion[];
+}
+
+export interface QuizSubmitResult {
+  id: string;
+  score: number;
+  totalQuestions: number;
+  percentage: number;
+  passed: boolean;
+  message: string;
+}
+
+export async function submitQuiz(params: SubmitQuizParams): Promise<QuizSubmitResult> {
+  const res = await fetch(`${API_URL}/quiz/submit`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(params),
+  });
+
+  const data = await res.json();
+  
+  if (!res.ok) {
+    throw new Error(data.error || "Failed to submit quiz");
+  }
+
+  return data;
+}
+
+export interface QuizResultData {
+  id: string;
+  score: number;
+  totalQuestions: number;
+  percentage: number;
+  passed: boolean;
+  answers: number[];
+  questions: QuizQuestion[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function getQuizResult(
+  roadmapId: string, 
+  nodeId: string, 
+  userId: string
+): Promise<QuizResultData | null> {
+  const res = await fetch(`${API_URL}/quiz/result/${roadmapId}/${nodeId}/${userId}`);
+
+  if (res.status === 404) {
+    return null;
+  }
+
+  const data = await res.json();
+  
+  if (!res.ok) {
+    throw new Error(data.error || "Failed to get quiz result");
+  }
+
+  return data;
+}
