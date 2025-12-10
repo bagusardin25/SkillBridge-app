@@ -166,6 +166,7 @@ export interface RoadmapNode {
   data: {
     description: string;
     resources: string[];
+    isCompleted?: boolean;
   };
 }
 

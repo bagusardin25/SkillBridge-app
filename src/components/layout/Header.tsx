@@ -9,6 +9,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Progress } from "@/components/ui/progress";
 
 export function Header() {
     const {
@@ -18,8 +19,14 @@ export function Header() {
         isDarkMode,
         toggleTheme,
         saveToLocalStorage,
-        currentProjectTitle
+        currentProjectTitle,
+        nodes
     } = useRoadmapStore();
+
+    // Calculate progress
+    const totalNodes = nodes.length;
+    const completedNodes = nodes.filter(n => n.data?.isCompleted).length;
+    const progressPercentage = totalNodes > 0 ? Math.round((completedNodes / totalNodes) * 100) : 0;
 
     const handleSave = () => {
         saveToLocalStorage();
@@ -54,6 +61,21 @@ export function Header() {
                     <span className="text-muted-foreground hidden sm:inline-block">/</span>
                     <span className="font-bold text-foreground">{currentProjectTitle}</span>
                 </div>
+
+                {/* Progress Stats */}
+                {totalNodes > 0 && (
+                    <div className="hidden md:flex items-center gap-3 ml-4 pl-4 border-l">
+                        <div className="flex items-center gap-2">
+                            <Progress value={progressPercentage} className="w-24 h-2" />
+                            <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">
+                                {completedNodes}/{totalNodes}
+                            </span>
+                        </div>
+                        <span className={`text-xs font-bold ${progressPercentage === 100 ? 'text-emerald-500' : 'text-primary'}`}>
+                            {progressPercentage}%
+                        </span>
+                    </div>
+                )}
             </div>
 
             <div className="flex items-center gap-3">

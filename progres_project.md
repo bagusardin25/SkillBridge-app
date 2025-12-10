@@ -138,6 +138,9 @@
 - [ ] Refresh token
 - [ ] Rate limiting improvements
 - [ ] Performance optimization
+- [ ] Accomplishment Certificate Generator
+  - Generate PDF/PNG certificate saat roadmap 100%
+  - Includes: user name, roadmap title, completion date, jumlah topik
 
 ### V2.1
 - [ ] Subscription tiers

@@ -9,6 +9,7 @@ export interface RoadmapNodeData extends Record<string, unknown> {
     description: string;
     resources: string[];
     category?: NodeCategory;
+    isCompleted?: boolean;
 }
 
 export type RoadmapNode = Node<RoadmapNodeData>;
