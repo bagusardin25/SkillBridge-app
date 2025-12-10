@@ -5,7 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, Bot, Sparkles, Trash2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { generateRoadmap, createProject, extractTopicFromPrompt } from "@/lib/api";
+import { generateRoadmap, createProject, extractTopicFromPrompt, saveChatMessage } from "@/lib/api";
 import { convertToReactFlowNodes, isRoadmapRequest } from "@/lib/layoutUtils";
 import { useRoadmapStore } from "@/store/useRoadmapStore";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -69,9 +69,11 @@ export function ChatPanel() {
         setCurrentProject,
         contextualChatTopic,
         setContextualChatTopic,
+        onProjectCreated,
     } = useRoadmapStore();
     const { user } = useAuthStore();
     const hasHandledTopic = useRef(false);
+    const isCreatingProject = useRef(false);
     
     // Mark streaming message as complete
     const handleStreamingComplete = useCallback((messageId: string) => {
@@ -80,9 +82,41 @@ export function ChatPanel() {
         ));
     }, []);
 
-    // Clear messages when project changes
+    // Load chat history when project changes
     useEffect(() => {
-        setMessages([]);
+        // Skip loading if we just created a new project from chat
+        if (isCreatingProject.current) {
+            isCreatingProject.current = false;
+            return;
+        }
+
+        const loadChatHistory = async () => {
+            if (!currentProjectId) {
+                setMessages([]);
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:3001/api/chat/${currentProjectId}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    const loadedMessages: Message[] = data.messages.map((msg: { id: string; role: string; content: string }) => ({
+                        id: msg.id,
+                        role: msg.role as "user" | "assistant",
+                        content: msg.content,
+                        isStreaming: false,
+                    }));
+                    setMessages(loadedMessages);
+                } else {
+                    setMessages([]);
+                }
+            } catch (error) {
+                console.error("Failed to load chat history:", error);
+                setMessages([]);
+            }
+        };
+
+        loadChatHistory();
     }, [currentProjectId]);
 
     // Handle contextual chat topic from node detail panel
@@ -132,7 +166,15 @@ export function ChatPanel() {
                     const projectTitle = extractTopicFromPrompt(userMessage);
                     const newProject = await createProject(projectTitle, user.id);
                     projectId = newProject.id;
+                    isCreatingProject.current = true;
                     setCurrentProject(newProject.id, newProject.title);
+                    // Notify sidebar to refresh
+                    onProjectCreated?.(newProject.id);
+                }
+
+                // Save user message to DB
+                if (projectId) {
+                    saveChatMessage(projectId, "user", userMessage);
                 }
                 
                 // Generate roadmap using AI (pass projectId to save to DB)
@@ -151,15 +193,34 @@ export function ChatPanel() {
 
                 // Show success message with streaming effect
                 const messageId = (Date.now() + 1).toString();
+                const successMessageContent = `🎉 Roadmap "${roadmap.title}" berhasil dibuat!\n\nRoadmap ini memiliki ${nodes.length} langkah pembelajaran. Klik pada setiap node untuk melihat detail dan sumber belajar.\n\nAda yang ingin kamu tanyakan tentang roadmap ini?`;
                 const successMessage: Message = {
                     id: messageId,
                     role: "assistant",
-                    content: `🎉 Roadmap "${roadmap.title}" berhasil dibuat!\n\nRoadmap ini memiliki ${nodes.length} langkah pembelajaran. Klik pada setiap node untuk melihat detail dan sumber belajar.\n\nAda yang ingin kamu tanyakan tentang roadmap ini?`,
+                    content: successMessageContent,
                     isStreaming: true,
                 };
                 setMessages((prev) => [...prev, successMessage]);
+
+                // Save success message to DB
+                if (projectId) {
+                    saveChatMessage(projectId, "assistant", successMessageContent);
+                }
             } else {
                 // Regular chat - call chat API
+                let projectId = currentProjectId;
+
+                // Auto-create project if none selected
+                if (!projectId && user?.id) {
+                    const projectTitle = extractTopicFromPrompt(userMessage);
+                    const newProject = await createProject(projectTitle, user.id);
+                    projectId = newProject.id;
+                    isCreatingProject.current = true;
+                    setCurrentProject(newProject.id, newProject.title);
+                    // Notify sidebar to refresh
+                    onProjectCreated?.(newProject.id);
+                }
+
                 const response = await fetch("http://localhost:3001/api/chat", {
                     method: "POST",
                     headers: {
@@ -167,6 +228,7 @@ export function ChatPanel() {
                     },
                     body: JSON.stringify({
                         message: userMessage,
+                        projectId: projectId,
                         context: messages.map((m) => ({
                             role: m.role,
                             content: m.content,
@@ -214,8 +276,17 @@ export function ChatPanel() {
         // handleSendMessage();
     };
 
-    const clearChat = () => {
+    const clearChat = async () => {
         setMessages([]);
+        if (currentProjectId) {
+            try {
+                await fetch(`http://localhost:3001/api/chat/${currentProjectId}`, {
+                    method: "DELETE",
+                });
+            } catch (error) {
+                console.error("Failed to clear chat history:", error);
+            }
+        }
     };
 
     return (

@@ -308,27 +308,36 @@ export async function getRoadmap(id: string): Promise<GeneratedRoadmap> {
   return data;
 }
 
+// Save a single chat message to database
+export async function saveChatMessage(
+  projectId: string,
+  role: "user" | "assistant",
+  content: string
+): Promise<void> {
+  await fetch(`${API_URL}/chat/save`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ projectId, role, content }),
+  });
+}
+
 // Helper to extract topic from prompt for project naming
 export function extractTopicFromPrompt(prompt: string): string {
-  // Remove common phrases to get the topic
+  // Clean up and extract meaningful words
   const cleaned = prompt
-    .toLowerCase()
-    .replace(/create|make|generate|build|buat|bikin/gi, "")
-    .replace(/roadmap|path|jalur/gi, "")
-    .replace(/for|to|learn|learning|belajar|untuk/gi, "")
-    .replace(/from scratch|dari awal|dasar/gi, "")
-    .replace(/how to|cara/gi, "")
-    .replace(/i want to|saya ingin|saya mau/gi, "")
+    .replace(/[?!.,]/g, "")
+    .replace(/^(create|make|generate|build|buat|bikin|tolong|please|help|jelaskan|explain)\s+/gi, "")
+    .replace(/\s+(roadmap|path|jalur|untuk|for|about|tentang|dari|from|cara|how)\s+/gi, " ")
+    .replace(/\s+(saya|saya ingin|saya mau|i want|i need|gue|gw|aku)\s+/gi, " ")
     .trim();
   
-  // Capitalize first letter of each word
-  const topic = cleaned
-    .split(" ")
-    .filter(word => word.length > 0)
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
+  // Get important words, max 4
+  const words = cleaned.split(/\s+/).filter(w => w.length > 2);
+  const title = words.slice(0, 4).map(w => 
+    w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
+  ).join(" ");
   
-  return topic || "New Project";
+  return title || "New Chat";
 }
 
 // Quiz Types

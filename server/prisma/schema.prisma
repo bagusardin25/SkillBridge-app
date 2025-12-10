@@ -73,3 +73,13 @@ model QuizResult {
 
   @@unique([roadmapId, nodeId, userId])
 }
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  projectId String
+  role      String   // "user" atau "assistant"
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([projectId])
+}

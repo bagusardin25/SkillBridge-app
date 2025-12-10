@@ -24,6 +24,7 @@ interface RoadmapStore {
     currentProjectTitle: string;
     currentRoadmapId: string | null;
     contextualChatTopic: string | null;
+    onProjectCreated: ((projectId: string) => void) | null;
     onNodesChange: (changes: NodeChange<RoadmapNode>[]) => void;
     onEdgesChange: (changes: EdgeChange<RoadmapEdge>[]) => void;
     setNodes: (nodes: RoadmapNode[]) => void;
@@ -47,6 +48,7 @@ interface RoadmapStore {
     saveToLocalStorage: () => void;
     setContextualChatTopic: (topic: string | null) => void;
     askAiAboutTopic: (topic: string) => void;
+    setOnProjectCreated: (callback: ((projectId: string) => void) | null) => void;
 }
 
 export const useRoadmapStore = create<RoadmapStore>()(
@@ -64,15 +66,10 @@ export const useRoadmapStore = create<RoadmapStore>()(
             isDarkMode: typeof window !== 'undefined' 
                 ? localStorage.getItem('theme') !== 'light' 
                 : true,
-            currentProjectId: typeof window !== 'undefined' 
-                ? localStorage.getItem('currentProjectId') 
-                : null,
-            currentProjectTitle: typeof window !== 'undefined' 
-                ? localStorage.getItem('currentProjectTitle') || ''
-                : '',
-            currentRoadmapId: typeof window !== 'undefined' 
-                ? localStorage.getItem('currentRoadmapId') 
-                : null,
+            currentProjectId: null,
+            currentProjectTitle: '',
+            currentRoadmapId: null,
+            onProjectCreated: null,
 
             onNodesChange: (changes) => {
                 set({
@@ -212,6 +209,10 @@ export const useRoadmapStore = create<RoadmapStore>()(
                 localStorage.setItem("roadmap-nodes", JSON.stringify(nodes));
                 localStorage.setItem("roadmap-edges", JSON.stringify(edges));
                 console.log("Saved!");
+            },
+
+            setOnProjectCreated: (callback) => {
+                set({ onProjectCreated: callback });
             },
         }),
         {

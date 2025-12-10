@@ -45,13 +45,15 @@ export function Sidebar({ className }: { className?: string }) {
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
     const [newTitle, setNewTitle] = useState("");
+    const [newProjectId, setNewProjectId] = useState<string | null>(null);
     const { 
         currentProjectId,
         setCurrentProject, 
         setNodes, 
         setEdges, 
         clearRoadmap,
-        setCurrentRoadmapId
+        setCurrentRoadmapId,
+        setOnProjectCreated
     } = useRoadmapStore();
     const { user, logout } = useAuthStore();
     const navigate = useNavigate();
@@ -74,20 +76,17 @@ export function Sidebar({ className }: { className?: string }) {
         }
     }, [user?.id]);
 
-    // Auto-load roadmap on mount if there's a saved project
+    // Register refresh callback for when new project is created from chat
     useEffect(() => {
-        if (!isLoading && projects.length > 0 && currentProjectId) {
-            const savedProject = projects.find(p => p.id === currentProjectId);
-            if (savedProject && savedProject.roadmaps && savedProject.roadmaps.length > 0) {
-                const roadmap = savedProject.roadmaps[0];
-                const nodes = Array.isArray(roadmap.nodes) ? roadmap.nodes : [];
-                const edges = Array.isArray(roadmap.edges) ? roadmap.edges : [];
-                setNodes(nodes);
-                setEdges(edges);
-                setCurrentRoadmapId(roadmap.id);
-            }
-        }
-    }, [isLoading, projects, currentProjectId]);
+        setOnProjectCreated((projectId: string) => {
+            fetchProjects();
+            setNewProjectId(projectId);
+            setTimeout(() => setNewProjectId(null), 1000);
+        });
+        return () => {
+            setOnProjectCreated(null);
+        };
+    }, [setOnProjectCreated]);
 
     const handleCreateProject = async (title: string) => {
         if (!user?.id) {
@@ -231,7 +230,13 @@ export function Sidebar({ className }: { className?: string }) {
                             </p>
                         ) : (
                             projects.map((project) => (
-                                <div key={project.id} className="group relative flex items-center">
+                                <div 
+                                    key={project.id} 
+                                    className={cn(
+                                        "group relative flex items-center",
+                                        newProjectId === project.id && "animate-in fade-in slide-in-from-left-2 duration-300"
+                                    )}
+                                >
                                     <Button
                                         variant={currentProjectId === project.id ? "secondary" : "ghost"}
                                         className="w-full justify-start font-normal pr-8"

@@ -15,7 +15,8 @@ import {
     Video,
     Rss,
     MessageSquare,
-    GraduationCap
+    GraduationCap,
+    Lock
 } from "lucide-react";
 import { useReactFlow } from "@xyflow/react";
 import type { RoadmapNodeData } from "@/types/roadmap";
@@ -59,12 +60,26 @@ function getResourceName(url: string): string {
 }
 
 export function NodeDetailPanel() {
-    const { nodes, selectedNodeIds, closeDetailPanel, askAiAboutTopic } = useRoadmapStore();
+    const { nodes, edges, selectedNodeIds, closeDetailPanel, askAiAboutTopic } = useRoadmapStore();
     const { updateNodeData } = useReactFlow();
     const [showQuiz, setShowQuiz] = useState(false);
 
     const selectedNode = nodes.find((n) => selectedNodeIds.includes(n.id));
     const data = selectedNode?.data as RoadmapNodeData | undefined;
+
+    // Find prerequisite nodes (nodes that point to this node)
+    const prerequisiteNodes = selectedNode 
+        ? edges
+            .filter(e => e.target === selectedNode.id)
+            .map(e => nodes.find(n => n.id === e.source))
+            .filter((n): n is typeof nodes[0] => n !== undefined)
+        : [];
+    
+    // Check if all prerequisites are completed
+    const incompletePrerequisites = prerequisiteNodes.filter(
+        n => !(n.data as RoadmapNodeData)?.quizPassed
+    );
+    const allPrerequisitesPassed = incompletePrerequisites.length === 0;
 
     // Handle quiz completion
     const handleQuizComplete = () => {
@@ -217,6 +232,24 @@ export function NodeDetailPanel() {
                                             <p className="font-medium text-emerald-700 dark:text-emerald-400">Quiz Completed!</p>
                                             <p className="text-sm text-emerald-600 dark:text-emerald-500">You've mastered this topic.</p>
                                         </div>
+                                    </div>
+                                ) : !allPrerequisitesPassed ? (
+                                    <div className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <Lock className="h-5 w-5 text-amber-600" />
+                                            <p className="font-medium text-amber-700 dark:text-amber-400">Quiz Locked</p>
+                                        </div>
+                                        <p className="text-sm text-amber-600 dark:text-amber-500 mb-3">
+                                            Complete these topics first:
+                                        </p>
+                                        <ul className="space-y-1">
+                                            {incompletePrerequisites.map(node => (
+                                                <li key={node.id} className="text-sm text-amber-700 dark:text-amber-400 flex items-center gap-2">
+                                                    <Circle className="h-3 w-3" />
+                                                    {(node.data as RoadmapNodeData).label}
+                                                </li>
+                                            ))}
+                                        </ul>
                                     </div>
                                 ) : (
                                     <Button 
