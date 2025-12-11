@@ -93,6 +93,17 @@ export function NodeDetailPanel() {
         setShowQuiz(false);
     };
 
+    // Handle resource click - track visited resources
+    const handleResourceClick = (resource: string) => {
+        if (!selectedNode || !data) return;
+        const currentVisited = data.visitedResources || [];
+        if (!currentVisited.includes(resource)) {
+            updateNodeData(selectedNode.id, {
+                visitedResources: [...currentVisited, resource]
+            });
+        }
+    };
+
     if (!selectedNode || !data) {
         return (
             <div className="flex flex-col h-full border-l bg-background w-80">
@@ -190,6 +201,7 @@ export function NodeDetailPanel() {
                                             const resourceInfo = isUrl ? getResourceType(resource) : null;
                                             const ResourceIcon = resourceInfo?.icon || ExternalLink;
                                             const displayName = isUrl ? getResourceName(resource) : resource;
+                                            const isVisited = data.visitedResources?.includes(resource);
 
                                             return (
                                                 <div key={index} className="flex items-start gap-2">
@@ -203,10 +215,17 @@ export function NodeDetailPanel() {
                                                             href={resource}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
-                                                            className="text-sm text-primary hover:underline flex items-center gap-1"
+                                                            onClick={() => handleResourceClick(resource)}
+                                                            className={`text-sm hover:underline flex items-center gap-1 ${
+                                                                isVisited ? "text-muted-foreground" : "text-primary"
+                                                            }`}
                                                         >
                                                             {displayName}
-                                                            <ExternalLink className="h-3 w-3 opacity-50" />
+                                                            {isVisited ? (
+                                                                <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                                                            ) : (
+                                                                <ExternalLink className="h-3 w-3 opacity-50" />
+                                                            )}
                                                         </a>
                                                     ) : (
                                                         <span className="text-sm flex items-center gap-1">
@@ -221,47 +240,60 @@ export function NodeDetailPanel() {
                                 </div>
                             )}
 
-                            {/* Quiz Button - Large and Prominent */}
-                            <div className="pt-4 border-t">
-                                {isCompleted ? (
-                                    <div className="flex items-center gap-3 p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border border-emerald-200 dark:border-emerald-800">
-                                        <div className="h-10 w-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center flex-shrink-0">
-                                            <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                            {/* Quiz Button - Only for core and advanced nodes */}
+                            {(data.category === "core" || data.category === "advanced") && (
+                                <div className="pt-4 border-t">
+                                    {isCompleted ? (
+                                        <div className="flex items-center gap-3 p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                                            <div className="h-10 w-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center flex-shrink-0">
+                                                <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                                            </div>
+                                            <div>
+                                                <p className="font-medium text-emerald-700 dark:text-emerald-400">Quiz Completed!</p>
+                                                <p className="text-sm text-emerald-600 dark:text-emerald-500">You've mastered this topic.</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="font-medium text-emerald-700 dark:text-emerald-400">Quiz Completed!</p>
-                                            <p className="text-sm text-emerald-600 dark:text-emerald-500">You've mastered this topic.</p>
+                                    ) : !allPrerequisitesPassed ? (
+                                        <div className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <Lock className="h-5 w-5 text-amber-600" />
+                                                <p className="font-medium text-amber-700 dark:text-amber-400">Quiz Locked</p>
+                                            </div>
+                                            <p className="text-sm text-amber-600 dark:text-amber-500 mb-3">
+                                                Complete these topics first:
+                                            </p>
+                                            <ul className="space-y-1">
+                                                {incompletePrerequisites.map(node => (
+                                                    <li key={node.id} className="text-sm text-amber-700 dark:text-amber-400 flex items-center gap-2">
+                                                        <Circle className="h-3 w-3" />
+                                                        {(node.data as RoadmapNodeData).label}
+                                                    </li>
+                                                ))}
+                                            </ul>
                                         </div>
-                                    </div>
-                                ) : !allPrerequisitesPassed ? (
-                                    <div className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <Lock className="h-5 w-5 text-amber-600" />
-                                            <p className="font-medium text-amber-700 dark:text-amber-400">Quiz Locked</p>
-                                        </div>
-                                        <p className="text-sm text-amber-600 dark:text-amber-500 mb-3">
-                                            Complete these topics first:
+                                    ) : (
+                                        <Button 
+                                            onClick={() => setShowQuiz(true)}
+                                            className="w-full h-14 text-base bg-primary hover:bg-primary/90"
+                                            size="lg"
+                                        >
+                                            <GraduationCap className="h-5 w-5 mr-2" />
+                                            Take Quiz to Complete This Topic
+                                        </Button>
+                                    )}
+                                </div>
+                            )}
+                            
+                            {/* Info for optional/project nodes */}
+                            {(data.category === "optional" || data.category === "project") && (
+                                <div className="pt-4 border-t">
+                                    <div className="p-4 bg-muted/50 rounded-lg">
+                                        <p className="text-sm text-muted-foreground">
+                                            This is {data.category === "optional" ? "an optional" : "a project"} topic. No quiz required - explore at your own pace!
                                         </p>
-                                        <ul className="space-y-1">
-                                            {incompletePrerequisites.map(node => (
-                                                <li key={node.id} className="text-sm text-amber-700 dark:text-amber-400 flex items-center gap-2">
-                                                    <Circle className="h-3 w-3" />
-                                                    {(node.data as RoadmapNodeData).label}
-                                                </li>
-                                            ))}
-                                        </ul>
                                     </div>
-                                ) : (
-                                    <Button 
-                                        onClick={() => setShowQuiz(true)}
-                                        className="w-full h-14 text-base bg-primary hover:bg-primary/90"
-                                        size="lg"
-                                    >
-                                        <GraduationCap className="h-5 w-5 mr-2" />
-                                        Take Quiz to Complete This Topic
-                                    </Button>
-                                )}
-                            </div>
+                                </div>
+                            )}
                         </div>
                     </ScrollArea>
                 </TabsContent>

@@ -21,6 +21,7 @@ export interface RoadmapNodeData extends Record<string, unknown> {
     isCompleted?: boolean;
     status?: NodeStatus;
     quizPassed?: boolean;
+    visitedResources?: string[]; // Array of visited resource URLs
 }
 
 export type RoadmapNode = Node<RoadmapNodeData>;

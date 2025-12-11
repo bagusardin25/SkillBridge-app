@@ -214,13 +214,17 @@ export function FlowCanvas() {
                 elementsSelectable={isEditMode}
                 panOnDrag={interactionMode === "pan"}
                 selectionOnDrag={interactionMode === "select"}
+                panOnScroll={true}
+                zoomOnScroll={false}
                 nodeTypes={nodeTypes}
                 defaultEdgeOptions={defaultEdgeOptions}
                 deleteKeyCode={["Delete", "Backspace"]}
+                snapToGrid={isEditMode}
+                snapGrid={[20, 20]}
                 fitView
-                className="bg-background"
+                className={`bg-background ${interactionMode === "pan" ? "cursor-grab active:cursor-grabbing" : "cursor-default"}`}
             >
-                <Background variant={BackgroundVariant.Dots} gap={16} size={1} />
+                <Background variant={BackgroundVariant.Dots} gap={20} size={1} />
                 <Controls className="bg-background border-border" />
                 <MiniMap
                     position="bottom-right"

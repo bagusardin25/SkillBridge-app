@@ -48,12 +48,32 @@ export function BottomToolbar() {
     } = useRoadmapStore();
 
     const { undo, redo } = useTemporalStore();
-    const { zoomIn, zoomOut, fitView } = useReactFlow();
+    const { zoomIn, zoomOut, fitView, getViewport } = useReactFlow();
 
-    // Handle drag start for shape items
+    // Handle drag start for shape items (still support drag)
     const onDragStart = (event: DragEvent<HTMLButtonElement>, nodeType: string) => {
         event.dataTransfer.setData("application/reactflow", nodeType);
         event.dataTransfer.effectAllowed = "move";
+    };
+
+    // Handle single click to add node at center of viewport
+    const handleAddNode = (nodeType: string) => {
+        const viewport = getViewport();
+        // Calculate center of viewport in flow coordinates
+        const centerX = (-viewport.x + window.innerWidth / 2) / viewport.zoom;
+        const centerY = (-viewport.y + window.innerHeight / 2) / viewport.zoom;
+        
+        const newNode: RoadmapNode = {
+            id: getNodeId(),
+            type: nodeType,
+            position: { x: centerX - 75, y: centerY - 25 }, // Offset to center the node
+            data: {
+                label: `New ${nodeType === "default" ? "Topic" : nodeType === "decision" ? "Decision" : "Step"}`,
+                description: "",
+                resources: [],
+            },
+        };
+        addNode(newNode);
     };
 
     const handleAddImage = () => {
@@ -219,44 +239,47 @@ export function BottomToolbar() {
 
                     <div className="w-px h-6 bg-border/50 mx-1" />
 
-                    {/* Draggable Shapes */}
+                    {/* Shape Nodes - Click to add, or drag to place */}
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <button
+                                onClick={() => handleAddNode("default")}
                                 draggable
                                 onDragStart={(e) => onDragStart(e, "default")}
-                                className={`${toolButtonClass()} cursor-grab active:cursor-grabbing`}
+                                className={toolButtonClass()}
                             >
                                 <Square className="h-5 w-5" />
                             </button>
                         </TooltipTrigger>
-                        <TooltipContent>Rectangle Node</TooltipContent>
+                        <TooltipContent>Add Topic Node (click or drag)</TooltipContent>
                     </Tooltip>
 
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <button
+                                onClick={() => handleAddNode("decision")}
                                 draggable
                                 onDragStart={(e) => onDragStart(e, "decision")}
-                                className={`${toolButtonClass()} cursor-grab active:cursor-grabbing`}
+                                className={toolButtonClass()}
                             >
                                 <Diamond className="h-5 w-5" />
                             </button>
                         </TooltipTrigger>
-                        <TooltipContent>Decision Node</TooltipContent>
+                        <TooltipContent>Add Decision Node (click or drag)</TooltipContent>
                     </Tooltip>
 
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <button
+                                onClick={() => handleAddNode("start-end")}
                                 draggable
                                 onDragStart={(e) => onDragStart(e, "start-end")}
-                                className={`${toolButtonClass()} cursor-grab active:cursor-grabbing`}
+                                className={toolButtonClass()}
                             >
                                 <Circle className="h-5 w-5" />
                             </button>
                         </TooltipTrigger>
-                        <TooltipContent>Start/End Node</TooltipContent>
+                        <TooltipContent>Add Start/End Node (click or drag)</TooltipContent>
                     </Tooltip>
                 </div>
             </div>

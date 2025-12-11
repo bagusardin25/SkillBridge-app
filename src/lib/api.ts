@@ -375,6 +375,7 @@ export interface SubmitQuizParams {
   userId: string;
   answers: number[];
   questions: QuizQuestion[];
+  timeTaken?: number;
 }
 
 export interface QuizSubmitResult {
@@ -447,6 +448,10 @@ export interface UserProfile {
   xp: number;
   level: number;
   avatarUrl: string | null;
+  currentStreak: number;
+  longestStreak: number;
+  lastActiveDate: string | null;
+  totalLearningMinutes: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -515,6 +520,39 @@ export async function updateProfile(userId: string, params: UpdateProfileParams)
   
   if (!res.ok) {
     throw new Error(data.error || "Failed to update profile");
+  }
+
+  return data;
+}
+
+// Update user streak
+export async function updateStreak(userId: string): Promise<{ currentStreak: number; longestStreak: number; lastActiveDate: string }> {
+  const res = await fetch(`${API_URL}/profile/${userId}/update-streak`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+  });
+
+  const data = await res.json();
+  
+  if (!res.ok) {
+    throw new Error(data.error || "Failed to update streak");
+  }
+
+  return data;
+}
+
+// Add learning time
+export async function addLearningTime(userId: string, minutes: number): Promise<{ totalLearningMinutes: number }> {
+  const res = await fetch(`${API_URL}/profile/${userId}/add-learning-time`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ minutes }),
+  });
+
+  const data = await res.json();
+  
+  if (!res.ok) {
+    throw new Error(data.error || "Failed to add learning time");
   }
 
   return data;

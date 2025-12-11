@@ -38,6 +38,10 @@ model User {
   xp              Int              @default(0)
   level           Int              @default(1)
   avatarUrl       String?
+  currentStreak   Int              @default(0)
+  longestStreak   Int              @default(0)
+  lastActiveDate  DateTime?
+  totalLearningMinutes Int         @default(0)
   projects        Project[]
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
@@ -74,6 +78,7 @@ model QuizResult {
   passed         Boolean  // score >= 90%
   answers        Json     // Array jawaban user
   questions      Json     // Soal yang digenerate (untuk review)
+  timeTaken      Int?     // Waktu pengerjaan dalam detik
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -83,9 +88,10 @@ model QuizResult {
 model ChatMessage {
   id        String   @id @default(cuid())
   projectId String
+  nodeId    String?  // null untuk chat umum, filled untuk chat per node
   role      String   // "user" atau "assistant"
   content   String   @db.Text
   createdAt DateTime @default(now())
 
-  @@index([projectId])
+  @@index([projectId, nodeId])
 }

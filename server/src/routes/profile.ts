@@ -22,6 +22,10 @@ router.get("/:userId", async (req, res) => {
         xp: true,
         level: true,
         avatarUrl: true,
+        currentStreak: true,
+        longestStreak: true,
+        lastActiveDate: true,
+        totalLearningMinutes: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -131,6 +135,10 @@ router.put("/:userId", async (req, res) => {
         xp: true,
         level: true,
         avatarUrl: true,
+        currentStreak: true,
+        longestStreak: true,
+        lastActiveDate: true,
+        totalLearningMinutes: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -140,6 +148,111 @@ router.put("/:userId", async (req, res) => {
   } catch (error) {
     console.error("Error updating profile:", error);
     res.status(500).json({ error: "Failed to update profile" });
+  }
+});
+
+// POST /api/profile/:userId/update-streak - Update user streak
+router.post("/:userId/update-streak", async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        currentStreak: true,
+        longestStreak: true,
+        lastActiveDate: true,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let newStreak = user.currentStreak;
+    let newLongestStreak = user.longestStreak;
+
+    if (user.lastActiveDate) {
+      const lastActive = new Date(user.lastActiveDate);
+      lastActive.setHours(0, 0, 0, 0);
+
+      const diffDays = Math.floor((today.getTime() - lastActive.getTime()) / (1000 * 60 * 60 * 24));
+
+      if (diffDays === 0) {
+        // Same day, no change
+      } else if (diffDays === 1) {
+        // Consecutive day, increment streak
+        newStreak = user.currentStreak + 1;
+      } else {
+        // Streak broken, reset to 1
+        newStreak = 1;
+      }
+    } else {
+      // First activity
+      newStreak = 1;
+    }
+
+    // Update longest streak if current is higher
+    if (newStreak > newLongestStreak) {
+      newLongestStreak = newStreak;
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        currentStreak: newStreak,
+        longestStreak: newLongestStreak,
+        lastActiveDate: new Date(),
+      },
+      select: {
+        currentStreak: true,
+        longestStreak: true,
+        lastActiveDate: true,
+      },
+    });
+
+    res.json(updatedUser);
+  } catch (error) {
+    console.error("Error updating streak:", error);
+    res.status(500).json({ error: "Failed to update streak" });
+  }
+});
+
+// POST /api/profile/:userId/add-learning-time - Add learning minutes
+router.post("/:userId/add-learning-time", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { minutes } = req.body;
+
+    if (!minutes || typeof minutes !== "number") {
+      return res.status(400).json({ error: "Minutes is required" });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        totalLearningMinutes: user.totalLearningMinutes + minutes,
+      },
+      select: {
+        totalLearningMinutes: true,
+      },
+    });
+
+    res.json(updatedUser);
+  } catch (error) {
+    console.error("Error adding learning time:", error);
+    res.status(500).json({ error: "Failed to add learning time" });
   }
 });
 

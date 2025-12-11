@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { generateQuiz, submitQuiz, type QuizQuestion } from "@/lib/api";
 import { QuizQuestionCard } from "./QuizQuestion";
@@ -10,10 +10,18 @@ import {
   X, 
   Undo2,
   RotateCcw,
-  CheckCircle2
+  CheckCircle2,
+  Clock
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useRoadmapStore } from "@/store/useRoadmapStore";
+
+// Format seconds to MM:SS
+function formatTime(seconds: number): string {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
 
 interface QuizFullScreenProps {
   topic: string;
@@ -23,9 +31,11 @@ interface QuizFullScreenProps {
   onClose: () => void;
 }
 
-type QuizState = "loading" | "ready" | "submitting" | "completed" | "failed" | "error";
+type QuizState = "loading" | "ready" | "submitting" | "completed" | "failed" | "error" | "timeout";
 
 const PASSING_PERCENTAGE = 90;
+const QUIZ_TIME_LIMIT = 300; // 5 minutes in seconds
+const WARNING_TIME = 60; // Show warning when 1 minute left
 
 export function QuizFullScreen({ 
   topic, 
@@ -40,16 +50,17 @@ export function QuizFullScreen({
   const [answerHistory, setAnswerHistory] = useState<{index: number, value: number | null}[]>([]);
   const [quizState, setQuizState] = useState<QuizState>("loading");
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<{score: number; total: number; percentage: number} | null>(null);
+  const [result, setResult] = useState<{score: number; total: number; percentage: number; timeTaken?: number} | null>(null);
+  
+  // Timer state - countdown from 5 minutes
+  const [remainingTime, setRemainingTime] = useState(QUIZ_TIME_LIMIT);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const hasAutoSubmitted = useRef(false);
 
   const { user } = useAuthStore();
   const { currentRoadmapId } = useRoadmapStore();
 
-  // Load quiz on mount
-  useEffect(() => {
-    loadQuiz();
-  }, [topic]);
-
+  // Load quiz function
   const loadQuiz = async () => {
     setQuizState("loading");
     setError(null);
@@ -57,6 +68,14 @@ export function QuizFullScreen({
     setAnswers([]);
     setAnswerHistory([]);
     setResult(null);
+    
+    // Reset timer to 5 minutes
+    setRemainingTime(QUIZ_TIME_LIMIT);
+    hasAutoSubmitted.current = false;
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
 
     try {
       const response = await generateQuiz(topic, description);
@@ -68,6 +87,50 @@ export function QuizFullScreen({
       setQuizState("error");
     }
   };
+
+  // Timer effect - countdown from 5 minutes
+  useEffect(() => {
+    if (quizState === "ready" && !timerRef.current) {
+      timerRef.current = setInterval(() => {
+        setRemainingTime(prev => {
+          if (prev <= 1) {
+            // Time's up - will trigger auto-submit
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+
+    // Cleanup timer when quiz ends or unmounts
+    if (quizState === "completed" || quizState === "failed" || quizState === "error" || quizState === "timeout") {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    }
+
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, [quizState]);
+
+  // Auto-submit when time runs out
+  useEffect(() => {
+    if (remainingTime === 0 && quizState === "ready" && !hasAutoSubmitted.current) {
+      hasAutoSubmitted.current = true;
+      handleAutoSubmit();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [remainingTime, quizState]);
+
+  // Load quiz on mount
+  useEffect(() => {
+    loadQuiz();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [topic]);
 
   const handleAnswer = (answerIndex: number) => {
     // Save to history for undo
@@ -113,6 +176,9 @@ export function QuizFullScreen({
       return;
     }
 
+    // Calculate time taken (5 minutes - remaining time)
+    const timeTaken = QUIZ_TIME_LIMIT - remainingTime;
+
     setQuizState("submitting");
 
     try {
@@ -122,12 +188,14 @@ export function QuizFullScreen({
         userId: user.id,
         answers: answers as number[],
         questions,
+        timeTaken,
       });
 
       setResult({
         score: submitResult.score,
         total: submitResult.totalQuestions,
         percentage: submitResult.percentage,
+        timeTaken,
       });
 
       if (submitResult.passed) {
@@ -142,10 +210,54 @@ export function QuizFullScreen({
     }
   };
 
+  // Auto-submit when time runs out (submit with whatever answers exist)
+  const handleAutoSubmit = async () => {
+    if (!user?.id || !currentRoadmapId) {
+      setQuizState("timeout");
+      return;
+    }
+
+    // Fill unanswered questions with -1 (wrong answer)
+    const finalAnswers = answers.map(a => a === null ? -1 : a);
+    const timeTaken = QUIZ_TIME_LIMIT;
+
+    setQuizState("submitting");
+
+    try {
+      const submitResult = await submitQuiz({
+        roadmapId: currentRoadmapId,
+        nodeId,
+        userId: user.id,
+        answers: finalAnswers,
+        questions,
+        timeTaken,
+      });
+
+      setResult({
+        score: submitResult.score,
+        total: submitResult.totalQuestions,
+        percentage: submitResult.percentage,
+        timeTaken,
+      });
+
+      if (submitResult.passed) {
+        setQuizState("completed");
+        onComplete();
+      } else {
+        setQuizState("timeout");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to submit quiz");
+      setQuizState("error");
+    }
+  };
+
   const handleReset = () => {
     setCurrentIndex(0);
     setAnswers(new Array(questions.length).fill(null));
     setAnswerHistory([]);
+    setRemainingTime(QUIZ_TIME_LIMIT);
+    hasAutoSubmitted.current = false;
     setQuizState("ready");
     setResult(null);
   };
@@ -208,6 +320,12 @@ export function QuizFullScreen({
             <p className="text-sm text-muted-foreground mt-1">
               Score: {result.score}/{result.total} correct
             </p>
+            {result.timeTaken && (
+              <div className="flex items-center justify-center gap-1.5 text-sm text-muted-foreground mt-2">
+                <Clock className="h-4 w-4" />
+                <span>Completed in {formatTime(result.timeTaken)}</span>
+              </div>
+            )}
           </div>
           <p className="text-muted-foreground">
             This topic is now marked as complete. Great job!
@@ -239,6 +357,12 @@ export function QuizFullScreen({
               <p className="text-sm text-muted-foreground">
                 Score: {result.score}/{result.total} correct
               </p>
+              {result.timeTaken && (
+                <div className="flex items-center justify-center gap-1.5 text-sm text-muted-foreground mt-1">
+                  <Clock className="h-4 w-4" />
+                  <span>Time: {formatTime(result.timeTaken)}</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -297,6 +421,40 @@ export function QuizFullScreen({
     );
   }
 
+  // Timeout state - time ran out
+  if (quizState === "timeout" && result) {
+    return (
+      <div className="fixed inset-0 z-50 bg-background flex flex-col items-center justify-center p-8">
+        <div className="max-w-md w-full text-center space-y-6">
+          <div className="h-24 w-24 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto">
+            <Clock className="h-12 w-12 text-red-600" />
+          </div>
+          <div>
+            <h2 className="text-3xl font-bold text-red-600 mb-2">Time's Up!</h2>
+            <p className="text-lg text-muted-foreground">
+              You scored {result.percentage}% - Need {PASSING_PERCENTAGE}% to pass
+            </p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Score: {result.score}/{result.total} correct
+            </p>
+          </div>
+          <p className="text-muted-foreground">
+            Don't worry! You can try again with new questions.
+          </p>
+          <div className="flex gap-3">
+            <Button onClick={loadQuiz} size="lg" className="flex-1">
+              <RefreshCw className="h-5 w-5 mr-2" />
+              Try Again
+            </Button>
+            <Button onClick={onClose} variant="outline" size="lg">
+              Close
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Quiz in progress
   const currentQuestion = questions[currentIndex];
   const currentAnswer = answers[currentIndex];
@@ -316,7 +474,16 @@ export function QuizFullScreen({
               Question {currentIndex + 1} of {questions.length} • {answeredCount} answered
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            {/* Timer Display - Countdown */}
+            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md ${
+              remainingTime <= WARNING_TIME 
+                ? "bg-red-100 dark:bg-red-900/30 text-red-600" 
+                : "bg-muted text-muted-foreground"
+            }`}>
+              <Clock className={`h-4 w-4 ${remainingTime <= WARNING_TIME ? "animate-pulse" : ""}`} />
+              <span className="font-mono font-medium tabular-nums">{formatTime(remainingTime)}</span>
+            </div>
             <Button variant="ghost" size="sm" onClick={handleReset}>
               <RotateCcw className="h-4 w-4 mr-1" />
               Reset

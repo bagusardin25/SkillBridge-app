@@ -140,6 +140,7 @@ const submitQuizSchema = z.object({
     correctIndex: z.number(),
     explanation: z.string(),
   })),
+  timeTaken: z.number().optional(),
 });
 
 // POST /api/quiz/submit - Submit quiz and save result
@@ -154,7 +155,7 @@ router.post("/submit", async (req, res) => {
       });
     }
 
-    const { roadmapId, nodeId, userId, answers, questions } = validation.data;
+    const { roadmapId, nodeId, userId, answers, questions, timeTaken } = validation.data;
 
     // Calculate score
     let correctCount = 0;
@@ -183,6 +184,7 @@ router.post("/submit", async (req, res) => {
         passed,
         answers,
         questions,
+        timeTaken,
         updatedAt: new Date(),
       },
       create: {
@@ -194,6 +196,7 @@ router.post("/submit", async (req, res) => {
         passed,
         answers,
         questions,
+        timeTaken,
       },
     });
 

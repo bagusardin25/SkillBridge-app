@@ -35,10 +35,11 @@ import {
     Mail,
     Sparkles,
     Loader2,
-    Camera
+    Camera,
+    Flame
 } from "lucide-react";
 
-const XP_PER_LEVEL = 500;
+
 
 export function ProfilePage() {
     const navigate = useNavigate();
@@ -132,12 +133,6 @@ export function ProfilePage() {
     }
 
     const { user: profile, projects, stats } = profileData;
-    
-    // Calculate XP progress to next level
-    const xpForCurrentLevel = (profile.level - 1) * XP_PER_LEVEL;
-    const xpInCurrentLevel = profile.xp - xpForCurrentLevel;
-    const xpProgress = Math.min((xpInCurrentLevel / XP_PER_LEVEL) * 100, 100);
-    const xpToNextLevel = XP_PER_LEVEL - xpInCurrentLevel;
 
     return (
         <div className="fixed inset-0 z-50 bg-background overflow-y-auto animate-in fade-in duration-300">
@@ -214,31 +209,43 @@ export function ProfilePage() {
                 </Card>
 
                 {/* Stats Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
-                    {/* XP Card with Progress */}
-                    <Card className="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border-yellow-500/20 hover:border-yellow-500/40 transition-colors">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
+                    {/* Streak Card */}
+                    <Card className="bg-gradient-to-br from-orange-500/10 to-red-500/10 border-orange-500/20 hover:border-orange-500/40 transition-colors">
                         <CardContent className="p-4">
-                            <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                    <div className="h-8 w-8 rounded-full bg-yellow-500/20 flex items-center justify-center">
-                                        <Trophy className="w-4 h-4 text-yellow-500" />
+                                    <div className="h-8 w-8 rounded-full bg-orange-500/20 flex items-center justify-center">
+                                        <Flame className="w-4 h-4 text-orange-500" />
                                     </div>
-                                    <span className="text-sm font-medium text-muted-foreground">Total XP</span>
+                                    <span className="text-sm font-medium text-muted-foreground">Streak</span>
                                 </div>
-                                <span className="text-2xl font-bold">{profile.xp.toLocaleString()}</span>
+                                <span className="text-2xl font-bold">{profile.currentStreak}</span>
                             </div>
-                            <div className="space-y-1">
-                                <div className="flex justify-between text-xs text-muted-foreground">
-                                    <span>Progress to Level {profile.level + 1}</span>
-                                    <span>{xpToNextLevel} XP left</span>
+                            <p className="text-xs text-muted-foreground mt-3">
+                                {profile.currentStreak === 0 ? "Start learning today!" :
+                                 profile.currentStreak === profile.longestStreak ? "Personal best!" :
+                                 `Best: ${profile.longestStreak} days`}
+                            </p>
+                        </CardContent>
+                    </Card>
+
+                    {/* Learning Hours Card */}
+                    <Card className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-purple-500/20 hover:border-purple-500/40 transition-colors">
+                        <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <div className="h-8 w-8 rounded-full bg-purple-500/20 flex items-center justify-center">
+                                        <Clock className="w-4 h-4 text-purple-500" />
+                                    </div>
+                                    <span className="text-sm font-medium text-muted-foreground">Hours</span>
                                 </div>
-                                <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
-                                    <div
-                                        className="h-full bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full transition-all duration-500"
-                                        style={{ width: `${xpProgress}%` }}
-                                    ></div>
-                                </div>
+                                <span className="text-2xl font-bold">{Math.floor(profile.totalLearningMinutes / 60)}</span>
                             </div>
+                            <p className="text-xs text-muted-foreground mt-3">
+                                {profile.totalLearningMinutes === 0 ? "Start your journey!" :
+                                 `${profile.totalLearningMinutes % 60}m more this session`}
+                            </p>
                         </CardContent>
                     </Card>
 
@@ -255,9 +262,7 @@ export function ProfilePage() {
                                 <span className="text-2xl font-bold">{profile.level}</span>
                             </div>
                             <p className="text-xs text-muted-foreground mt-3">
-                                {profile.level < 5 ? "Keep learning to level up!" : 
-                                 profile.level < 10 ? "You're making great progress!" : 
-                                 "You're a learning champion!"}
+                                {profile.xp.toLocaleString()} XP total
                             </p>
                         </CardContent>
                     </Card>
@@ -270,14 +275,14 @@ export function ProfilePage() {
                                     <div className="h-8 w-8 rounded-full bg-green-500/20 flex items-center justify-center">
                                         <CheckCircle2 className="w-4 h-4 text-green-500" />
                                     </div>
-                                    <span className="text-sm font-medium text-muted-foreground">Quizzes Passed</span>
+                                    <span className="text-sm font-medium text-muted-foreground">Quizzes</span>
                                 </div>
                                 <span className="text-2xl font-bold">{stats.totalQuizzesPassed}</span>
                             </div>
                             <p className="text-xs text-muted-foreground mt-3">
                                 {stats.totalQuizzesTaken > 0 
                                     ? `${Math.round((stats.totalQuizzesPassed / stats.totalQuizzesTaken) * 100)}% pass rate`
-                                    : "Complete quizzes to track progress"}
+                                    : "Complete quizzes to track"}
                             </p>
                         </CardContent>
                     </Card>

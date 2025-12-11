@@ -23,9 +23,9 @@ export function Header() {
         nodes
     } = useRoadmapStore();
 
-    // Calculate progress
+    // Calculate progress - count both isCompleted and quizPassed nodes
     const totalNodes = nodes.length;
-    const completedNodes = nodes.filter(n => n.data?.isCompleted).length;
+    const completedNodes = nodes.filter(n => n.data?.isCompleted || n.data?.quizPassed).length;
     const progressPercentage = totalNodes > 0 ? Math.round((completedNodes / totalNodes) * 100) : 0;
 
     const handleSave = () => {
