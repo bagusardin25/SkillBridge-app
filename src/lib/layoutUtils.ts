@@ -6,6 +6,90 @@ const NODE_WIDTH = 200;
 const NODE_HEIGHT = 80;
 const BRANCH_OFFSET_X = 280; // Horizontal offset for branch nodes
 
+// Topological sort to calculate step numbers
+function calculateStepNumbers(
+  nodes: ApiNode[],
+  edges: { source: string; target: string }[]
+): Map<string, { stepNumber: number; isStartNode: boolean }> {
+  const result = new Map<string, { stepNumber: number; isStartNode: boolean }>();
+  
+  // Build adjacency list and in-degree count
+  const inDegree = new Map<string, number>();
+  const adjList = new Map<string, string[]>();
+  
+  // Initialize
+  nodes.forEach(node => {
+    inDegree.set(node.id, 0);
+    adjList.set(node.id, []);
+  });
+  
+  // Count incoming edges
+  edges.forEach(edge => {
+    const currentInDegree = inDegree.get(edge.target) || 0;
+    inDegree.set(edge.target, currentInDegree + 1);
+    
+    const neighbors = adjList.get(edge.source) || [];
+    neighbors.push(edge.target);
+    adjList.set(edge.source, neighbors);
+  });
+  
+  // Find start nodes (nodes with no incoming edges) - only for core nodes
+  const coreNodes = nodes.filter(n => !n.category || n.category === "core");
+  const startNodes = coreNodes.filter(node => (inDegree.get(node.id) || 0) === 0);
+  
+  // BFS to assign step numbers
+  const queue: { id: string; step: number }[] = startNodes.map(node => ({ id: node.id, step: 1 }));
+  const visited = new Set<string>();
+  
+  // Mark start nodes
+  startNodes.forEach(node => {
+    result.set(node.id, { stepNumber: 1, isStartNode: true });
+    visited.add(node.id);
+  });
+  
+  let currentStep = 1;
+  while (queue.length > 0) {
+    const levelSize = queue.length;
+    
+    for (let i = 0; i < levelSize; i++) {
+      const current = queue.shift()!;
+      const neighbors = adjList.get(current.id) || [];
+      
+      neighbors.forEach(neighborId => {
+        if (!visited.has(neighborId)) {
+          // Check if all predecessors have been visited
+          const node = nodes.find(n => n.id === neighborId);
+          const isCore = !node?.category || node?.category === "core";
+          
+          if (isCore) {
+            visited.add(neighborId);
+            const nextStep = current.step + 1;
+            result.set(neighborId, { stepNumber: nextStep, isStartNode: false });
+            queue.push({ id: neighborId, step: nextStep });
+          }
+        }
+      });
+    }
+    currentStep++;
+  }
+  
+  // Handle branch/optional nodes - they share step number with parent
+  nodes.forEach(node => {
+    if (node.category && node.category !== "core" && !result.has(node.id)) {
+      // Find parent edge
+      const parentEdge = edges.find(e => e.target === node.id);
+      if (parentEdge) {
+        const parentStep = result.get(parentEdge.source);
+        if (parentStep) {
+          result.set(node.id, { stepNumber: parentStep.stepNumber, isStartNode: false });
+        }
+      }
+    }
+  });
+  
+  return result;
+}
+
 export function convertToReactFlowNodes(
   roadmap: GeneratedRoadmap
 ): { nodes: RoadmapNode[]; edges: RoadmapEdge[] } {
@@ -69,6 +153,9 @@ export function convertToReactFlowNodes(
     }
   });
 
+  // Calculate step numbers for all nodes
+  const stepNumbers = calculateStepNumbers(roadmap.nodes, roadmap.edges);
+
   // Convert to React Flow nodes with positions
   const nodes: RoadmapNode[] = roadmap.nodes.map((node: ApiNode) => {
     let position: { x: number; y: number };
@@ -94,6 +181,9 @@ export function convertToReactFlowNodes(
       }
     }
 
+    // Get step number info
+    const stepInfo = stepNumbers.get(node.id);
+
     return {
       id: node.id,
       type: node.type,
@@ -103,6 +193,8 @@ export function convertToReactFlowNodes(
         description: node.data.description,
         resources: node.data.resources,
         category: node.category || "core",
+        stepNumber: stepInfo?.stepNumber,
+        isStartNode: stepInfo?.isStartNode || false,
       },
     };
   });

@@ -290,6 +290,25 @@ export async function generateRoadmap(
   return data;
 }
 
+export async function createRoadmap(
+  projectId: string,
+  data: { title?: string; nodes?: unknown; edges?: unknown }
+): Promise<{ id: string; title: string; projectId: string; nodes: unknown; edges: unknown }> {
+  const res = await fetch(`${API_URL}/roadmap`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ projectId, ...data }),
+  });
+
+  const responseData = await res.json();
+  
+  if (!res.ok) {
+    throw new Error(responseData.error || "Failed to create roadmap");
+  }
+
+  return responseData;
+}
+
 export async function updateRoadmap(
   id: string, 
   data: { nodes?: unknown; edges?: unknown; title?: string }

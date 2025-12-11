@@ -69,6 +69,31 @@ router.post("/generate", async (req, res) => {
   }
 });
 
+// POST /api/roadmap - Create roadmap directly (without AI)
+router.post("/", async (req, res) => {
+  try {
+    const { title, projectId, nodes, edges } = req.body;
+
+    if (!projectId) {
+      return res.status(400).json({ error: "projectId is required" });
+    }
+
+    const roadmap = await prisma.roadmap.create({
+      data: {
+        title: title || "My Roadmap",
+        projectId,
+        nodes: nodes || [],
+        edges: edges || [],
+      },
+    });
+
+    res.status(201).json(roadmap);
+  } catch (error) {
+    console.error("Error creating roadmap:", error);
+    res.status(500).json({ error: "Failed to create roadmap" });
+  }
+});
+
 // GET /api/roadmap/:id - Get roadmap by ID
 router.get("/:id", async (req, res) => {
   try {

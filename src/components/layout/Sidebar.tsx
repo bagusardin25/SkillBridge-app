@@ -1,9 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Folder, MoreHorizontal, Settings, LogOut, User, Globe, CreditCard, Loader2, Trash2, Pencil } from "lucide-react";
+import { Plus, Folder, MoreHorizontal, Settings, LogOut, User, Globe, CreditCard, Trash2, Pencil, PanelLeftClose, PanelLeft, Search } from "lucide-react";
+
 import { cn } from "@/lib/utils";
+import { useRoadmapStore } from "@/store/useRoadmapStore";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -31,7 +33,6 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useRoadmapStore } from "@/store/useRoadmapStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { NewProjectDialog } from "@/components/ui/NewProjectDialog";
 import { createProject, getProjects, deleteProject, updateProject, type Project } from "@/lib/api";
@@ -46,6 +47,7 @@ export function Sidebar({ className }: { className?: string }) {
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
     const [newTitle, setNewTitle] = useState("");
     const [newProjectId, setNewProjectId] = useState<string | null>(null);
+    const [searchQuery, setSearchQuery] = useState("");
     const {
         currentProjectId,
         setCurrentProject,
@@ -53,10 +55,20 @@ export function Sidebar({ className }: { className?: string }) {
         setEdges,
         clearRoadmap,
         setCurrentRoadmapId,
-        setOnProjectCreated
+        setOnProjectCreated,
+        isSidebarOpen,
+        toggleSidebar,
     } = useRoadmapStore();
     const { user, logout } = useAuthStore();
     const navigate = useNavigate();
+
+    // Filter projects based on search query
+    const filteredProjects = useMemo(() => {
+        if (!searchQuery.trim()) return projects;
+        return projects.filter(p => 
+            p.title.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    }, [projects, searchQuery]);
 
     const fetchProjects = async () => {
         try {
@@ -198,143 +210,262 @@ export function Sidebar({ className }: { className?: string }) {
     };
 
     return (
-        <div className={cn("pb-4 w-64 border-r bg-background h-full flex flex-col", className)}>
-            <div className="space-y-4 py-4 flex-1 overflow-y-auto">
-                <div className="px-3 py-2">
-                    <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">
-                        Projects
-                    </h2>
-                    <div className="space-y-1">
-                        <Button
-                            variant="secondary"
-                            className="w-full justify-start"
-                            onClick={() => setIsDialogOpen(true)}
-                        >
-                            <Plus className="mr-2 h-4 w-4" />
-                            New Project
-                        </Button>
-                    </div>
-                </div>
-                <div className="px-3 py-2">
-                    <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">
-                        Library
-                    </h2>
-                    <div className="space-y-1">
-                        {isLoading ? (
-                            <div className="flex items-center justify-center py-4">
-                                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                            </div>
-                        ) : projects.length === 0 ? (
-                            <p className="px-4 py-2 text-sm text-muted-foreground">
-                                No projects yet
-                            </p>
-                        ) : (
-                            projects.map((project) => (
-                                <div
-                                    key={project.id}
-                                    className={cn(
-                                        "group relative flex items-center",
-                                        newProjectId === project.id && "animate-in fade-in slide-in-from-left-2 duration-300"
-                                    )}
-                                >
-                                    <Button
-                                        variant={currentProjectId === project.id ? "secondary" : "ghost"}
-                                        className="w-full justify-start font-normal pr-8"
-                                        onClick={() => handleSelectProject(project)}
-                                    >
-                                        <Folder className="mr-2 h-4 w-4" />
-                                        <span className="truncate">{project.title}</span>
-                                    </Button>
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="absolute right-0 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                                                onClick={(e) => e.stopPropagation()}
-                                            >
-                                                <MoreHorizontal className="h-4 w-4" />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end" className="w-40">
-                                            <DropdownMenuItem onClick={(e) => handleRenameClick(project, e)}>
-                                                <Pencil className="mr-2 h-4 w-4" />
-                                                Rename
-                                            </DropdownMenuItem>
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuItem
-                                                className="text-destructive focus:text-destructive"
-                                                onClick={(e) => handleDeleteClick(project, e)}
-                                            >
-                                                <Trash2 className="mr-2 h-4 w-4" />
-                                                Delete
-                                            </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </div>
-                            ))
-                        )}
-                    </div>
-                </div>
+        <div className={cn(
+            "border-r bg-background h-full flex flex-col",
+            "transition-all duration-300 ease-in-out",
+            isSidebarOpen ? "w-64" : "w-14",
+            className
+        )}>
+            {/* Collapsed View */}
+            <div className={cn(
+                "flex flex-col items-center py-3 gap-2 h-full",
+                "transition-opacity duration-300",
+                isSidebarOpen ? "hidden" : "flex"
+            )}>
+                {/* Expand button */}
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={toggleSidebar}
+                    className="h-10 w-10"
+                    title="Expand sidebar"
+                >
+                    <PanelLeft className="h-5 w-5" />
+                </Button>
+
+                <div className="w-8 h-px bg-border my-1" />
+
+                {/* New Project */}
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setIsDialogOpen(true)}
+                    className="h-10 w-10"
+                    title="New Project"
+                >
+                    <Plus className="h-5 w-5" />
+                </Button>
+
+                {/* Search - expands sidebar */}
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={toggleSidebar}
+                    className="h-10 w-10"
+                    title="Search projects"
+                >
+                    <Search className="h-5 w-5" />
+                </Button>
+
+                {/* Spacer */}
+                <div className="flex-1" />
+
+                {/* User Avatar */}
+                {user && (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-10 w-10">
+                                <Avatar className="h-8 w-8 border">
+                                    <AvatarImage src="" alt={user.name || user.email} />
+                                    <AvatarFallback className="text-xs">{getInitials(user.name, user.email)}</AvatarFallback>
+                                </Avatar>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" side="right" className="w-56">
+                            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => navigate("/profile")}>
+                                <User className="mr-2 h-4 w-4" />
+                                Profile
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                                <Settings className="mr-2 h-4 w-4" />
+                                Settings
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                                className="text-destructive focus:text-destructive"
+                                onClick={handleLogout}
+                            >
+                                <LogOut className="mr-2 h-4 w-4" />
+                                Log out
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                )}
             </div>
 
-            {/* User Profile Section - Now fixed at bottom */}
-            {user && (
-                <div className="px-3 py-2 mt-auto">
-                    <div className="p-4 border-t bg-muted/20 rounded-lg">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <Avatar className="h-9 w-9 border">
-                                    <AvatarImage src="" alt={user.name || user.email} />
-                                    <AvatarFallback>{getInitials(user.name, user.email)}</AvatarFallback>
-                                </Avatar>
-                                <div className="flex flex-col">
-                                    <span className="text-sm font-medium">{user.name || user.email}</span>
-                                    <span className="text-xs text-muted-foreground">{getTierLabel(user.tier)}</span>
-                                </div>
-                            </div>
+            {/* Expanded View */}
+            <div className={cn(
+                "flex flex-col h-full pb-4",
+                "transition-opacity duration-300",
+                isSidebarOpen ? "flex opacity-100" : "hidden opacity-0"
+            )}>
+                {/* Header with toggle */}
+                <div className="flex items-center justify-between px-4 py-3 border-b">
+                    <span className="font-semibold text-lg whitespace-nowrap">SkillBridge</span>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={toggleSidebar}
+                        className="h-8 w-8"
+                        title="Collapse sidebar"
+                    >
+                        <PanelLeftClose className="h-4 w-4" />
+                    </Button>
+                </div>
 
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
-                                        <MoreHorizontal className="h-4 w-4" />
-                                        <span className="sr-only">Open menu</span>
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-56">
-                                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem onClick={() => navigate("/profile")}>
-                                        <User className="mr-2 h-4 w-4" />
-                                        Profile
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem>
-                                        <Settings className="mr-2 h-4 w-4" />
-                                        Settings
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem>
-                                        <CreditCard className="mr-2 h-4 w-4" />
-                                        Billing
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem>
-                                        <Globe className="mr-2 h-4 w-4" />
-                                        Language
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem
-                                        className="text-destructive focus:text-destructive"
-                                        onClick={handleLogout}
+                {/* Search */}
+                <div className="px-3 py-2">
+                    <div className="relative">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            placeholder="Search projects..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="pl-8 h-9"
+                        />
+                    </div>
+                </div>
+
+                <div className="space-y-4 py-2 flex-1 overflow-y-auto">
+                    <div className="px-3">
+                        <div className="space-y-1">
+                            <Button
+                                variant="secondary"
+                                className="w-full justify-start"
+                                onClick={() => setIsDialogOpen(true)}
+                            >
+                                <Plus className="mr-2 h-4 w-4" />
+                                New Project
+                            </Button>
+                        </div>
+                    </div>
+                    
+                    <div className="px-3">
+                        <h2 className="mb-2 px-4 text-sm font-medium text-muted-foreground">
+                            Projects
+                        </h2>
+                        <div className="space-y-1">
+                            {isLoading ? (
+                                <div className="space-y-2 px-1">
+                                    <div className="h-9 bg-muted rounded-md animate-pulse" />
+                                    <div className="h-9 bg-muted rounded-md animate-pulse w-4/5" />
+                                    <div className="h-9 bg-muted rounded-md animate-pulse w-3/4" />
+                                </div>
+                            ) : filteredProjects.length === 0 ? (
+                                <p className="px-4 py-2 text-sm text-muted-foreground">
+                                    {searchQuery ? "No matching projects" : "No projects yet"}
+                                </p>
+                            ) : (
+                                filteredProjects.map((project) => (
+                                    <div
+                                        key={project.id}
+                                        className={cn(
+                                            "group relative flex items-center",
+                                            newProjectId === project.id && "animate-in fade-in slide-in-from-left-2 duration-300"
+                                        )}
                                     >
-                                        <LogOut className="mr-2 h-4 w-4" />
-                                        Log out
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
+                                        <Button
+                                            variant={currentProjectId === project.id ? "secondary" : "ghost"}
+                                            className="w-full justify-start font-normal pr-8 transition-transform duration-200 hover:translate-x-1"
+                                            onClick={() => handleSelectProject(project)}
+                                        >
+                                            <Folder className="mr-2 h-4 w-4" />
+                                            <span className="truncate">{project.title}</span>
+                                        </Button>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="absolute right-0 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    <MoreHorizontal className="h-4 w-4" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end" className="w-40">
+                                                <DropdownMenuItem onClick={(e) => handleRenameClick(project, e)}>
+                                                    <Pencil className="mr-2 h-4 w-4" />
+                                                    Rename
+                                                </DropdownMenuItem>
+                                                <DropdownMenuSeparator />
+                                                <DropdownMenuItem
+                                                    className="text-destructive focus:text-destructive"
+                                                    onClick={(e) => handleDeleteClick(project, e)}
+                                                >
+                                                    <Trash2 className="mr-2 h-4 w-4" />
+                                                    Delete
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </div>
+                                ))
+                            )}
                         </div>
                     </div>
                 </div>
-            )}
 
+                {/* User Profile Section */}
+                {user && (
+                    <div className="px-3 py-2 mt-auto">
+                        <div className="p-3 border-t">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <Avatar className="h-8 w-8 border flex-shrink-0">
+                                        <AvatarImage src="" alt={user.name || user.email} />
+                                        <AvatarFallback>{getInitials(user.name, user.email)}</AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex flex-col min-w-0">
+                                        <span className="text-sm font-medium truncate">{user.name || user.email}</span>
+                                        <span className="text-xs text-muted-foreground">{getTierLabel(user.tier)}</span>
+                                    </div>
+                                </div>
+
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground flex-shrink-0">
+                                            <MoreHorizontal className="h-4 w-4" />
+                                            <span className="sr-only">Open menu</span>
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="w-56">
+                                        <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem onClick={() => navigate("/profile")}>
+                                            <User className="mr-2 h-4 w-4" />
+                                            Profile
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem>
+                                            <Settings className="mr-2 h-4 w-4" />
+                                            Settings
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem>
+                                            <CreditCard className="mr-2 h-4 w-4" />
+                                            Billing
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem>
+                                            <Globe className="mr-2 h-4 w-4" />
+                                            Language
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem
+                                            className="text-destructive focus:text-destructive"
+                                            onClick={handleLogout}
+                                        >
+                                            <LogOut className="mr-2 h-4 w-4" />
+                                            Log out
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* Dialogs - always rendered */}
             <NewProjectDialog
                 open={isDialogOpen}
                 onOpenChange={setIsDialogOpen}

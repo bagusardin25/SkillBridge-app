@@ -16,7 +16,7 @@ function BottomToolbarWrapper() {
 }
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
-    const { isAiPanelOpen, isDetailPanelOpen, isSidebarOpen, isDarkMode, selectedNodeIds } = useRoadmapStore();
+    const { isAiPanelOpen, isDetailPanelOpen, isDarkMode, selectedNodeIds } = useRoadmapStore();
 
     // Show detail panel when a node is selected and detail panel is open
     const showDetailPanel = isDetailPanelOpen && selectedNodeIds.length > 0;
@@ -34,17 +34,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     return (
         <ReactFlowProvider>
             <div className="flex h-screen overflow-hidden bg-background text-foreground">
-                {/* Left Sidebar - Projects Only - Collapsible */}
-                <div
-                    className={`
-            hidden md:flex flex-col border-r h-full
-            transition-all duration-300 ease-in-out
-            ${isSidebarOpen ? "w-64" : "w-0 overflow-hidden border-r-0"}
-          `}
-                >
-                    {isSidebarOpen && (
-                        <Sidebar className="flex-1 overflow-y-auto no-scrollbar" />
-                    )}
+                {/* Left Sidebar - Always rendered, handles its own collapsed state */}
+                <div className="hidden md:flex h-full">
+                    <Sidebar />
                 </div>
 
                 {/* Main Content Area */}
@@ -59,7 +51,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
                 {/* Right Panel - Chat or Detail */}
                 {showDetailPanel ? (
-                    <div className="h-full transition-all duration-300 ease-in-out">
+                    <div className="h-full transition-all duration-300 ease-in-out animate-in slide-in-from-right duration-300">
                         <NodeDetailPanel />
                     </div>
                 ) : (
@@ -67,7 +59,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                         className={`
                             border-l bg-background h-full
                             transition-all duration-300 ease-in-out
-                            ${showChatPanel ? "w-80 translate-x-0" : "w-0 translate-x-full border-l-0"}
+                            ${showChatPanel ? "w-80 translate-x-0 animate-in slide-in-from-right duration-300" : "w-0 translate-x-full border-l-0"}
                         `}
                     >
                         <div className="w-80 h-full">

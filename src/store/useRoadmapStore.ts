@@ -228,6 +228,9 @@ export const useRoadmapStore = create<RoadmapStore>()(
                 nodes: state.nodes,
                 edges: state.edges,
             }),
+            // Equality check to avoid tracking micro-changes during drag
+            equality: (pastState, currentState) => 
+                JSON.stringify(pastState) === JSON.stringify(currentState),
         }
     )
 );

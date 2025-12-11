@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Bot, Sparkles, Trash2, Settings2, ChevronDown, ChevronUp } from "lucide-react";
+import { Send, Bot, Sparkles, Trash2, Settings2, ChevronDown } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { generateRoadmap, createProject, extractTopicFromPrompt, saveChatMessage } from "@/lib/api";
@@ -26,9 +26,9 @@ type Message = {
 };
 
 const SUGGESTIONS = [
-    "Create a roadmap for React Developer",
-    "Explain System Design concepts",
-    "How to learn Go from scratch?",
+    { icon: "🚀", text: "Buatkan roadmap React Developer" },
+    { icon: "📚", text: "Jelaskan konsep System Design" },
+    { icon: "🎯", text: "Bagaimana cara belajar Go?" },
 ];
 
 const TYPING_SPEED = 15; // ms per character
@@ -386,97 +386,115 @@ export function ChatPanel() {
                             <div className="w-full px-2">
                                 <button
                                     onClick={() => setShowPreferences(!showPreferences)}
-                                    className="flex items-center justify-between w-full p-2 text-xs rounded-lg border bg-card hover:bg-accent transition-colors"
+                                    className="flex items-center justify-between w-full p-2.5 text-xs rounded-lg border border-dashed border-muted-foreground/30 bg-muted/30 hover:bg-muted/50 transition-colors"
                                 >
-                                    <div className="flex items-center gap-2">
-                                        <Settings2 className="h-3.5 w-3.5" />
-                                        <span>Personalize Roadmap</span>
+                                    <div className="flex flex-col items-start gap-0.5">
+                                        <div className="flex items-center gap-2">
+                                            <Settings2 className="h-3.5 w-3.5 text-muted-foreground" />
+                                            <span className="font-medium">Atur Preferensi Belajar</span>
+                                        </div>
+                                        <span className="text-[10px] text-muted-foreground ml-5">Sesuaikan level & gaya belajarmu</span>
                                     </div>
-                                    {showPreferences ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                                    <ChevronDown className={cn(
+                                        "h-3.5 w-3.5 transition-transform duration-200",
+                                        showPreferences && "rotate-180"
+                                    )} />
                                 </button>
                                 
-                                {showPreferences && (
-                                    <div className="mt-2 p-3 border rounded-lg bg-card space-y-3 text-left">
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] font-medium text-muted-foreground">Skill Level</label>
-                                            <Select
-                                                value={preferences.skillLevel}
-                                                onValueChange={(v) => setPreferences({ ...preferences, skillLevel: v as RoadmapPreferences["skillLevel"] })}
-                                            >
-                                                <SelectTrigger className="h-8 text-xs">
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="beginner">Beginner (Pemula)</SelectItem>
-                                                    <SelectItem value="intermediate">Intermediate (Menengah)</SelectItem>
-                                                    <SelectItem value="advanced">Advanced (Mahir)</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] font-medium text-muted-foreground">Learning Time</label>
-                                            <Select
-                                                value={preferences.learningTime}
-                                                onValueChange={(v) => setPreferences({ ...preferences, learningTime: v as RoadmapPreferences["learningTime"] })}
-                                            >
-                                                <SelectTrigger className="h-8 text-xs">
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="casual">Casual (~1 jam/hari)</SelectItem>
-                                                    <SelectItem value="moderate">Moderate (2-3 jam/hari)</SelectItem>
-                                                    <SelectItem value="intensive">Intensive (4+ jam/hari)</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] font-medium text-muted-foreground">Learning Style</label>
-                                            <Select
-                                                value={preferences.learningStyle}
-                                                onValueChange={(v) => setPreferences({ ...preferences, learningStyle: v as RoadmapPreferences["learningStyle"] })}
-                                            >
-                                                <SelectTrigger className="h-8 text-xs">
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="theory">Theory First (Teori dulu)</SelectItem>
-                                                    <SelectItem value="practice">Hands-on (Langsung praktek)</SelectItem>
-                                                    <SelectItem value="balanced">Balanced (Seimbang)</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] font-medium text-muted-foreground">Goal</label>
-                                            <Select
-                                                value={preferences.goal}
-                                                onValueChange={(v) => setPreferences({ ...preferences, goal: v as RoadmapPreferences["goal"] })}
-                                            >
-                                                <SelectTrigger className="h-8 text-xs">
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="career">Career (Untuk kerja)</SelectItem>
-                                                    <SelectItem value="project">Project (Untuk project)</SelectItem>
-                                                    <SelectItem value="certification">Certification (Sertifikasi)</SelectItem>
-                                                    <SelectItem value="hobby">Hobby (Just for fun)</SelectItem>
-                                                </SelectContent>
-                                            </Select>
+                                <div className={cn(
+                                    "grid transition-all duration-300 ease-out",
+                                    showPreferences 
+                                        ? "grid-rows-[1fr] opacity-100 mt-2" 
+                                        : "grid-rows-[0fr] opacity-0 mt-0"
+                                )}>
+                                    <div className="overflow-hidden">
+                                        <div className="p-3 border rounded-lg bg-card space-y-3 text-left">
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-medium text-muted-foreground">Skill Level</label>
+                                                <Select
+                                                    value={preferences.skillLevel}
+                                                    onValueChange={(v) => setPreferences({ ...preferences, skillLevel: v as RoadmapPreferences["skillLevel"] })}
+                                                >
+                                                    <SelectTrigger className="h-8 text-xs">
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="beginner">Beginner (Pemula)</SelectItem>
+                                                        <SelectItem value="intermediate">Intermediate (Menengah)</SelectItem>
+                                                        <SelectItem value="advanced">Advanced (Mahir)</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-medium text-muted-foreground">Learning Time</label>
+                                                <Select
+                                                    value={preferences.learningTime}
+                                                    onValueChange={(v) => setPreferences({ ...preferences, learningTime: v as RoadmapPreferences["learningTime"] })}
+                                                >
+                                                    <SelectTrigger className="h-8 text-xs">
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="casual">Casual (~1 jam/hari)</SelectItem>
+                                                        <SelectItem value="moderate">Moderate (2-3 jam/hari)</SelectItem>
+                                                        <SelectItem value="intensive">Intensive (4+ jam/hari)</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-medium text-muted-foreground">Learning Style</label>
+                                                <Select
+                                                    value={preferences.learningStyle}
+                                                    onValueChange={(v) => setPreferences({ ...preferences, learningStyle: v as RoadmapPreferences["learningStyle"] })}
+                                                >
+                                                    <SelectTrigger className="h-8 text-xs">
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="theory">Theory First (Teori dulu)</SelectItem>
+                                                        <SelectItem value="practice">Hands-on (Langsung praktek)</SelectItem>
+                                                        <SelectItem value="balanced">Balanced (Seimbang)</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-medium text-muted-foreground">Goal</label>
+                                                <Select
+                                                    value={preferences.goal}
+                                                    onValueChange={(v) => setPreferences({ ...preferences, goal: v as RoadmapPreferences["goal"] })}
+                                                >
+                                                    <SelectTrigger className="h-8 text-xs">
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="career">Career (Untuk kerja)</SelectItem>
+                                                        <SelectItem value="project">Project (Untuk project)</SelectItem>
+                                                        <SelectItem value="certification">Certification (Sertifikasi)</SelectItem>
+                                                        <SelectItem value="hobby">Hobby (Just for fun)</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
                                         </div>
                                     </div>
-                                )}
+                                </div>
                             </div>
                             
-                            <div className="flex flex-col gap-2 w-full px-2 mt-2">
+                            <div className="flex flex-col gap-2 w-full px-2 mt-4">
+                                <div className="flex items-center gap-1.5 px-1 mb-1">
+                                    <span className="text-sm">💡</span>
+                                    <span className="text-[11px] font-medium text-muted-foreground">Mulai dengan pertanyaan:</span>
+                                </div>
                                 {SUGGESTIONS.map((suggestion, index) => (
                                     <button
                                         key={index}
-                                        onClick={() => handleSuggestionClick(suggestion)}
-                                        className="text-xs text-left p-2.5 rounded-lg border bg-card hover:bg-accent hover:text-accent-foreground transition-colors"
+                                        onClick={() => handleSuggestionClick(suggestion.text)}
+                                        className="flex items-center gap-2.5 text-xs text-left p-3 rounded-lg border bg-card hover:bg-primary/5 hover:border-primary/30 hover:shadow-sm transition-all duration-200 active:scale-[0.98]"
                                     >
-                                        {suggestion}
+                                        <span className="text-base">{suggestion.icon}</span>
+                                        <span>{suggestion.text}</span>
                                     </button>
                                 ))}
                             </div>

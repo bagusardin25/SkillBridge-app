@@ -2,7 +2,7 @@ import { memo, useState, useRef, useEffect } from "react";
 import { Handle, Position, type NodeProps, type Node, NodeResizer, useReactFlow } from "@xyflow/react";
 import type { RoadmapNodeData } from "@/types/roadmap";
 import { Input } from "@/components/ui/input";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Play } from "lucide-react";
 
 type CustomNodeProps = NodeProps<Node<RoadmapNodeData>>;
 
@@ -118,9 +118,40 @@ function CustomNodeComponent({ id, data, type, selected }: CustomNodeProps) {
         h-full w-full
         transition-all duration-200
         relative group
+        hover:shadow-lg hover:z-10
       `}
             onDoubleClick={handleDoubleClick}
         >
+            {/* Step Number Badge */}
+            {data.stepNumber && (
+                <div
+                    className={`absolute -top-3 -left-3 z-10 min-w-[24px] h-6 px-1.5 rounded-full flex items-center justify-center text-xs font-bold shadow-md ${
+                        data.isCompleted || data.quizPassed
+                            ? "bg-emerald-500 text-white"
+                            : data.isStartNode
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted-foreground/80 text-white"
+                    }`}
+                    title={`Step ${data.stepNumber}`}
+                >
+                    {data.isCompleted || data.quizPassed ? (
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                    ) : (
+                        data.stepNumber
+                    )}
+                </div>
+            )}
+
+            {/* START Badge for first node */}
+            {data.isStartNode && !(data.isCompleted || data.quizPassed) && (
+                <div
+                    className="absolute -top-6 left-1/2 -translate-x-1/2 z-10 px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 shadow-md whitespace-nowrap"
+                >
+                    <Play className="h-2.5 w-2.5 fill-current" />
+                    Mulai di sini
+                </div>
+            )}
+
             {/* Completed Badge (shown when quiz passed) */}
             {(data.isCompleted || data.quizPassed) && (
                 <div
@@ -156,11 +187,11 @@ function CustomNodeComponent({ id, data, type, selected }: CustomNodeProps) {
                      />
                 ) : (
                     <>
-                        <div className="font-medium text-sm text-center select-none w-full break-words whitespace-pre-wrap">
+                        <div className="font-semibold text-base text-center select-none w-full break-words whitespace-pre-wrap drop-shadow-sm">
                             {data.label}
                         </div>
                         {data.description && !isDecision && type !== "start-end" && (
-                            <div className="text-xs text-muted-foreground mt-1 line-clamp-2 select-none pointer-events-none text-center">
+                            <div className="text-sm text-muted-foreground/90 mt-1 line-clamp-2 select-none pointer-events-none text-center">
                                 {data.description}
                             </div>
                         )}

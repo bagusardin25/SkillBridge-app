@@ -11,15 +11,17 @@ import {
     MarkerType,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { DragEvent } from "react";
 import { useRoadmapStore, useTemporalStore } from "@/store/useRoadmapStore";
 import type { RoadmapNode } from "@/types/roadmap";
 import { CustomNode } from "@/components/nodes/CustomNode";
 import { ImageNode } from "@/components/nodes/ImageNode";
-import { Button } from "@/components/ui/button";
-import { Sparkles, ArrowRight } from "lucide-react";
+import { LabeledEdge } from "@/components/edges/LabeledEdge";
+import { TemplateSelector } from "@/components/roadmap/TemplateSelector";
 import { updateRoadmap } from "@/lib/api";
+import { convertToReactFlowNodes } from "@/lib/layoutUtils";
+import type { RoadmapTemplate } from "@/data/roadmapTemplates";
 
 const nodeTypes = {
     default: CustomNode,
@@ -30,6 +32,11 @@ const nodeTypes = {
     "start-end": CustomNode,
     project: CustomNode,
     image: ImageNode,
+};
+
+const edgeTypes = {
+    labeled: LabeledEdge,
+    default: LabeledEdge,
 };
 
 let id = 100;
@@ -54,12 +61,15 @@ export function FlowCanvas() {
         openDetailPanel,
         placingNodeType,
         setPlacingNodeType,
+        setNodes,
+        setEdges: setStoreEdges,
     } = useRoadmapStore();
 
     const { undo, redo } = useTemporalStore();
     const { screenToFlowPosition } = useReactFlow();
     const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const isInitialMount = useRef(true);
+    const [hideTemplateSelector, setHideTemplateSelector] = useState(false);
 
     // Auto-save roadmap when nodes or edges change
     useEffect(() => {
@@ -94,7 +104,7 @@ export function FlowCanvas() {
     }, [nodes, edges, currentRoadmapId]);
 
     const defaultEdgeOptions = useMemo(() => ({
-        type: 'smoothstep',
+        type: 'labeled',
         markerEnd: {
             type: MarkerType.ArrowClosed,
             width: 20,
@@ -143,18 +153,33 @@ export function FlowCanvas() {
         [setSelectedNodeIds, openDetailPanel]
     );
 
+    // Track node positions before drag for undo
+    const nodesBeforeDrag = useRef<RoadmapNode[] | null>(null);
+
+    const onNodeDragStart = useCallback(() => {
+        // Save current state before drag starts
+        nodesBeforeDrag.current = JSON.parse(JSON.stringify(nodes));
+    }, [nodes]);
+
+    const onNodeDragStop = useCallback(() => {
+        // After drag completes, clear the reference
+        // The state has already been updated by onNodesChange
+        // zundo will now capture this as a single change
+        nodesBeforeDrag.current = null;
+    }, []);
+
     const onDragOver = useCallback((event: DragEvent<HTMLDivElement>) => {
         event.preventDefault();
         event.dataTransfer.dropEffect = "move";
     }, []);
 
     // Default sizes for different node types
-    const defaultNodeSizes: Record<string, { width: number; height: number }> = {
-        default: { width: 180, height: 60 },
-        decision: { width: 100, height: 100 },
-        "start-end": { width: 80, height: 80 },
+    const defaultNodeSizes = useMemo(() => ({
+        default: { width: 200, height: 70 },
+        decision: { width: 110, height: 110 },
+        "start-end": { width: 90, height: 90 },
         image: { width: 150, height: 150 },
-    };
+    } as Record<string, { width: number; height: number }>), []);
 
     const onDrop = useCallback(
         (event: DragEvent<HTMLDivElement>) => {
@@ -186,7 +211,7 @@ export function FlowCanvas() {
 
             addNode(newNode);
         },
-        [screenToFlowPosition, addNode]
+        [screenToFlowPosition, addNode, defaultNodeSizes]
     );
 
     const handleOpenAi = () => {
@@ -194,6 +219,23 @@ export function FlowCanvas() {
             toggleAiPanel();
         }
     };
+
+    // Handle template selection
+    const handleSelectTemplate = useCallback((template: RoadmapTemplate) => {
+        const { nodes: newNodes, edges: newEdges } = convertToReactFlowNodes({
+            title: template.roadmap.title,
+            nodes: template.roadmap.nodes.map(n => ({
+                ...n,
+                data: {
+                    description: n.data.description,
+                    resources: n.data.resources,
+                }
+            })),
+            edges: template.roadmap.edges,
+        });
+        setNodes(newNodes);
+        setStoreEdges(newEdges);
+    }, [setNodes, setStoreEdges]);
 
     // Handle click on canvas pane for placement mode (Figma style)
     const onPaneClick = useCallback(
@@ -227,7 +269,7 @@ export function FlowCanvas() {
             addNode(newNode);
             setPlacingNodeType(null); // Exit placement mode after placing
         },
-        [placingNodeType, screenToFlowPosition, addNode, setPlacingNodeType]
+        [placingNodeType, screenToFlowPosition, addNode, setPlacingNodeType, defaultNodeSizes]
     );
 
     // Handle ESC to cancel placement mode
@@ -244,20 +286,14 @@ export function FlowCanvas() {
 
     return (
         <div className="w-full h-full relative">
-            {nodes.length === 0 && (
+            {nodes.length === 0 && !hideTemplateSelector && (
                 <div className="absolute inset-0 z-10 flex flex-col items-center justify-center pointer-events-none">
-                    <div className="bg-background/80 backdrop-blur-sm border border-border p-8 rounded-xl shadow-xl max-w-md text-center pointer-events-auto">
-                        <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Sparkles className="h-8 w-8 text-primary" />
-                        </div>
-                        <h3 className="text-xl font-semibold mb-2">Start Your Roadmap</h3>
-                        <p className="text-muted-foreground mb-6">
-                            Your canvas is empty. Ask our AI Assistant to generate a learning path or drag nodes to build manually.
-                        </p>
-                        <Button onClick={handleOpenAi} size="lg" className="w-full">
-                            Ask AI Assistant
-                            <ArrowRight className="ml-2 h-4 w-4" />
-                        </Button>
+                    <div className="pointer-events-auto">
+                        <TemplateSelector
+                            onSelectTemplate={handleSelectTemplate}
+                            onAskAi={handleOpenAi}
+                            onClose={() => setHideTemplateSelector(true)}
+                        />
                     </div>
                 </div>
             )}
@@ -269,6 +305,8 @@ export function FlowCanvas() {
                 onEdgesChange={onEdgesChange}
                 onConnect={isEditMode ? onConnect : undefined}
                 onSelectionChange={onSelectionChange}
+                onNodeDragStart={onNodeDragStart}
+                onNodeDragStop={onNodeDragStop}
                 onDragOver={onDragOver}
                 onDrop={onDrop}
                 onPaneClick={onPaneClick}
@@ -280,6 +318,7 @@ export function FlowCanvas() {
                 panOnScroll={true}
                 zoomOnScroll={false}
                 nodeTypes={nodeTypes}
+                edgeTypes={edgeTypes}
                 defaultEdgeOptions={defaultEdgeOptions}
                 deleteKeyCode={["Delete", "Backspace"]}
                 snapToGrid={isEditMode}
@@ -289,22 +328,30 @@ export function FlowCanvas() {
             >
                 <Background variant={BackgroundVariant.Dots} gap={20} size={1} />
                 <Controls className="bg-background border-border" />
-                <MiniMap
-                    position="bottom-right"
-                    className="!bg-card !border !border-border rounded-lg shadow-lg m-4"
-                    maskColor="rgba(0, 0, 0, 0.3)"
-                    zoomable
-                    pannable
-                    nodeColor={(node) => {
-                        switch (node.type) {
-                            case "decision": return "#f59e0b"; // amber-500
-                            case "start-end": return "#10b981"; // emerald-500
-                            case "project": return "#8b5cf6"; // violet-500
-                            case "image": return "#06b6d4"; // cyan-500
-                            default: return "#6366f1"; // indigo-500
-                        }
-                    }}
-                />
+                {nodes.length > 0 && (
+                    <MiniMap
+                        position="bottom-right"
+                        className="!bg-card !border !border-border rounded-lg shadow-lg m-4"
+                        maskColor="rgba(0, 0, 0, 0.3)"
+                        zoomable
+                        pannable
+                        nodeStrokeWidth={3}
+                        nodeColor={(node) => {
+                            const data = node.data as { isCompleted?: boolean; quizPassed?: boolean } | undefined;
+                            const isCompleted = data?.isCompleted || data?.quizPassed;
+                            
+                            if (isCompleted) return "#10b981"; // emerald-500 for completed
+                            
+                            switch (node.type) {
+                                case "decision": return "#f59e0b"; // amber-500
+                                case "start-end": return "#6366f1"; // indigo-500
+                                case "project": return "#8b5cf6"; // violet-500
+                                case "image": return "#06b6d4"; // cyan-500
+                                default: return "#6366f1"; // indigo-500
+                            }
+                        }}
+                    />
+                )}
             </ReactFlow>
         </div>
     );

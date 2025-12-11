@@ -95,22 +95,21 @@ export function BottomToolbar() {
     };
 
     const actionButtonClass = (isDisabled = false) =>
-        `flex items-center justify-center w-8 h-8 rounded-md transition-colors ${isDisabled
+        `flex items-center justify-center w-8 h-8 rounded-md transition-all ${isDisabled
             ? "text-muted-foreground opacity-50 cursor-not-allowed"
-            : "hover:bg-muted text-foreground cursor-pointer"
+            : "hover:bg-muted text-foreground cursor-pointer active:scale-90"
         }`;
 
     const toolButtonClass = (isActive = false) =>
-        `flex items-center justify-center w-10 h-10 rounded-lg transition-colors ${isActive
+        `flex items-center justify-center w-10 h-10 rounded-lg transition-all ${isActive
             ? "bg-primary text-primary-foreground"
-            : "hover:bg-muted text-foreground cursor-pointer"
+            : "hover:bg-muted text-foreground cursor-pointer active:scale-90"
         }`;
 
     return (
         <TooltipProvider delayDuration={0}>
-            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-3">
-
-                {/* Secondary Actions Bar */}
+            <div className="fixed bottom-2 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-1 animate-in slide-in-from-bottom-4 duration-500">
+                {/* Undo/Redo Bar - di atas main toolbar */}
                 <div className="flex items-center gap-1 p-1.5 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 border border-border/50 rounded-lg shadow-sm">
                     <Tooltip>
                         <TooltipTrigger asChild>
@@ -166,7 +165,7 @@ export function BottomToolbar() {
                                 <MoreVertical className="h-4 w-4" />
                             </button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" side="top">
+                        <DropdownMenuContent align="start" side="top">
                             <DropdownMenuItem onClick={() => zoomIn()}>
                                 <ZoomIn className="mr-2 h-4 w-4" />
                                 Zoom In
