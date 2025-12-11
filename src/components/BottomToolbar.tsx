@@ -39,16 +39,18 @@ export function BottomToolbar() {
     const {
         interactionMode,
         setInteractionMode,
-        addNode,
         deleteSelectedNodes,
         duplicateSelectedNodes,
         selectedNodeIds,
         setNodes,
-        setEdges
+        setEdges,
+        placingNodeType,
+        setPlacingNodeType,
+        addNode
     } = useRoadmapStore();
 
     const { undo, redo } = useTemporalStore();
-    const { zoomIn, zoomOut, fitView, getViewport } = useReactFlow();
+    const { zoomIn, zoomOut, fitView } = useReactFlow();
 
     // Handle drag start for shape items (still support drag)
     const onDragStart = (event: DragEvent<HTMLButtonElement>, nodeType: string) => {
@@ -56,24 +58,15 @@ export function BottomToolbar() {
         event.dataTransfer.effectAllowed = "move";
     };
 
-    // Handle single click to add node at center of viewport
-    const handleAddNode = (nodeType: string) => {
-        const viewport = getViewport();
-        // Calculate center of viewport in flow coordinates
-        const centerX = (-viewport.x + window.innerWidth / 2) / viewport.zoom;
-        const centerY = (-viewport.y + window.innerHeight / 2) / viewport.zoom;
-        
-        const newNode: RoadmapNode = {
-            id: getNodeId(),
-            type: nodeType,
-            position: { x: centerX - 75, y: centerY - 25 }, // Offset to center the node
-            data: {
-                label: `New ${nodeType === "default" ? "Topic" : nodeType === "decision" ? "Decision" : "Step"}`,
-                description: "",
-                resources: [],
-            },
-        };
-        addNode(newNode);
+    // Handle single click - toggle placement mode (Figma style)
+    const handleNodeToolClick = (nodeType: string) => {
+        if (placingNodeType === nodeType) {
+            // Clicking same tool again cancels placement mode
+            setPlacingNodeType(null);
+        } else {
+            // Activate placement mode for this node type
+            setPlacingNodeType(nodeType);
+        }
     };
 
     const handleAddImage = () => {
@@ -239,47 +232,47 @@ export function BottomToolbar() {
 
                     <div className="w-px h-6 bg-border/50 mx-1" />
 
-                    {/* Shape Nodes - Click to add, or drag to place */}
+                    {/* Shape Nodes - Click to activate placement mode, then click on canvas */}
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <button
-                                onClick={() => handleAddNode("default")}
+                                onClick={() => handleNodeToolClick("default")}
                                 draggable
                                 onDragStart={(e) => onDragStart(e, "default")}
-                                className={toolButtonClass()}
+                                className={toolButtonClass(placingNodeType === "default")}
                             >
                                 <Square className="h-5 w-5" />
                             </button>
                         </TooltipTrigger>
-                        <TooltipContent>Add Topic Node (click or drag)</TooltipContent>
+                        <TooltipContent>Topic Node - Click then place on canvas</TooltipContent>
                     </Tooltip>
 
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <button
-                                onClick={() => handleAddNode("decision")}
+                                onClick={() => handleNodeToolClick("decision")}
                                 draggable
                                 onDragStart={(e) => onDragStart(e, "decision")}
-                                className={toolButtonClass()}
+                                className={toolButtonClass(placingNodeType === "decision")}
                             >
                                 <Diamond className="h-5 w-5" />
                             </button>
                         </TooltipTrigger>
-                        <TooltipContent>Add Decision Node (click or drag)</TooltipContent>
+                        <TooltipContent>Decision Node - Click then place on canvas</TooltipContent>
                     </Tooltip>
 
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <button
-                                onClick={() => handleAddNode("start-end")}
+                                onClick={() => handleNodeToolClick("start-end")}
                                 draggable
                                 onDragStart={(e) => onDragStart(e, "start-end")}
-                                className={toolButtonClass()}
+                                className={toolButtonClass(placingNodeType === "start-end")}
                             >
                                 <Circle className="h-5 w-5" />
                             </button>
                         </TooltipTrigger>
-                        <TooltipContent>Add Start/End Node (click or drag)</TooltipContent>
+                        <TooltipContent>Start/End Node - Click then place on canvas</TooltipContent>
                     </Tooltip>
                 </div>
             </div>

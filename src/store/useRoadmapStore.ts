@@ -25,6 +25,7 @@ interface RoadmapStore {
     currentRoadmapId: string | null;
     contextualChatTopic: string | null;
     onProjectCreated: ((projectId: string) => void) | null;
+    placingNodeType: string | null;
     onNodesChange: (changes: NodeChange<RoadmapNode>[]) => void;
     onEdgesChange: (changes: EdgeChange<RoadmapEdge>[]) => void;
     setNodes: (nodes: RoadmapNode[]) => void;
@@ -49,6 +50,7 @@ interface RoadmapStore {
     setContextualChatTopic: (topic: string | null) => void;
     askAiAboutTopic: (topic: string) => void;
     setOnProjectCreated: (callback: ((projectId: string) => void) | null) => void;
+    setPlacingNodeType: (type: string | null) => void;
 }
 
 export const useRoadmapStore = create<RoadmapStore>()(
@@ -70,6 +72,7 @@ export const useRoadmapStore = create<RoadmapStore>()(
             currentProjectTitle: '',
             currentRoadmapId: null,
             onProjectCreated: null,
+            placingNodeType: null,
 
             onNodesChange: (changes) => {
                 set({
@@ -213,6 +216,10 @@ export const useRoadmapStore = create<RoadmapStore>()(
 
             setOnProjectCreated: (callback) => {
                 set({ onProjectCreated: callback });
+            },
+
+            setPlacingNodeType: (type) => {
+                set({ placingNodeType: type });
             },
         }),
         {

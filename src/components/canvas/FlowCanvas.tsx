@@ -52,6 +52,8 @@ export function FlowCanvas() {
         isAiPanelOpen,
         currentRoadmapId,
         openDetailPanel,
+        placingNodeType,
+        setPlacingNodeType,
     } = useRoadmapStore();
 
     const { undo, redo } = useTemporalStore();
@@ -146,6 +148,14 @@ export function FlowCanvas() {
         event.dataTransfer.dropEffect = "move";
     }, []);
 
+    // Default sizes for different node types
+    const defaultNodeSizes: Record<string, { width: number; height: number }> = {
+        default: { width: 180, height: 60 },
+        decision: { width: 100, height: 100 },
+        "start-end": { width: 80, height: 80 },
+        image: { width: 150, height: 150 },
+    };
+
     const onDrop = useCallback(
         (event: DragEvent<HTMLDivElement>) => {
             event.preventDefault();
@@ -158,12 +168,17 @@ export function FlowCanvas() {
                 y: event.clientY,
             });
 
+            const size = defaultNodeSizes[type] || { width: 180, height: 60 };
+
             const newNode: RoadmapNode = {
                 id: getId(),
                 type: type,
                 position,
+                width: size.width,
+                height: size.height,
+                style: { width: size.width, height: size.height },
                 data: {
-                    label: `New ${type} Node`,
+                    label: type === "decision" ? "Yes/No?" : `New ${type} Node`,
                     description: "",
                     resources: [],
                 },
@@ -179,6 +194,53 @@ export function FlowCanvas() {
             toggleAiPanel();
         }
     };
+
+    // Handle click on canvas pane for placement mode (Figma style)
+    const onPaneClick = useCallback(
+        (event: React.MouseEvent) => {
+            if (!placingNodeType) return;
+
+            const position = screenToFlowPosition({
+                x: event.clientX,
+                y: event.clientY,
+            });
+
+            const size = defaultNodeSizes[placingNodeType] || { width: 180, height: 60 };
+
+            const newNode: RoadmapNode = {
+                id: getId(),
+                type: placingNodeType,
+                position: {
+                    x: position.x - size.width / 2,
+                    y: position.y - size.height / 2,
+                },
+                width: size.width,
+                height: size.height,
+                style: { width: size.width, height: size.height },
+                data: {
+                    label: placingNodeType === "decision" ? "Yes/No?" : placingNodeType === "start-end" ? "Start" : "New Topic",
+                    description: "",
+                    resources: [],
+                },
+            };
+
+            addNode(newNode);
+            setPlacingNodeType(null); // Exit placement mode after placing
+        },
+        [placingNodeType, screenToFlowPosition, addNode, setPlacingNodeType]
+    );
+
+    // Handle ESC to cancel placement mode
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape" && placingNodeType) {
+                setPlacingNodeType(null);
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [placingNodeType, setPlacingNodeType]);
 
     return (
         <div className="w-full h-full relative">
@@ -209,11 +271,12 @@ export function FlowCanvas() {
                 onSelectionChange={onSelectionChange}
                 onDragOver={onDragOver}
                 onDrop={onDrop}
+                onPaneClick={onPaneClick}
                 nodesDraggable={isEditMode}
                 nodesConnectable={isEditMode}
                 elementsSelectable={isEditMode}
-                panOnDrag={interactionMode === "pan"}
-                selectionOnDrag={interactionMode === "select"}
+                panOnDrag={interactionMode === "pan" && !placingNodeType}
+                selectionOnDrag={interactionMode === "select" && !placingNodeType}
                 panOnScroll={true}
                 zoomOnScroll={false}
                 nodeTypes={nodeTypes}
@@ -222,7 +285,7 @@ export function FlowCanvas() {
                 snapToGrid={isEditMode}
                 snapGrid={[20, 20]}
                 fitView
-                className={`bg-background ${interactionMode === "pan" ? "cursor-grab active:cursor-grabbing" : "cursor-default"}`}
+                className={`bg-background ${placingNodeType ? "cursor-crosshair" : interactionMode === "pan" ? "cursor-grab active:cursor-grabbing" : "cursor-default"}`}
             >
                 <Background variant={BackgroundVariant.Dots} gap={20} size={1} />
                 <Controls className="bg-background border-border" />
