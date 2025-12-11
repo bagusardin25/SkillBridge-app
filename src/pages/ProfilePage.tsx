@@ -25,7 +25,6 @@ import {
     Calendar, 
     Edit2, 
     Clock, 
-    BookOpen, 
     Trophy, 
     Zap, 
     X,
@@ -38,6 +37,8 @@ import {
     Camera,
     Flame
 } from "lucide-react";
+import { BadgesSection } from "@/components/ui/BadgesSection";
+import type { UserStats } from "@/data/badges";
 
 
 
@@ -334,64 +335,22 @@ export function ProfilePage() {
                     </TabsContent>
 
                     <TabsContent value="achievements" className="mt-0 animate-in fade-in-50 duration-300">
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-                            <AchievementCard 
-                                title="First Steps"
-                                description="Create your first roadmap"
-                                unlocked={stats.totalRoadmaps > 0}
-                                icon={<Target className="h-6 w-6" />}
-                                color="blue"
-                            />
-                            <AchievementCard 
-                                title="Quiz Master"
-                                description="Pass 5 quizzes"
-                                unlocked={stats.totalQuizzesPassed >= 5}
-                                icon={<CheckCircle2 className="h-6 w-6" />}
-                                color="green"
-                            />
-                            <AchievementCard 
-                                title="Dedicated Learner"
-                                description="Reach Level 5"
-                                unlocked={profile.level >= 5}
-                                icon={<Zap className="h-6 w-6" />}
-                                color="purple"
-                            />
-                            <AchievementCard 
-                                title="XP Hunter"
-                                description="Earn 1000 XP"
-                                unlocked={profile.xp >= 1000}
-                                icon={<Trophy className="h-6 w-6" />}
-                                color="yellow"
-                            />
-                            <AchievementCard 
-                                title="Project Pro"
-                                description="Create 3 projects"
-                                unlocked={stats.totalProjects >= 3}
-                                icon={<FolderOpen className="h-6 w-6" />}
-                                color="orange"
-                            />
-                            <AchievementCard 
-                                title="Road Warrior"
-                                description="Create 5 roadmaps"
-                                unlocked={stats.totalRoadmaps >= 5}
-                                icon={<BookOpen className="h-6 w-6" />}
-                                color="cyan"
-                            />
-                            <AchievementCard 
-                                title="Quiz Champion"
-                                description="Pass 10 quizzes"
-                                unlocked={stats.totalQuizzesPassed >= 10}
-                                icon={<Sparkles className="h-6 w-6" />}
-                                color="pink"
-                            />
-                            <AchievementCard 
-                                title="Elite Learner"
-                                description="Reach Level 10"
-                                unlocked={profile.level >= 10}
-                                icon={<Trophy className="h-6 w-6" />}
-                                color="amber"
-                            />
-                        </div>
+                        <Card>
+                            <CardContent className="p-6">
+                                <BadgesSection 
+                                    stats={{
+                                        completedTopics: stats.totalCompletedTopics,
+                                        completedRoadmaps: stats.totalCompletedRoadmaps,
+                                        currentStreak: profile.currentStreak,
+                                        bestStreak: profile.longestStreak,
+                                        lastActiveDate: profile.lastActiveDate ? new Date(profile.lastActiveDate).toISOString() : null,
+                                        quizzesPassed: stats.totalQuizzesPassed,
+                                        xp: profile.xp,
+                                        level: profile.level,
+                                    } as UserStats}
+                                />
+                            </CardContent>
+                        </Card>
                     </TabsContent>
                 </Tabs>
             </div>
@@ -685,47 +644,3 @@ function ProjectCard({ project, onNavigate }: ProjectCardProps) {
     );
 }
 
-interface AchievementCardProps {
-    title: string;
-    description: string;
-    unlocked: boolean;
-    icon: React.ReactNode;
-    color: "blue" | "green" | "purple" | "yellow" | "orange" | "cyan" | "pink" | "amber";
-}
-
-const colorClasses = {
-    blue: { bg: "bg-blue-500/20", text: "text-blue-500", border: "border-blue-500/30" },
-    green: { bg: "bg-green-500/20", text: "text-green-500", border: "border-green-500/30" },
-    purple: { bg: "bg-purple-500/20", text: "text-purple-500", border: "border-purple-500/30" },
-    yellow: { bg: "bg-yellow-500/20", text: "text-yellow-500", border: "border-yellow-500/30" },
-    orange: { bg: "bg-orange-500/20", text: "text-orange-500", border: "border-orange-500/30" },
-    cyan: { bg: "bg-cyan-500/20", text: "text-cyan-500", border: "border-cyan-500/30" },
-    pink: { bg: "bg-pink-500/20", text: "text-pink-500", border: "border-pink-500/30" },
-    amber: { bg: "bg-amber-500/20", text: "text-amber-500", border: "border-amber-500/30" },
-};
-
-function AchievementCard({ title, description, unlocked, icon, color }: AchievementCardProps) {
-    const colors = colorClasses[color];
-    
-    return (
-        <Card className={`p-3 sm:p-4 transition-all duration-300 ${
-            unlocked 
-                ? `${colors.border} bg-gradient-to-br from-background to-${color}-500/5 hover:shadow-lg hover:-translate-y-0.5` 
-                : "bg-muted/30 opacity-50 grayscale"
-        }`}>
-            <div className={`h-10 w-10 sm:h-12 sm:w-12 rounded-full flex items-center justify-center mb-2 sm:mb-3 ${
-                unlocked ? `${colors.bg} ${colors.text}` : "bg-muted text-muted-foreground"
-            }`}>
-                {icon}
-            </div>
-            <h4 className="font-semibold text-sm sm:text-base">{title}</h4>
-            <p className="text-xs text-muted-foreground line-clamp-2">{description}</p>
-            {unlocked && (
-                <Badge className={`mt-2 ${colors.bg} ${colors.text} ${colors.border} text-xs`}>
-                    <CheckCircle2 className="w-3 h-3 mr-1" />
-                    Unlocked
-                </Badge>
-            )}
-        </Card>
-    );
-}

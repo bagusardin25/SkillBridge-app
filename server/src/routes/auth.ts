@@ -5,6 +5,16 @@ import { z } from "zod";
 import { prisma } from "../lib/prisma.js";
 import { authMiddleware } from "../middleware/auth.js";
 import { sendVerificationEmail, sendPasswordResetEmail, generateToken } from "../services/email.js";
+import {
+  generateState,
+  getGoogleAuthUrl,
+  getGoogleTokens,
+  getGoogleUserInfo,
+  getGitHubAuthUrl,
+  getGitHubToken,
+  getGitHubUserInfo,
+  type OAuthUserInfo,
+} from "../services/oauth.js";
 
 const router = Router();
 
@@ -329,6 +339,185 @@ router.post("/reset-password", async (req, res) => {
   } catch (error) {
     console.error("Reset password error:", error);
     res.status(500).json({ error: "Failed to reset password" });
+  }
+});
+
+// Store OAuth states temporarily (in production, use Redis or database)
+const oauthStates = new Map<string, { provider: string; createdAt: number }>();
+
+// Clean up old states every 10 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [state, data] of oauthStates) {
+    if (now - data.createdAt > 10 * 60 * 1000) { // 10 minutes
+      oauthStates.delete(state);
+    }
+  }
+}, 10 * 60 * 1000);
+
+// Helper function to find or create OAuth user
+async function findOrCreateOAuthUser(userInfo: OAuthUserInfo) {
+  // First, try to find by provider and providerId
+  let user = await prisma.user.findFirst({
+    where: {
+      provider: userInfo.provider,
+      providerId: userInfo.id,
+    },
+  });
+
+  if (user) {
+    // Update user info if changed
+    user = await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        name: userInfo.name || user.name,
+        avatarUrl: userInfo.avatarUrl || user.avatarUrl,
+      },
+    });
+    return user;
+  }
+
+  // Check if email already exists with different provider
+  const existingUser = await prisma.user.findUnique({
+    where: { email: userInfo.email },
+  });
+
+  if (existingUser) {
+    // Link OAuth to existing account
+    user = await prisma.user.update({
+      where: { id: existingUser.id },
+      data: {
+        provider: userInfo.provider,
+        providerId: userInfo.id,
+        avatarUrl: userInfo.avatarUrl || existingUser.avatarUrl,
+        isVerified: true,
+      },
+    });
+    return user;
+  }
+
+  // Create new user
+  user = await prisma.user.create({
+    data: {
+      email: userInfo.email,
+      name: userInfo.name,
+      avatarUrl: userInfo.avatarUrl,
+      provider: userInfo.provider,
+      providerId: userInfo.id,
+      isVerified: true,
+    },
+  });
+
+  return user;
+}
+
+// GET /api/auth/google - Redirect to Google OAuth
+router.get("/google", (req, res) => {
+  try {
+    const state = generateState();
+    oauthStates.set(state, { provider: "google", createdAt: Date.now() });
+    
+    const authUrl = getGoogleAuthUrl(state);
+    res.redirect(authUrl);
+  } catch (error) {
+    console.error("Google OAuth redirect error:", error);
+    res.redirect(`${process.env.FRONTEND_URL}/login?error=oauth_failed`);
+  }
+});
+
+// GET /api/auth/google/callback - Handle Google OAuth callback
+router.get("/google/callback", async (req, res) => {
+  try {
+    const { code, state, error } = req.query;
+
+    if (error) {
+      console.error("Google OAuth error:", error);
+      return res.redirect(`${process.env.FRONTEND_URL}/login?error=oauth_denied`);
+    }
+
+    if (!code || !state) {
+      return res.redirect(`${process.env.FRONTEND_URL}/login?error=invalid_request`);
+    }
+
+    // Verify state
+    const storedState = oauthStates.get(state as string);
+    if (!storedState || storedState.provider !== "google") {
+      return res.redirect(`${process.env.FRONTEND_URL}/login?error=invalid_state`);
+    }
+    oauthStates.delete(state as string);
+
+    // Exchange code for tokens
+    const tokens = await getGoogleTokens(code as string);
+    
+    // Get user info
+    const userInfo = await getGoogleUserInfo(tokens.access_token);
+    
+    // Find or create user
+    const user = await findOrCreateOAuthUser(userInfo);
+    
+    // Generate JWT
+    const token = generateJwtToken(user.id, user.email);
+    
+    // Redirect to frontend with token
+    res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}`);
+  } catch (error) {
+    console.error("Google OAuth callback error:", error);
+    res.redirect(`${process.env.FRONTEND_URL}/login?error=oauth_failed`);
+  }
+});
+
+// GET /api/auth/github - Redirect to GitHub OAuth
+router.get("/github", (req, res) => {
+  try {
+    const state = generateState();
+    oauthStates.set(state, { provider: "github", createdAt: Date.now() });
+    
+    const authUrl = getGitHubAuthUrl(state);
+    res.redirect(authUrl);
+  } catch (error) {
+    console.error("GitHub OAuth redirect error:", error);
+    res.redirect(`${process.env.FRONTEND_URL}/login?error=oauth_failed`);
+  }
+});
+
+// GET /api/auth/github/callback - Handle GitHub OAuth callback
+router.get("/github/callback", async (req, res) => {
+  try {
+    const { code, state, error } = req.query;
+
+    if (error) {
+      console.error("GitHub OAuth error:", error);
+      return res.redirect(`${process.env.FRONTEND_URL}/login?error=oauth_denied`);
+    }
+
+    if (!code || !state) {
+      return res.redirect(`${process.env.FRONTEND_URL}/login?error=invalid_request`);
+    }
+
+    // Verify state
+    const storedState = oauthStates.get(state as string);
+    if (!storedState || storedState.provider !== "github") {
+      return res.redirect(`${process.env.FRONTEND_URL}/login?error=invalid_state`);
+    }
+    oauthStates.delete(state as string);
+
+    // Exchange code for token
+    const accessToken = await getGitHubToken(code as string);
+    
+    // Get user info
+    const userInfo = await getGitHubUserInfo(accessToken);
+    
+    // Find or create user
+    const user = await findOrCreateOAuthUser(userInfo);
+    
+    // Generate JWT
+    const token = generateJwtToken(user.id, user.email);
+    
+    // Redirect to frontend with token
+    res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}`);
+  } catch (error) {
+    console.error("GitHub OAuth callback error:", error);
+    res.redirect(`${process.env.FRONTEND_URL}/login?error=oauth_failed`);
   }
 });
 

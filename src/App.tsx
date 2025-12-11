@@ -7,6 +7,7 @@ import { RegisterPage } from "@/pages/RegisterPage";
 import { ForgotPasswordPage } from "@/pages/ForgotPasswordPage";
 import { ResetPasswordPage } from "@/pages/ResetPasswordPage";
 import { VerifyEmailPage } from "@/pages/VerifyEmailPage";
+import { AuthCallbackPage } from "@/pages/AuthCallbackPage";
 import { ProfilePage } from "@/pages/ProfilePage";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -62,6 +63,10 @@ function App() {
         <Route
           path="/verify-email/:token"
           element={<VerifyEmailPage />}
+        />
+        <Route
+          path="/auth/callback"
+          element={<AuthCallbackPage />}
         />
         <Route
           path="/"

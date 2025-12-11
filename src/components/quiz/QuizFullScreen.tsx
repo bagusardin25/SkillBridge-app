@@ -165,8 +165,15 @@ export function QuizFullScreen({
   };
 
   const handleSubmit = async () => {
-    if (!user?.id || !currentRoadmapId) {
-      setError("User or roadmap not found");
+    if (!user?.id) {
+      setError("Please login to submit quiz");
+      setQuizState("error");
+      return;
+    }
+    
+    if (!currentRoadmapId) {
+      setError("Simpan roadmap terlebih dahulu sebelum mengerjakan quiz (Ctrl+S atau klik tombol Save)");
+      setQuizState("error");
       return;
     }
 

@@ -91,6 +91,12 @@ router.get("/:userId", async (req, res) => {
     // Calculate total stats
     const totalQuizzesPassed = quizResults.filter((qr) => qr.passed).length;
     const totalQuizzesTaken = quizResults.length;
+    
+    // Calculate total completed topics and roadmaps
+    const totalCompletedTopics = projectsWithStats.reduce((acc, p) => acc + p.completedNodes, 0);
+    const totalCompletedRoadmaps = projectsWithStats.reduce((acc, p) => {
+      return acc + p.roadmaps.filter((r: { progress: number }) => r.progress === 100).length;
+    }, 0);
 
     res.json({
       user,
@@ -100,6 +106,8 @@ router.get("/:userId", async (req, res) => {
         totalRoadmaps: projects.reduce((acc, p) => acc + p.roadmaps.length, 0),
         totalQuizzesPassed,
         totalQuizzesTaken,
+        totalCompletedTopics,
+        totalCompletedRoadmaps,
       },
     });
   } catch (error) {

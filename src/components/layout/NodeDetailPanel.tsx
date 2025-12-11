@@ -60,7 +60,7 @@ function getResourceName(url: string): string {
 }
 
 export function NodeDetailPanel() {
-    const { nodes, edges, selectedNodeIds, closeDetailPanel, askAiAboutTopic } = useRoadmapStore();
+    const { nodes, edges, selectedNodeIds, closeDetailPanel, askAiAboutTopic, currentRoadmapId } = useRoadmapStore();
     const { updateNodeData } = useReactFlow();
     const [showQuiz, setShowQuiz] = useState(false);
 
@@ -240,9 +240,59 @@ export function NodeDetailPanel() {
                                 </div>
                             )}
 
+                            {/* Video Tutorials */}
+                            {data.videos && data.videos.length > 0 && (
+                                <div className="space-y-3">
+                                    <div className="flex items-center gap-2 text-red-500">
+                                        <Video className="h-4 w-4" />
+                                        <span className="text-sm font-medium">Video Tutorials</span>
+                                    </div>
+                                    <div className="border-t border-dashed border-red-200 dark:border-red-900" />
+
+                                    <div className="space-y-2">
+                                        {data.videos.map((video, index) => {
+                                            const isVisited = data.visitedResources?.includes(video);
+                                            const videoName = getResourceName(video);
+
+                                            return (
+                                                <div key={index} className="flex items-start gap-2">
+                                                    <span className="text-xs px-2 py-0.5 rounded font-medium flex-shrink-0 bg-red-500 text-white">
+                                                        Video
+                                                    </span>
+                                                    <a
+                                                        href={video}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        onClick={() => handleResourceClick(video)}
+                                                        className={`text-sm hover:underline flex items-center gap-1 ${
+                                                            isVisited ? "text-muted-foreground" : "text-primary"
+                                                        }`}
+                                                    >
+                                                        {videoName}
+                                                        {isVisited ? (
+                                                            <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                                                        ) : (
+                                                            <ExternalLink className="h-3 w-3 opacity-50" />
+                                                        )}
+                                                    </a>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Quiz Button - Only for core and advanced nodes */}
                             {(data.category === "core" || data.category === "advanced") && (
                                 <div className="pt-4 border-t">
+                                    {/* Warning if roadmap not saved */}
+                                    {!currentRoadmapId && !isCompleted && (
+                                        <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800 mb-3">
+                                            <p className="text-sm text-amber-700 dark:text-amber-400">
+                                                ⚠️ Simpan roadmap terlebih dahulu (Ctrl+S) untuk mengerjakan quiz
+                                            </p>
+                                        </div>
+                                    )}
                                     {isCompleted ? (
                                         <div className="flex items-center gap-3 p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border border-emerald-200 dark:border-emerald-800">
                                             <div className="h-10 w-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center flex-shrink-0">

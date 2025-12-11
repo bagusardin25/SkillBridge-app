@@ -17,6 +17,7 @@ export interface RoadmapNodeData extends Record<string, unknown> {
     label: string;
     description: string;
     resources: string[];
+    videos?: string[]; // Video tutorial URLs (YouTube, etc.)
     category?: NodeCategory;
     isCompleted?: boolean;
     status?: NodeStatus;
@@ -40,6 +41,7 @@ export interface RoadmapResponse {
         data: {
             description: string;
             resources: string[];
+            videos?: string[];
         };
     }[];
     edges: {

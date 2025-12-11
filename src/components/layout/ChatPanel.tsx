@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Bot, Sparkles, Trash2, Settings2, ChevronDown } from "lucide-react";
+import { Send, Bot, Sparkles, Trash2, Settings2, ChevronDown, Copy, Check, RefreshCw, ThumbsUp, ThumbsDown, Square } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { generateRoadmap, createProject, extractTopicFromPrompt, saveChatMessage } from "@/lib/api";
@@ -17,12 +17,23 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import ReactMarkdown from "react-markdown";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type Message = {
     id: string;
     role: "user" | "assistant";
     content: string;
     isStreaming?: boolean;
+    timestamp?: number;
+    feedback?: "like" | "dislike" | null;
 };
 
 const SUGGESTIONS = [
@@ -33,6 +44,99 @@ const SUGGESTIONS = [
 
 const TYPING_SPEED = 15; // ms per character
 const THINKING_DELAY = 800; // ms before starting to type
+
+// Format timestamp
+function formatTime(timestamp: number): string {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMin = Math.floor(diffMs / 60000);
+    
+    if (diffMin < 1) return "Just now";
+    if (diffMin < 60) return `${diffMin}m ago`;
+    
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+// Markdown renderer with syntax highlighting
+function MarkdownContent({ content }: { content: string }) {
+    return (
+        <div className="prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-ol:my-1 prose-li:my-0">
+            <ReactMarkdown
+                components={{
+                    code({ className, children, ...props }) {
+                        const match = /language-(\w+)/.exec(className || '');
+                        const isInline = !match;
+                        
+                        if (isInline) {
+                            return (
+                                <code className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono" {...props}>
+                                    {children}
+                                </code>
+                            );
+                        }
+                        
+                        return (
+                            <div className="relative group my-2">
+                                <SyntaxHighlighter
+                                    style={oneDark}
+                                    language={match[1]}
+                                    PreTag="div"
+                                    customStyle={{
+                                        margin: 0,
+                                        borderRadius: '0.5rem',
+                                        fontSize: '0.75rem',
+                                    }}
+                                >
+                                    {String(children).replace(/\n$/, '')}
+                                </SyntaxHighlighter>
+                                <CopyButton text={String(children)} className="absolute top-2 right-2 opacity-0 group-hover:opacity-100" />
+                            </div>
+                        );
+                    },
+                }}
+            >
+                {content}
+            </ReactMarkdown>
+        </div>
+    );
+}
+
+// Copy button component
+function CopyButton({ text, className }: { text: string; className?: string }) {
+    const [copied, setCopied] = useState(false);
+    
+    const handleCopy = async () => {
+        await navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+    
+    return (
+        <TooltipProvider delayDuration={0}>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <button
+                        onClick={handleCopy}
+                        className={cn(
+                            "p-1.5 rounded-md bg-background/80 hover:bg-background border transition-all",
+                            className
+                        )}
+                    >
+                        {copied ? (
+                            <Check className="h-3 w-3 text-green-500" />
+                        ) : (
+                            <Copy className="h-3 w-3 text-muted-foreground" />
+                        )}
+                    </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                    <p className="text-xs">{copied ? "Copied!" : "Copy"}</p>
+                </TooltipContent>
+            </Tooltip>
+        </TooltipProvider>
+    );
+}
 
 // Typewriter component for streaming messages
 function TypewriterText({ text, onComplete }: { text: string; onComplete?: () => void }) {
@@ -77,7 +181,9 @@ export function ChatPanel() {
     const [isLoading, setIsLoading] = useState(false);
     const [showPreferences, setShowPreferences] = useState(false);
     const [preferences, setPreferences] = useState<RoadmapPreferences>(defaultPreferences);
+    const [lastUserMessage, setLastUserMessage] = useState<string>("");
     const scrollRef = useRef<HTMLDivElement>(null);
+    const abortControllerRef = useRef<AbortController | null>(null);
     const { 
         setNodes, 
         setEdges, 
@@ -98,6 +204,24 @@ export function ChatPanel() {
         setMessages(prev => prev.map(msg => 
             msg.id === messageId ? { ...msg, isStreaming: false } : msg
         ));
+    }, []);
+
+    // Handle feedback (like/dislike)
+    const handleFeedback = useCallback((messageId: string, feedback: "like" | "dislike") => {
+        setMessages(prev => prev.map(msg => 
+            msg.id === messageId 
+                ? { ...msg, feedback: msg.feedback === feedback ? null : feedback } 
+                : msg
+        ));
+    }, []);
+
+    // Stop generation
+    const handleStopGeneration = useCallback(() => {
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+            abortControllerRef.current = null;
+        }
+        setIsLoading(false);
     }, []);
 
     // Load chat history when project changes
@@ -159,20 +283,28 @@ export function ChatPanel() {
         }
     }, [messages]);
 
-    const handleSendMessage = async (e?: React.FormEvent) => {
+    const handleSendMessage = async (e?: React.FormEvent, regenerateMessage?: string) => {
         e?.preventDefault();
-        if (!inputValue.trim()) return;
+        const messageToSend = regenerateMessage || inputValue.trim();
+        if (!messageToSend) return;
 
-        const userMessage = inputValue;
-        const newUserMessage: Message = {
-            id: Date.now().toString(),
-            role: "user",
-            content: userMessage,
-        };
-
-        setMessages((prev) => [...prev, newUserMessage]);
+        const userMessage = messageToSend;
+        setLastUserMessage(userMessage);
+        
+        // Only add user message if not regenerating
+        if (!regenerateMessage) {
+            const newUserMessage: Message = {
+                id: Date.now().toString(),
+                role: "user",
+                content: userMessage,
+                timestamp: Date.now(),
+            };
+            setMessages((prev) => [...prev, newUserMessage]);
+        }
+        
         setInputValue("");
         setIsLoading(true);
+        abortControllerRef.current = new AbortController();
 
         try {
             // Check if this is a roadmap generation request
@@ -207,6 +339,7 @@ export function ChatPanel() {
                         role: "assistant",
                         content: chatMessage,
                         isStreaming: true,
+                        timestamp: Date.now(),
                     };
                     setMessages((prev) => [...prev, aiMessage]);
 
@@ -253,6 +386,7 @@ export function ChatPanel() {
                         role: "assistant",
                         content: successMessageContent,
                         isStreaming: true,
+                        timestamp: Date.now(),
                     };
                     setMessages((prev) => [...prev, successMessage]);
 
@@ -300,6 +434,7 @@ export function ChatPanel() {
                         role: "assistant",
                         content: data.reply,
                         isStreaming: true,
+                        timestamp: Date.now(),
                     };
                     setMessages((prev) => [...prev, newAiMessage]);
                 } else {
@@ -307,22 +442,51 @@ export function ChatPanel() {
                         id: (Date.now() + 1).toString(),
                         role: "assistant",
                         content: `Error: ${data.error || "Failed to get response"}`,
+                        timestamp: Date.now(),
                     };
                     setMessages((prev) => [...prev, errorMessage]);
                 }
             }
         } catch (error) {
+            // Don't show error if it was aborted
+            if (error instanceof Error && error.name === 'AbortError') {
+                return;
+            }
             const errorMessage: Message = {
                 id: (Date.now() + 1).toString(),
                 role: "assistant",
                 content: error instanceof Error 
                     ? `Error: ${error.message}` 
                     : "Failed to connect to server. Make sure the backend is running on port 3001.",
+                timestamp: Date.now(),
             };
             setMessages((prev) => [...prev, errorMessage]);
         } finally {
             setIsLoading(false);
+            abortControllerRef.current = null;
         }
+    };
+
+    // Regenerate last response
+    const handleRegenerate = () => {
+        if (!lastUserMessage) return;
+        // Remove last AI message
+        setMessages(prev => {
+            // Find last index of assistant message
+            let lastIndex = -1;
+            for (let i = prev.length - 1; i >= 0; i--) {
+                if (prev[i].role === "assistant") {
+                    lastIndex = i;
+                    break;
+                }
+            }
+            if (lastIndex >= 0) {
+                return prev.slice(0, lastIndex);
+            }
+            return prev;
+        });
+        // Resend last user message
+        handleSendMessage(undefined, lastUserMessage);
     };
 
     const handleSuggestionClick = (suggestion: string) => {
@@ -500,46 +664,152 @@ export function ChatPanel() {
                             </div>
                         </div>
                     ) : (
-                        messages.map((msg) => (
-                            <div
-                                key={msg.id}
-                                className={cn(
-                                    "flex gap-3 max-w-[90%]",
-                                    msg.role === "user" ? "ml-auto flex-row-reverse" : ""
-                                )}
-                            >
-                                <Avatar className="h-8 w-8 border">
-                                    {msg.role === "assistant" ? (
-                                        <>
-                                            <AvatarImage src="/bot-avatar.png" />
-                                            <AvatarFallback className="bg-primary/10 text-primary">AI</AvatarFallback>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <AvatarImage src="/user-avatar.png" />
-                                            <AvatarFallback>You</AvatarFallback>
-                                        </>
-                                    )}
-                                </Avatar>
+                        messages.map((msg, index) => {
+                            // Find last AI message index
+                            let lastAiIndex = -1;
+                            for (let i = messages.length - 1; i >= 0; i--) {
+                                if (messages[i].role === "assistant") {
+                                    lastAiIndex = i;
+                                    break;
+                                }
+                            }
+                            const isLastAiMessage = msg.role === "assistant" && index === lastAiIndex;
+                            
+                            return (
                                 <div
+                                    key={msg.id}
                                     className={cn(
-                                        "rounded-lg p-3 text-sm shadow-sm whitespace-pre-wrap",
-                                        msg.role === "user"
-                                            ? "bg-primary text-primary-foreground"
-                                            : "bg-muted text-foreground"
+                                        "flex gap-3 max-w-[95%] group",
+                                        msg.role === "user" ? "ml-auto flex-row-reverse" : ""
                                     )}
                                 >
-                                    {msg.isStreaming ? (
-                                        <TypewriterText 
-                                            text={msg.content} 
-                                            onComplete={() => handleStreamingComplete(msg.id)} 
-                                        />
-                                    ) : (
-                                        msg.content
-                                    )}
+                                    <Avatar className="h-8 w-8 border flex-shrink-0">
+                                        {msg.role === "assistant" ? (
+                                            <>
+                                                <AvatarImage src="/bot-avatar.png" />
+                                                <AvatarFallback className="bg-primary/10 text-primary">AI</AvatarFallback>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <AvatarImage src="/user-avatar.png" />
+                                                <AvatarFallback>You</AvatarFallback>
+                                            </>
+                                        )}
+                                    </Avatar>
+                                    <div className="flex flex-col gap-1 min-w-0">
+                                        {/* Timestamp */}
+                                        {msg.timestamp && (
+                                            <span className={cn(
+                                                "text-[10px] text-muted-foreground",
+                                                msg.role === "user" ? "text-right" : "text-left"
+                                            )}>
+                                                {formatTime(msg.timestamp)}
+                                            </span>
+                                        )}
+                                        
+                                        <div
+                                            className={cn(
+                                                "rounded-lg p-3 text-sm shadow-sm",
+                                                msg.role === "user"
+                                                    ? "bg-primary text-primary-foreground whitespace-pre-wrap"
+                                                    : "bg-muted text-foreground"
+                                            )}
+                                        >
+                                            {msg.isStreaming ? (
+                                                <TypewriterText 
+                                                    text={msg.content} 
+                                                    onComplete={() => handleStreamingComplete(msg.id)} 
+                                                />
+                                            ) : (
+                                                msg.role === "assistant" ? (
+                                                    <MarkdownContent content={msg.content} />
+                                                ) : (
+                                                    msg.content
+                                                )
+                                            )}
+                                        </div>
+                                        
+                                        {/* Action buttons for AI messages */}
+                                        {msg.role === "assistant" && !msg.isStreaming && (
+                                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                {/* Copy */}
+                                                <TooltipProvider delayDuration={0}>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-7 w-7"
+                                                                onClick={() => navigator.clipboard.writeText(msg.content)}
+                                                            >
+                                                                <Copy className="h-3.5 w-3.5" />
+                                                            </Button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent><p className="text-xs">Copy</p></TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                                
+                                                {/* Regenerate - only on last AI message */}
+                                                {isLastAiMessage && (
+                                                    <TooltipProvider delayDuration={0}>
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    className="h-7 w-7"
+                                                                    onClick={handleRegenerate}
+                                                                    disabled={isLoading}
+                                                                >
+                                                                    <RefreshCw className="h-3.5 w-3.5" />
+                                                                </Button>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent><p className="text-xs">Regenerate</p></TooltipContent>
+                                                        </Tooltip>
+                                                    </TooltipProvider>
+                                                )}
+                                                
+                                                <div className="w-px h-4 bg-border mx-1" />
+                                                
+                                                {/* Like */}
+                                                <TooltipProvider delayDuration={0}>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className={cn("h-7 w-7", msg.feedback === "like" && "text-green-500")}
+                                                                onClick={() => handleFeedback(msg.id, "like")}
+                                                            >
+                                                                <ThumbsUp className="h-3.5 w-3.5" />
+                                                            </Button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent><p className="text-xs">Good response</p></TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                                
+                                                {/* Dislike */}
+                                                <TooltipProvider delayDuration={0}>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className={cn("h-7 w-7", msg.feedback === "dislike" && "text-red-500")}
+                                                                onClick={() => handleFeedback(msg.id, "dislike")}
+                                                            >
+                                                                <ThumbsDown className="h-3.5 w-3.5" />
+                                                            </Button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent><p className="text-xs">Bad response</p></TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        ))
+                            );
+                        })
                     )}
                     {isLoading && (
                         <div className="flex gap-3 max-w-[90%]">
@@ -565,11 +835,31 @@ export function ChatPanel() {
                         onChange={(e) => setInputValue(e.target.value)}
                         className="flex-1 min-h-[40px]"
                         placeholder="Type a message..."
+                        disabled={isLoading}
                     />
-                    <Button type="submit" size="icon" disabled={isLoading || !inputValue.trim()}>
-                        <Send className="h-4 w-4" />
-                        <span className="sr-only">Send</span>
-                    </Button>
+                    {isLoading ? (
+                        <TooltipProvider delayDuration={0}>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button 
+                                        type="button" 
+                                        size="icon" 
+                                        variant="destructive"
+                                        onClick={handleStopGeneration}
+                                    >
+                                        <Square className="h-4 w-4" />
+                                        <span className="sr-only">Stop</span>
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent><p className="text-xs">Stop generating</p></TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    ) : (
+                        <Button type="submit" size="icon" disabled={!inputValue.trim()}>
+                            <Send className="h-4 w-4" />
+                            <span className="sr-only">Send</span>
+                        </Button>
+                    )}
                 </form>
             </div>
         </div>

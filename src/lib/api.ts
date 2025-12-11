@@ -512,6 +512,8 @@ export interface ProfileStats {
   totalRoadmaps: number;
   totalQuizzesPassed: number;
   totalQuizzesTaken: number;
+  totalCompletedTopics: number;
+  totalCompletedRoadmaps: number;
 }
 
 export interface ProfileResponse {
