@@ -256,16 +256,29 @@ export interface RoadmapEdge {
 export interface GeneratedRoadmap {
   id?: string;
   title: string;
+  totalEstimatedTime?: string;
   nodes: RoadmapNode[];
   edges: RoadmapEdge[];
 }
 
+// User preferences for roadmap generation
+export interface RoadmapPreferences {
+  skillLevel: "beginner" | "intermediate" | "advanced";
+  learningTime: "casual" | "moderate" | "intensive";
+  learningStyle: "theory" | "practice" | "balanced";
+  goal: "career" | "project" | "certification" | "hobby";
+}
+
 // Roadmap Functions
-export async function generateRoadmap(prompt: string, projectId?: string): Promise<GeneratedRoadmap> {
+export async function generateRoadmap(
+  prompt: string, 
+  projectId?: string,
+  preferences?: RoadmapPreferences
+): Promise<GeneratedRoadmap> {
   const res = await fetch(`${API_URL}/roadmap/generate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt, projectId }),
+    body: JSON.stringify({ prompt, projectId, preferences }),
   });
 
   const data = await res.json();
@@ -553,6 +566,23 @@ export async function addLearningTime(userId: string, minutes: number): Promise<
   
   if (!res.ok) {
     throw new Error(data.error || "Failed to add learning time");
+  }
+
+  return data;
+}
+
+// Add XP to user
+export async function addXp(userId: string, amount: number): Promise<{ id: string; xp: number; level: number }> {
+  const res = await fetch(`${API_URL}/profile/${userId}/add-xp`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ amount }),
+  });
+
+  const data = await res.json();
+  
+  if (!res.ok) {
+    throw new Error(data.error || "Failed to add XP");
   }
 
   return data;

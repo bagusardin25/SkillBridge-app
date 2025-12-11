@@ -124,20 +124,45 @@ export function convertToReactFlowNodes(
 // Helper to check if message is a roadmap generation request
 export function isRoadmapRequest(message: string): boolean {
   const lowerMsg = message.toLowerCase();
-  const keywords = [
-    "roadmap",
-    "create roadmap",
-    "buat roadmap",
-    "generate roadmap",
-    "learning path",
-    "jalur belajar",
-    "cara belajar",
-    "how to learn",
-    "i want to learn",
-    "saya ingin belajar",
-    "teach me",
-    "ajari saya",
+  
+  // Exclude question patterns - these are asking ABOUT roadmap, not requesting to CREATE one
+  const questionPatterns = [
+    "apa ini",
+    "ini apa", 
+    "ini roadmap",
+    "roadmap ini",
+    "roadmap apa",
+    "roadmapnya apa",
+    "tentang apa",
+    "what is this",
+    "what roadmap",
+    "this roadmap",
   ];
   
-  return keywords.some((keyword) => lowerMsg.includes(keyword));
+  if (questionPatterns.some((pattern) => lowerMsg.includes(pattern))) {
+    return false;
+  }
+  
+  // Check for CREATION intent (flexible matching)
+  const hasCreateIntent = 
+    lowerMsg.includes("buat") ||      // buat, buatkan, buatin
+    lowerMsg.includes("bikin") ||     // bikin, bikinin
+    lowerMsg.includes("create") ||
+    lowerMsg.includes("generate") ||
+    lowerMsg.includes("ingin belajar") ||
+    lowerMsg.includes("mau belajar") ||
+    lowerMsg.includes("want to learn") ||
+    lowerMsg.includes("cara belajar") ||
+    lowerMsg.includes("jalur belajar") ||
+    lowerMsg.includes("learning path") ||
+    lowerMsg.includes("ajari") ||
+    lowerMsg.includes("ajarkan") ||
+    lowerMsg.includes("teach me");
+  
+  // Must also mention roadmap or learning topic
+  const hasRoadmapOrLearning = 
+    lowerMsg.includes("roadmap") ||
+    lowerMsg.includes("belajar");
+  
+  return hasCreateIntent && hasRoadmapOrLearning;
 }

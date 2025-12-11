@@ -1,20 +1,52 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
-import { generateRoadmap } from "../services/ai.js";
+import { generateRoadmap, RoadmapPreferences } from "../services/ai.js";
 
 const router = Router();
 
 // POST /api/roadmap/generate - Generate roadmap from AI
 router.post("/generate", async (req, res) => {
   try {
-    const { prompt, projectId } = req.body;
+    const { prompt, projectId, preferences } = req.body;
 
     if (!prompt) {
       return res.status(400).json({ error: "Prompt is required" });
     }
 
-    // Generate roadmap using AI
-    const roadmapData = await generateRoadmap(prompt);
+    // Validate preferences if provided
+    const validPreferences: RoadmapPreferences | undefined = preferences
+      ? {
+          skillLevel: preferences.skillLevel || "beginner",
+          learningTime: preferences.learningTime || "moderate",
+          learningStyle: preferences.learningStyle || "balanced",
+          goal: preferences.goal || "career",
+        }
+      : undefined;
+
+    // Generate roadmap using AI with preferences
+    const roadmapData = await generateRoadmap(prompt, validPreferences);
+
+    // Check if response is a valid roadmap
+    const isValidRoadmap = roadmapData.title && 
+                           roadmapData.nodes && 
+                           Array.isArray(roadmapData.nodes) && 
+                           roadmapData.nodes.length > 0;
+
+    if (!isValidRoadmap) {
+      // Return friendly chat response instead of error
+      const defaultMessage = (roadmapData as any).error || 
+        "Hmm, saya tidak bisa membuat roadmap dari request tersebut. 🤔\n\n" +
+        "Coba dengan format seperti:\n" +
+        "• \"Buat roadmap belajar React\"\n" +
+        "• \"Saya ingin belajar Python dari nol\"\n" +
+        "• \"Jalur belajar menjadi Backend Developer\"\n\n" +
+        "Ada topik teknologi yang ingin dipelajari?";
+
+      return res.status(200).json({ 
+        type: "chat",
+        message: defaultMessage
+      });
+    }
 
     // If projectId provided, save to database
     if (projectId) {

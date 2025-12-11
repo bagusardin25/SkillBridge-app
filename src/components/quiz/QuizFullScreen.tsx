@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { generateQuiz, submitQuiz, type QuizQuestion } from "@/lib/api";
+import { generateQuiz, submitQuiz, addXp, type QuizQuestion } from "@/lib/api";
 import { QuizQuestionCard } from "./QuizQuestion";
 import { 
   Loader2, 
@@ -200,6 +200,12 @@ export function QuizFullScreen({
 
       if (submitResult.passed) {
         setQuizState("completed");
+        // Award XP for passing quiz (100 XP per quiz)
+        try {
+          await addXp(user.id, 100);
+        } catch (xpErr) {
+          console.error("Failed to add XP:", xpErr);
+        }
         onComplete();
       } else {
         setQuizState("failed");
@@ -242,6 +248,12 @@ export function QuizFullScreen({
 
       if (submitResult.passed) {
         setQuizState("completed");
+        // Award XP for passing quiz (100 XP per quiz)
+        try {
+          await addXp(user.id, 100);
+        } catch (xpErr) {
+          console.error("Failed to add XP:", xpErr);
+        }
         onComplete();
       } else {
         setQuizState("timeout");

@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { FlowCanvas } from "@/components/canvas/FlowCanvas";
 import { LoginPage } from "@/pages/LoginPage";
@@ -10,15 +10,27 @@ import { VerifyEmailPage } from "@/pages/VerifyEmailPage";
 import { ProfilePage } from "@/pages/ProfilePage";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useAuthStore } from "@/store/useAuthStore";
+import { updateStreak } from "@/lib/api";
 import { Toaster } from "sonner";
 
 function App() {
-  const { setLoading, isAuthenticated } = useAuthStore();
+  const { setLoading, isAuthenticated, user } = useAuthStore();
+  const streakUpdated = useRef(false);
 
   useEffect(() => {
     // Check if user is already authenticated from localStorage
     setLoading(false);
   }, [setLoading]);
+
+  // Update streak when user logs in (once per session)
+  useEffect(() => {
+    if (isAuthenticated && user?.id && !streakUpdated.current) {
+      streakUpdated.current = true;
+      updateStreak(user.id).catch((err) => {
+        console.error("Failed to update streak:", err);
+      });
+    }
+  }, [isAuthenticated, user?.id]);
 
   return (
     <BrowserRouter>

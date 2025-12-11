@@ -2,13 +2,21 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Bot, Sparkles, Trash2 } from "lucide-react";
+import { Send, Bot, Sparkles, Trash2, Settings2, ChevronDown, ChevronUp } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { generateRoadmap, createProject, extractTopicFromPrompt, saveChatMessage } from "@/lib/api";
+import type { RoadmapPreferences } from "@/lib/api";
 import { convertToReactFlowNodes, isRoadmapRequest } from "@/lib/layoutUtils";
 import { useRoadmapStore } from "@/store/useRoadmapStore";
 import { useAuthStore } from "@/store/useAuthStore";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
 type Message = {
     id: string;
@@ -55,10 +63,20 @@ function TypewriterText({ text, onComplete }: { text: string; onComplete?: () =>
     return <>{displayedText}<span className="animate-pulse">|</span></>;
 }
 
+// Default preferences
+const defaultPreferences: RoadmapPreferences = {
+    skillLevel: "beginner",
+    learningTime: "moderate",
+    learningStyle: "balanced",
+    goal: "career",
+};
+
 export function ChatPanel() {
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputValue, setInputValue] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [showPreferences, setShowPreferences] = useState(false);
+    const [preferences, setPreferences] = useState<RoadmapPreferences>(defaultPreferences);
     const scrollRef = useRef<HTMLDivElement>(null);
     const { 
         setNodes, 
@@ -177,34 +195,71 @@ export function ChatPanel() {
                     saveChatMessage(projectId, "user", userMessage);
                 }
                 
-                // Generate roadmap using AI (pass projectId to save to DB)
-                const roadmap = await generateRoadmap(userMessage, projectId || undefined);
-                const { nodes, edges } = convertToReactFlowNodes(roadmap);
+                // Generate roadmap using AI (pass projectId and preferences to save to DB)
+                const roadmap = await generateRoadmap(userMessage, projectId || undefined, preferences);
                 
-                // Update the canvas
-                setNodes(nodes);
-                setEdges(edges);
-                setProjectTitle(roadmap.title);
-                
-                // Track roadmap ID for future updates
-                if (roadmap.id) {
-                    setCurrentRoadmapId(roadmap.id);
-                }
+                // Check if AI returned a chat response instead of roadmap
+                if ((roadmap as any).type === "chat") {
+                    const chatMessage = (roadmap as any).message;
+                    const messageId = (Date.now() + 1).toString();
+                    const aiMessage: Message = {
+                        id: messageId,
+                        role: "assistant",
+                        content: chatMessage,
+                        isStreaming: true,
+                    };
+                    setMessages((prev) => [...prev, aiMessage]);
 
-                // Show success message with streaming effect
-                const messageId = (Date.now() + 1).toString();
-                const successMessageContent = `🎉 Roadmap "${roadmap.title}" berhasil dibuat!\n\nRoadmap ini memiliki ${nodes.length} langkah pembelajaran. Klik pada setiap node untuk melihat detail dan sumber belajar.\n\nAda yang ingin kamu tanyakan tentang roadmap ini?`;
-                const successMessage: Message = {
-                    id: messageId,
-                    role: "assistant",
-                    content: successMessageContent,
-                    isStreaming: true,
-                };
-                setMessages((prev) => [...prev, successMessage]);
+                    // Save to DB
+                    if (projectId) {
+                        saveChatMessage(projectId, "assistant", chatMessage);
+                    }
+                } else {
+                    // Valid roadmap - render to canvas progressively
+                    const { nodes, edges } = convertToReactFlowNodes(roadmap);
+                    
+                    // Set project title first
+                    setProjectTitle(roadmap.title);
+                    
+                    // Track roadmap ID for future updates
+                    if (roadmap.id) {
+                        setCurrentRoadmapId(roadmap.id);
+                    }
 
-                // Save success message to DB
-                if (projectId) {
-                    saveChatMessage(projectId, "assistant", successMessageContent);
+                    // Clear canvas first
+                    setNodes([]);
+                    setEdges([]);
+
+                    // Progressive rendering - add nodes one by one
+                    const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+                    const displayedNodes: typeof nodes = [];
+                    
+                    for (let i = 0; i < nodes.length; i++) {
+                        await delay(120); // 120ms delay between each node
+                        displayedNodes.push(nodes[i]);
+                        setNodes([...displayedNodes]);
+                    }
+
+                    // Add edges after all nodes are rendered
+                    await delay(200);
+                    setEdges(edges);
+
+                    // Show success message with streaming effect
+                    const messageId = (Date.now() + 1).toString();
+                    const timeInfo = roadmap.totalEstimatedTime ? `\n⏱️ Estimasi waktu: ${roadmap.totalEstimatedTime}` : '';
+                    const successMessageContent = `🎉 Roadmap "${roadmap.title}" berhasil dibuat!${timeInfo}\n\nRoadmap ini memiliki ${nodes.length} langkah pembelajaran. Klik pada setiap node untuk melihat detail dan sumber belajar.\n\nAda yang ingin kamu tanyakan tentang roadmap ini?`;
+                    const successMessage: Message = {
+                        id: messageId,
+                        role: "assistant",
+                        content: successMessageContent,
+                        isStreaming: true,
+                    };
+                    setMessages((prev) => [...prev, successMessage]);
+
+                    // Save success message to DB
+                    if (projectId) {
+                        saveChatMessage(projectId, "assistant", successMessageContent);
+                    }
                 }
             } else {
                 // Regular chat - call chat API
@@ -316,7 +371,7 @@ export function ChatPanel() {
             <ScrollArea className="flex-1 p-4">
                 <div className="flex flex-col gap-4">
                     {messages.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center text-center mt-10 space-y-4">
+                        <div className="flex flex-col items-center justify-center text-center mt-6 space-y-4">
                             <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-2">
                                 <Sparkles className="h-6 w-6 text-muted-foreground" />
                             </div>
@@ -326,7 +381,95 @@ export function ChatPanel() {
                                     I can help you build learning roadmaps. Try asking:
                                 </p>
                             </div>
-                            <div className="flex flex-col gap-2 w-full px-2 mt-4">
+                            
+                            {/* Preferences Section */}
+                            <div className="w-full px-2">
+                                <button
+                                    onClick={() => setShowPreferences(!showPreferences)}
+                                    className="flex items-center justify-between w-full p-2 text-xs rounded-lg border bg-card hover:bg-accent transition-colors"
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <Settings2 className="h-3.5 w-3.5" />
+                                        <span>Personalize Roadmap</span>
+                                    </div>
+                                    {showPreferences ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                                </button>
+                                
+                                {showPreferences && (
+                                    <div className="mt-2 p-3 border rounded-lg bg-card space-y-3 text-left">
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-medium text-muted-foreground">Skill Level</label>
+                                            <Select
+                                                value={preferences.skillLevel}
+                                                onValueChange={(v) => setPreferences({ ...preferences, skillLevel: v as RoadmapPreferences["skillLevel"] })}
+                                            >
+                                                <SelectTrigger className="h-8 text-xs">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="beginner">Beginner (Pemula)</SelectItem>
+                                                    <SelectItem value="intermediate">Intermediate (Menengah)</SelectItem>
+                                                    <SelectItem value="advanced">Advanced (Mahir)</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-medium text-muted-foreground">Learning Time</label>
+                                            <Select
+                                                value={preferences.learningTime}
+                                                onValueChange={(v) => setPreferences({ ...preferences, learningTime: v as RoadmapPreferences["learningTime"] })}
+                                            >
+                                                <SelectTrigger className="h-8 text-xs">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="casual">Casual (~1 jam/hari)</SelectItem>
+                                                    <SelectItem value="moderate">Moderate (2-3 jam/hari)</SelectItem>
+                                                    <SelectItem value="intensive">Intensive (4+ jam/hari)</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-medium text-muted-foreground">Learning Style</label>
+                                            <Select
+                                                value={preferences.learningStyle}
+                                                onValueChange={(v) => setPreferences({ ...preferences, learningStyle: v as RoadmapPreferences["learningStyle"] })}
+                                            >
+                                                <SelectTrigger className="h-8 text-xs">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="theory">Theory First (Teori dulu)</SelectItem>
+                                                    <SelectItem value="practice">Hands-on (Langsung praktek)</SelectItem>
+                                                    <SelectItem value="balanced">Balanced (Seimbang)</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-medium text-muted-foreground">Goal</label>
+                                            <Select
+                                                value={preferences.goal}
+                                                onValueChange={(v) => setPreferences({ ...preferences, goal: v as RoadmapPreferences["goal"] })}
+                                            >
+                                                <SelectTrigger className="h-8 text-xs">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="career">Career (Untuk kerja)</SelectItem>
+                                                    <SelectItem value="project">Project (Untuk project)</SelectItem>
+                                                    <SelectItem value="certification">Certification (Sertifikasi)</SelectItem>
+                                                    <SelectItem value="hobby">Hobby (Just for fun)</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                            
+                            <div className="flex flex-col gap-2 w-full px-2 mt-2">
                                 {SUGGESTIONS.map((suggestion, index) => (
                                     <button
                                         key={index}
