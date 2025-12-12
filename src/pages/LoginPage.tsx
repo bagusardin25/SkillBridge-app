@@ -97,11 +97,11 @@ export function LoginPage() {
 
   return (
     <div className="min-h-screen flex">
-      {/* Left Side - Gradient Background with Branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700 p-12 flex-col justify-between relative overflow-hidden">
+      {/* Left Side - Black & White Branding */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-gray-900 via-gray-800 to-black p-12 flex-col justify-between relative overflow-hidden">
         {/* Decorative circles */}
-        <div className="absolute top-20 left-10 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-400/20 rounded-full blur-3xl" />
+        <div className="absolute top-20 left-10 w-72 h-72 bg-white/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-gray-400/10 rounded-full blur-3xl" />
 
         {/* Logo & Branding */}
         <div className="relative z-10">
@@ -117,7 +117,7 @@ export function LoginPage() {
             Build Your Learning<br />
             Path with AI
           </h1>
-          <p className="text-white/80 text-lg max-w-md">
+          <p className="text-gray-400 text-lg max-w-md">
             Describe your goal, and AI will create a personalized roadmap
             to guide your learning journey.
           </p>
@@ -127,7 +127,7 @@ export function LoginPage() {
             {["AI Roadmaps", "Quiz System", "Progress Tracking", "Dark Mode"].map((feature) => (
               <span
                 key={feature}
-                className="px-4 py-2 rounded-full bg-white/10 backdrop-blur text-white text-sm font-medium"
+                className="px-4 py-2 rounded-full bg-white/10 backdrop-blur text-white text-sm font-medium border border-white/20"
               >
                 {feature}
               </span>
@@ -136,21 +136,21 @@ export function LoginPage() {
         </div>
 
         {/* Footer */}
-        <div className="relative z-10 text-white/60 text-sm">
-          © 2024 SkillBridge. Built for Education & Upskilling.
+        <div className="relative z-10 text-gray-500 text-sm">
+          © 2025 SkillBridge. Built for Education & Upskilling.
         </div>
       </div>
 
       {/* Right Side - Login Form */}
       <div className="flex-1 flex items-center justify-center p-8 bg-background">
-        <div className="w-full max-w-md space-y-8">
+        <div className="w-full max-w-md space-y-8 mx-auto">
           {/* Mobile Logo */}
           <div className="lg:hidden flex items-center justify-center gap-2 text-foreground mb-8">
             <Logo size={40} />
             <span className="text-2xl font-bold">SkillBridge</span>
           </div>
 
-          <div className="text-center lg:text-left space-y-2">
+          <div className="text-center space-y-2">
             <h1 className="text-3xl font-bold">Welcome back</h1>
             <p className="text-muted-foreground">
               Sign in to continue your learning journey

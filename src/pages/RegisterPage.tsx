@@ -97,10 +97,10 @@ export function RegisterPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left Side - Gradient Background with Branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700 p-12 flex-col justify-between relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-gray-900 via-gray-800 to-black p-12 flex-col justify-between relative overflow-hidden">
         {/* Decorative circles */}
-        <div className="absolute top-20 left-10 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-teal-400/20 rounded-full blur-3xl" />
+        <div className="absolute top-20 left-10 w-72 h-72 bg-white/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-gray-400/10 rounded-full blur-3xl" />
 
         {/* Logo & Branding */}
         <div className="relative z-10">
@@ -124,8 +124,8 @@ export function RegisterPage() {
               { icon: BookOpen, text: "Curated learning resources" },
               { icon: Trophy, text: "Track progress & earn achievements" },
             ].map(({ icon: Icon, text }) => (
-              <div key={text} className="flex items-center gap-3 text-white/90">
-                <div className="h-8 w-8 rounded-lg bg-white/10 flex items-center justify-center">
+              <div key={text} className="flex items-center gap-3 text-gray-300">
+                <div className="h-8 w-8 rounded-lg bg-white/10 flex items-center justify-center border border-white/20">
                   <Icon className="h-4 w-4" />
                 </div>
                 <span>{text}</span>
@@ -135,21 +135,21 @@ export function RegisterPage() {
         </div>
 
         {/* Footer */}
-        <div className="relative z-10 text-white/60 text-sm">
-          © 2024 SkillBridge. Built for Education & Upskilling.
+        <div className="relative z-10 text-gray-500 text-sm">
+          © 2025 SkillBridge. Built for Education & Upskilling.
         </div>
       </div>
 
       {/* Right Side - Register Form */}
       <div className="flex-1 flex items-center justify-center p-8 bg-background">
-        <div className="w-full max-w-md space-y-6">
+        <div className="w-full max-w-md space-y-6 mx-auto">
           {/* Mobile Logo */}
           <div className="lg:hidden flex items-center justify-center gap-2 text-foreground mb-6">
             <Logo size={40} />
             <span className="text-2xl font-bold">SkillBridge</span>
           </div>
 
-          <div className="text-center lg:text-left space-y-2">
+          <div className="text-center space-y-2">
             <h1 className="text-3xl font-bold">Create an account</h1>
             <p className="text-muted-foreground">
               Start your learning journey with SkillBridge
