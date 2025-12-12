@@ -55,10 +55,18 @@ router.get("/:userId", async (req, res) => {
         const nodes = (roadmap.nodes as any[]) || [];
         const totalNodes = nodes.length;
         
-        // Count completed nodes (nodes that have passed quiz)
-        const completedNodes = quizResults.filter(
+        // Count completed from node data (isCompleted or quizPassed flags saved in JSON)
+        const completedFromNodeData = nodes.filter(
+          (n) => n.data?.isCompleted === true || n.data?.quizPassed === true
+        ).length;
+        
+        // Count completed from quiz results table
+        const completedFromQuiz = quizResults.filter(
           (qr) => qr.roadmapId === roadmap.id && qr.passed
         ).length;
+        
+        // Use the higher count to ensure consistency
+        const completedNodes = Math.max(completedFromNodeData, completedFromQuiz);
 
         const progress = totalNodes > 0 ? Math.round((completedNodes / totalNodes) * 100) : 0;
 

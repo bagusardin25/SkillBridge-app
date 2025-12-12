@@ -468,6 +468,28 @@ export async function getQuizResult(
   return data;
 }
 
+// Get all quiz results for a roadmap (for loading completion status)
+export interface QuizResultSummary {
+  nodeId: string;
+  passed: boolean;
+  score: number;
+  totalQuestions: number;
+}
+
+export async function getQuizResultsForRoadmap(
+  roadmapId: string,
+  userId: string
+): Promise<QuizResultSummary[]> {
+  const res = await fetch(`${API_URL}/quiz/results/${roadmapId}/${userId}`);
+
+  if (!res.ok) {
+    return [];
+  }
+
+  const data = await res.json();
+  return data.results || [];
+}
+
 // Profile Types
 export interface UserProfile {
   id: string;

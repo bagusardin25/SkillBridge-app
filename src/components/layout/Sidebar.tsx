@@ -36,7 +36,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuthStore } from "@/store/useAuthStore";
 import { NewProjectDialog } from "@/components/ui/NewProjectDialog";
 import { Logo } from "@/components/ui/Logo";
-import { createProject, getProjects, deleteProject, updateProject, type Project } from "@/lib/api";
+import { createProject, getProjects, deleteProject, updateProject, getQuizResultsForRoadmap, type Project } from "@/lib/api";
+import { mergeNodesWithQuizResults } from "@/lib/roadmapUtils";
 import { toast } from "sonner";
 
 export function Sidebar({ className }: { className?: string }) {
@@ -115,7 +116,7 @@ export function Sidebar({ className }: { className?: string }) {
         toast.success("Project created successfully");
     };
 
-    const handleSelectProject = (project: Project) => {
+    const handleSelectProject = async (project: Project) => {
         // Don't reload if already selected
         if (project.id === currentProjectId) return;
 
@@ -123,8 +124,15 @@ export function Sidebar({ className }: { className?: string }) {
         if (project.roadmaps && project.roadmaps.length > 0) {
             const roadmap = project.roadmaps[0];
             // roadmap.nodes and roadmap.edges are stored as JSON
-            const nodes = Array.isArray(roadmap.nodes) ? roadmap.nodes : [];
+            let nodes = Array.isArray(roadmap.nodes) ? roadmap.nodes : [];
             const edges = Array.isArray(roadmap.edges) ? roadmap.edges : [];
+            
+            // Fetch quiz results and merge with nodes to restore completion status
+            if (user?.id) {
+                const quizResults = await getQuizResultsForRoadmap(roadmap.id, user.id);
+                nodes = mergeNodesWithQuizResults(nodes, quizResults);
+            }
+            
             setNodes(nodes);
             setEdges(edges);
             setCurrentRoadmapId(roadmap.id); // Track roadmap ID for updates

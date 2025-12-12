@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useRoadmapStore } from "@/store/useRoadmapStore";
-import { getProfile, getProject, updateProfile, type ProfileResponse, type ProjectWithStats, type UserProfile } from "@/lib/api";
+import { getProfile, getProject, updateProfile, getQuizResultsForRoadmap, type ProfileResponse, type ProjectWithStats, type UserProfile } from "@/lib/api";
+import { mergeNodesWithQuizResults } from "@/lib/roadmapUtils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -34,7 +35,6 @@ import {
     Mail,
     Sparkles,
     Loader2,
-    Camera,
     Flame
 } from "lucide-react";
 import { BadgesSection } from "@/components/ui/BadgesSection";
@@ -94,8 +94,15 @@ export function ProfilePage() {
 
             if (project.roadmaps && project.roadmaps.length > 0) {
                 const roadmap = project.roadmaps[0];
-                const nodes = Array.isArray(roadmap.nodes) ? roadmap.nodes : [];
+                let nodes = Array.isArray(roadmap.nodes) ? roadmap.nodes : [];
                 const edges = Array.isArray(roadmap.edges) ? roadmap.edges : [];
+                
+                // Fetch quiz results and merge with nodes to restore completion status
+                if (user?.id) {
+                    const quizResults = await getQuizResultsForRoadmap(roadmap.id, user.id);
+                    nodes = mergeNodesWithQuizResults(nodes, quizResults);
+                }
+                
                 setNodes(nodes);
                 setEdges(edges);
                 setCurrentRoadmapId(roadmap.id);

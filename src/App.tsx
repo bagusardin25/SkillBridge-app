@@ -12,11 +12,15 @@ import { ProfilePage } from "@/pages/ProfilePage";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useAuthStore } from "@/store/useAuthStore";
 import { updateStreak } from "@/lib/api";
+import { useLearningTimeTracker } from "@/hooks/useLearningTimeTracker";
 import { Toaster } from "sonner";
 
 function App() {
   const { setLoading, isAuthenticated, user } = useAuthStore();
   const streakUpdated = useRef(false);
+
+  // Track learning time while user is active
+  useLearningTimeTracker();
 
   useEffect(() => {
     // Check if user is already authenticated from localStorage

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Save, MessageSquare, PanelRightClose, Sun, Moon, Download, Loader2 } from "lucide-react";
 import { toPng } from "html-to-image";
-import { getNodesBounds, getViewportForBounds, useReactFlow } from "@xyflow/react";
+import { getNodesBounds, useReactFlow } from "@xyflow/react";
 import { Button } from "@/components/ui/button";
 import { useRoadmapStore } from "@/store/useRoadmapStore";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -167,21 +167,19 @@ export function Header() {
     const [isExporting, setIsExporting] = useState(false);
 
     const handleExport = useCallback(async () => {
-        const nodesBounds = getNodesBounds(getNodes());
-        const imageWidth = nodesBounds.width + 100;
-        const imageHeight = nodesBounds.height + 100;
-        
-        const viewport = getViewportForBounds(
-            nodesBounds,
-            imageWidth,
-            imageHeight,
-            0.5,
-            2,
-            0.1
-        );
+        const allNodes = getNodes();
+        if (allNodes.length === 0) {
+            toast.error("No nodes to export");
+            return;
+        }
 
-        const flowElement = document.querySelector('.react-flow') as HTMLElement;
-        if (!flowElement) {
+        const nodesBounds = getNodesBounds(allNodes);
+        const padding = 50;
+        const imageWidth = nodesBounds.width + (padding * 2);
+        const imageHeight = nodesBounds.height + (padding * 2);
+
+        const viewportElement = document.querySelector('.react-flow__viewport') as HTMLElement;
+        if (!viewportElement) {
             toast.error("Could not find canvas element");
             return;
         }
@@ -190,18 +188,17 @@ export function Header() {
         toast.loading("Generating image...", { id: "export" });
 
         try {
-            const dataUrl = await toPng(flowElement, {
-                backgroundColor: isDarkMode ? '#0a0a0a' : '#ffffff',
+            const dataUrl = await toPng(viewportElement, {
+                backgroundColor: isDarkMode ? '#1a1a1a' : '#ffffff',
                 width: imageWidth,
                 height: imageHeight,
                 style: {
                     width: `${imageWidth}px`,
                     height: `${imageHeight}px`,
-                    transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.zoom})`,
+                    transform: `translate(${-nodesBounds.x + padding}px, ${-nodesBounds.y + padding}px) scale(1)`,
                 },
             });
 
-            // Create download link
             const link = document.createElement('a');
             link.download = `${currentProjectTitle || 'roadmap'}-${Date.now()}.png`;
             link.href = dataUrl;

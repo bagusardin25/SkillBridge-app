@@ -256,4 +256,28 @@ router.get("/result/:roadmapId/:nodeId/:userId", async (req, res) => {
   }
 });
 
+// GET /api/quiz/results/:roadmapId/:userId - Get all quiz results for a roadmap
+router.get("/results/:roadmapId/:userId", async (req, res) => {
+  try {
+    const { roadmapId, userId } = req.params;
+
+    const results = await prisma.quizResult.findMany({
+      where: { roadmapId, userId },
+      select: {
+        nodeId: true,
+        passed: true,
+        score: true,
+        totalQuestions: true,
+      },
+    });
+
+    res.json({ results });
+  } catch (error: any) {
+    console.error("Get quiz results error:", error.message);
+    res.status(500).json({
+      error: error.message || "Failed to get quiz results",
+    });
+  }
+});
+
 export default router;
