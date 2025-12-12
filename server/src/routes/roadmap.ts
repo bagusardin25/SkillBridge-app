@@ -153,4 +153,56 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
+// PATCH /api/roadmap/:id/public - Toggle public status
+router.patch("/:id/public", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { isPublic } = req.body;
+
+    const roadmap = await prisma.roadmap.update({
+      where: { id },
+      data: { isPublic: Boolean(isPublic) },
+    });
+
+    res.json({ isPublic: roadmap.isPublic });
+  } catch (error) {
+    console.error("Error updating roadmap public status:", error);
+    res.status(500).json({ error: "Failed to update sharing settings" });
+  }
+});
+
+// GET /api/roadmap/public/:id - Get public roadmap (no auth required)
+router.get("/public/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const roadmap = await prisma.roadmap.findUnique({
+      where: { id },
+      include: {
+        project: {
+          select: {
+            title: true,
+            user: {
+              select: { name: true, avatarUrl: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!roadmap) {
+      return res.status(404).json({ error: "Roadmap not found" });
+    }
+
+    if (!roadmap.isPublic) {
+      return res.status(403).json({ error: "This roadmap is private" });
+    }
+
+    res.json(roadmap);
+  } catch (error) {
+    console.error("Error fetching public roadmap:", error);
+    res.status(500).json({ error: "Failed to fetch roadmap" });
+  }
+});
+
 export default router;

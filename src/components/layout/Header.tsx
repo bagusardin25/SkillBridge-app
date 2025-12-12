@@ -18,7 +18,7 @@ import { SaveProjectDialog } from "@/components/ui/SaveProjectDialog";
 import { CertificateModal } from "@/components/ui/CertificateModal";
 import { ProgressDashboard } from "@/components/ui/ProgressDashboard";
 import { ShareModal } from "@/components/ui/ShareModal";
-import { createProject, createRoadmap, updateRoadmap, getProjects } from "@/lib/api";
+import { createProject, createRoadmap, updateRoadmap, getProjects, toggleRoadmapPublic } from "@/lib/api";
 import { Award, BarChart3, Share2 } from "lucide-react";
 
 export function Header() {
@@ -43,6 +43,7 @@ export function Header() {
     const [showDashboard, setShowDashboard] = useState(false);
     const [showShare, setShowShare] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [isRoadmapPublic, setIsRoadmapPublic] = useState(false);
     const [projectStats, setProjectStats] = useState<Array<{
         id: string;
         title: string;
@@ -213,6 +214,16 @@ export function Header() {
         }
     }, [getNodes, isDarkMode, currentProjectTitle]);
 
+    // Handle toggle public for sharing
+    const handleTogglePublic = useCallback(async (isPublic: boolean) => {
+        if (!currentRoadmapId) {
+            throw new Error("Please save your roadmap first");
+        }
+
+        await toggleRoadmapPublic(currentRoadmapId, isPublic);
+        setIsRoadmapPublic(isPublic);
+    }, [currentRoadmapId]);
+
     return (
         <header className="h-14 border-b bg-background flex items-center justify-between px-4">
             <div className="flex items-center gap-4">
@@ -374,6 +385,7 @@ export function Header() {
                 roadmapTitle={currentProjectTitle || "Learning Roadmap"}
                 completedTopics={completedNodes}
                 completionDate={new Date()}
+                roadmapId={currentRoadmapId || undefined}
             />
 
             {/* Progress Dashboard */}
@@ -394,6 +406,8 @@ export function Header() {
                 onOpenChange={setShowShare}
                 roadmapId={currentRoadmapId}
                 roadmapTitle={currentProjectTitle || "My Roadmap"}
+                isPublic={isRoadmapPublic}
+                onTogglePublic={handleTogglePublic}
             />
         </header>
     );

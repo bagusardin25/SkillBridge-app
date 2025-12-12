@@ -14,13 +14,13 @@ import {
     BookOpen,
     Video,
     Rss,
-    MessageSquare,
     GraduationCap,
     Lock
 } from "lucide-react";
 import { useReactFlow } from "@xyflow/react";
 import type { RoadmapNodeData } from "@/types/roadmap";
 import { QuizFullScreen } from "@/components/quiz/QuizFullScreen";
+import { NodeChatPanel } from "@/components/chat/NodeChatPanel";
 
 const categoryLabels: Record<string, { label: string; color: string }> = {
     core: { label: "Core", color: "bg-primary text-primary-foreground" },
@@ -60,7 +60,7 @@ function getResourceName(url: string): string {
 }
 
 export function NodeDetailPanel() {
-    const { nodes, edges, selectedNodeIds, closeDetailPanel, askAiAboutTopic, currentRoadmapId } = useRoadmapStore();
+    const { nodes, edges, selectedNodeIds, closeDetailPanel, currentRoadmapId } = useRoadmapStore();
     const { updateNodeData } = useReactFlow();
     const [showQuiz, setShowQuiz] = useState(false);
 
@@ -350,52 +350,7 @@ export function NodeDetailPanel() {
 
                 {/* AI Tutor Tab */}
                 <TabsContent value="ai-tutor" className="flex-1 overflow-hidden m-0">
-                    <ScrollArea className="h-full">
-                        <div className="p-4 space-y-4">
-                            <div className="space-y-2">
-                                <h4 className="text-sm font-medium flex items-center gap-2">
-                                    <Sparkles className="h-4 w-4 text-primary" />
-                                    Ask AI about {data.label}
-                                </h4>
-                                <p className="text-xs text-muted-foreground">
-                                    Get personalized explanations and guidance from AI.
-                                </p>
-                            </div>
-
-                            {/* Quick Questions */}
-                            <div className="space-y-2">
-                                <p className="text-xs font-medium text-muted-foreground">Suggested questions:</p>
-                                <div className="space-y-2">
-                                    {[
-                                        `What is ${data.label} and why is it important?`,
-                                        `How do I get started with ${data.label}?`,
-                                        `What are common mistakes when learning ${data.label}?`,
-                                        `What should I learn after ${data.label}?`
-                                    ].map((question, i) => (
-                                        <Button
-                                            key={i}
-                                            variant="outline"
-                                            size="sm"
-                                            className="w-full justify-start text-left h-auto py-2 text-xs"
-                                            onClick={() => askAiAboutTopic(question)}
-                                        >
-                                            <MessageSquare className="h-3.5 w-3.5 mr-2 flex-shrink-0" />
-                                            <span className="line-clamp-2">{question}</span>
-                                        </Button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Custom Ask Button */}
-                            <Button
-                                onClick={() => askAiAboutTopic(data.label)}
-                                className="w-full"
-                            >
-                                <Sparkles className="mr-2 h-4 w-4" />
-                                Ask anything about this topic
-                            </Button>
-                        </div>
-                    </ScrollArea>
+                    <NodeChatPanel nodeId={selectedNode.id} topic={data.label} />
                 </TabsContent>
             </Tabs>
 

@@ -9,6 +9,9 @@ import { ResetPasswordPage } from "@/pages/ResetPasswordPage";
 import { VerifyEmailPage } from "@/pages/VerifyEmailPage";
 import { AuthCallbackPage } from "@/pages/AuthCallbackPage";
 import { ProfilePage } from "@/pages/ProfilePage";
+import { SettingsPage } from "@/pages/SettingsPage";
+import { BillingPage } from "@/pages/BillingPage";
+import { SharePage } from "@/pages/SharePage";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useAuthStore } from "@/store/useAuthStore";
 import { updateStreak } from "@/lib/api";
@@ -73,6 +76,10 @@ function App() {
           element={<AuthCallbackPage />}
         />
         <Route
+          path="/share/:roadmapId"
+          element={<SharePage />}
+        />
+        <Route
           path="/"
           element={
             <ProtectedRoute>
@@ -87,6 +94,22 @@ function App() {
           element={
             <ProtectedRoute>
               <ProfilePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <SettingsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/billing"
+          element={
+            <ProtectedRoute>
+              <BillingPage />
             </ProtectedRoute>
           }
         />

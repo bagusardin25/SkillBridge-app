@@ -12,6 +12,14 @@ interface CertificateModalProps {
     roadmapTitle: string;
     completedTopics: number;
     completionDate: Date;
+    roadmapId?: string;
+}
+
+// Generate deterministic certificate ID based on roadmapId and completion date
+function generateCertificateId(roadmapId: string | undefined, completionDate: Date): string {
+    const dateStr = completionDate.toISOString().split('T')[0].replace(/-/g, '');
+    const hash = roadmapId ? roadmapId.slice(-6).toUpperCase() : 'XXXXXX';
+    return `SB-${dateStr}-${hash}`;
 }
 
 export function CertificateModal({
@@ -21,9 +29,12 @@ export function CertificateModal({
     roadmapTitle,
     completedTopics,
     completionDate,
+    roadmapId,
 }: CertificateModalProps) {
     const certificateRef = useRef<HTMLDivElement>(null);
     const [isDownloading, setIsDownloading] = useState(false);
+    
+    const certificateId = generateCertificateId(roadmapId, completionDate);
 
     const formatDate = (date: Date) => {
         return date.toLocaleDateString('id-ID', {
@@ -125,7 +136,7 @@ export function CertificateModal({
                                     <div className="text-right">
                                         <p className="text-xs text-gray-400">Certificate ID</p>
                                         <p className="text-sm font-mono text-gray-600">
-                                            {`SB-${Date.now().toString(36).toUpperCase()}`}
+                                            {certificateId}
                                         </p>
                                     </div>
                                 </div>

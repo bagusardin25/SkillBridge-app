@@ -38,6 +38,7 @@ import { NewProjectDialog } from "@/components/ui/NewProjectDialog";
 import { Logo } from "@/components/ui/Logo";
 import { createProject, getProjects, deleteProject, updateProject, getQuizResultsForRoadmap, type Project } from "@/lib/api";
 import { mergeNodesWithQuizResults } from "@/lib/roadmapUtils";
+import { LanguageDialog } from "@/components/ui/LanguageDialog";
 import { toast } from "sonner";
 
 export function Sidebar({ className }: { className?: string }) {
@@ -50,6 +51,7 @@ export function Sidebar({ className }: { className?: string }) {
     const [newTitle, setNewTitle] = useState("");
     const [newProjectId, setNewProjectId] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
+    const [showLanguageDialog, setShowLanguageDialog] = useState(false);
     const {
         currentProjectId,
         setCurrentProject,
@@ -287,11 +289,19 @@ export function Sidebar({ className }: { className?: string }) {
                                 <User className="mr-2 h-4 w-4" />
                                 Profile
                             </DropdownMenuItem>
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => navigate("/settings")}>
                                 <Settings className="mr-2 h-4 w-4" />
                                 Settings
                             </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => navigate("/billing")}>
+                                <CreditCard className="mr-2 h-4 w-4" />
+                                Billing
+                            </DropdownMenuItem>
                             <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => setShowLanguageDialog(true)}>
+                                <Globe className="mr-2 h-4 w-4" />
+                                Language
+                            </DropdownMenuItem>
                             <DropdownMenuItem
                                 className="text-destructive focus:text-destructive"
                                 onClick={handleLogout}
@@ -449,16 +459,16 @@ export function Sidebar({ className }: { className?: string }) {
                                             <User className="mr-2 h-4 w-4" />
                                             Profile
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => navigate("/settings")}>
                                             <Settings className="mr-2 h-4 w-4" />
                                             Settings
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => navigate("/billing")}>
                                             <CreditCard className="mr-2 h-4 w-4" />
                                             Billing
                                         </DropdownMenuItem>
                                         <DropdownMenuSeparator />
-                                        <DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => setShowLanguageDialog(true)}>
                                             <Globe className="mr-2 h-4 w-4" />
                                             Language
                                         </DropdownMenuItem>
@@ -532,6 +542,12 @@ export function Sidebar({ className }: { className?: string }) {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
+            {/* Language Dialog */}
+            <LanguageDialog
+                open={showLanguageDialog}
+                onOpenChange={setShowLanguageDialog}
+            />
         </div>
     );
 }

@@ -631,3 +631,96 @@ export async function addXp(userId: string, amount: number): Promise<{ id: strin
 
   return data;
 }
+
+// Share Roadmap Types
+export interface PublicRoadmap {
+  id: string;
+  title: string;
+  nodes: unknown;
+  edges: unknown;
+  isPublic: boolean;
+  createdAt: string;
+  updatedAt: string;
+  project: {
+    title: string;
+    user: {
+      name: string | null;
+      avatarUrl: string | null;
+    };
+  };
+}
+
+// Toggle roadmap public status
+export async function toggleRoadmapPublic(
+  roadmapId: string,
+  isPublic: boolean
+): Promise<{ isPublic: boolean }> {
+  const res = await fetch(`${API_URL}/roadmap/${roadmapId}/public`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ isPublic }),
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to update sharing settings");
+  }
+
+  return res.json();
+}
+
+// Get public roadmap (no auth required)
+export async function getPublicRoadmap(roadmapId: string): Promise<PublicRoadmap> {
+  const res = await fetch(`${API_URL}/roadmap/public/${roadmapId}`);
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.error || "Failed to load roadmap");
+  }
+
+  return data;
+}
+
+// Node Chat Types
+export interface ChatMessage {
+  id: string;
+  projectId: string;
+  nodeId: string | null;
+  role: "user" | "assistant";
+  content: string;
+  createdAt: string;
+}
+
+// Get chat history for a specific node
+export async function getNodeChatHistory(
+  projectId: string,
+  nodeId: string
+): Promise<{ messages: ChatMessage[] }> {
+  const res = await fetch(`${API_URL}/chat/${projectId}/node/${nodeId}`);
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch node chat history");
+  }
+
+  return res.json();
+}
+
+// Send chat message for a specific node
+export async function sendNodeChatMessage(
+  projectId: string,
+  nodeId: string,
+  message: string,
+  context?: { role: string; content: string }[]
+): Promise<{ reply: string }> {
+  const res = await fetch(`${API_URL}/chat`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message, projectId, nodeId, context }),
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to send message");
+  }
+
+  return res.json();
+}
