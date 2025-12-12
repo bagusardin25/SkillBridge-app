@@ -51,7 +51,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
                 {/* Right Panel - Chat or Detail */}
                 {showDetailPanel ? (
-                    <div className="h-full transition-all duration-300 ease-in-out animate-in slide-in-from-right duration-300">
+                    <div className="h-full transition-all duration-300 ease-in-out animate-in slide-in-from-right">
                         <NodeDetailPanel />
                     </div>
                 ) : (
@@ -59,7 +59,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                         className={`
                             border-l bg-background h-full
                             transition-all duration-300 ease-in-out
-                            ${showChatPanel ? "w-80 translate-x-0 animate-in slide-in-from-right duration-300" : "w-0 translate-x-full border-l-0"}
+                            ${showChatPanel ? "w-80 translate-x-0 animate-in slide-in-from-right" : "w-0 translate-x-full border-l-0"}
                         `}
                     >
                         <div className="w-80 h-full">
