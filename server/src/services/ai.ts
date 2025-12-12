@@ -1,13 +1,31 @@
 import OpenAI from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// Initialize Gemini as fallback
+const gemini = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.0-flash";
+
 const MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 
 // Set to true to use mock responses (useful when API quota is exceeded)
 const USE_MOCK = process.env.USE_MOCK === "true";
+
+// Helper to check if error is rate limit
+function isRateLimitError(error: any): boolean {
+  return error?.status === 429 || 
+         error?.message?.includes("rate_limit") || 
+         error?.message?.includes("Rate limit") ||
+         error?.message?.includes("429");
+}
+
+// Helper to sleep for retry
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 // User preferences for roadmap generation
 export interface RoadmapPreferences {
@@ -342,6 +360,64 @@ function validateRoadmap(data: RoadmapResponse): ValidationResult {
   };
 }
 
+// Gemini fallback for roadmap generation
+async function generateRoadmapWithGemini(
+  systemPrompt: string,
+  userPrompt: string
+): Promise<RoadmapResponse> {
+  console.log("Using Gemini as fallback for roadmap generation...");
+  
+  const model = gemini.getGenerativeModel({ 
+    model: GEMINI_MODEL,
+    generationConfig: {
+      temperature: 0.4,
+      responseMimeType: "application/json",
+    },
+  });
+
+  const fullPrompt = `${systemPrompt}\n\n---\n\nUser Request:\n${userPrompt}`;
+  const result = await model.generateContent(fullPrompt);
+  const text = result.response.text();
+
+  // Clean up response
+  const cleanedText = text
+    .replace(/```json\n?/g, "")
+    .replace(/```\n?/g, "")
+    .trim();
+
+  return JSON.parse(cleanedText) as RoadmapResponse;
+}
+
+// Gemini fallback for chat
+async function chatWithGemini(
+  message: string,
+  context?: { role: string; content: string }[]
+): Promise<string> {
+  console.log("Using Gemini as fallback for chat...");
+  
+  const model = gemini.getGenerativeModel({ 
+    model: GEMINI_MODEL,
+    generationConfig: {
+      temperature: 0.7,
+    },
+  });
+
+  // Build conversation history for Gemini
+  let fullPrompt = CHAT_PROMPT + "\n\n---\n\nConversation:\n";
+  
+  if (context) {
+    for (const msg of context) {
+      const role = msg.role === "user" ? "User" : "Assistant";
+      fullPrompt += `${role}: ${msg.content}\n\n`;
+    }
+  }
+  
+  fullPrompt += `User: ${message}\n\nAssistant:`;
+
+  const result = await model.generateContent(fullPrompt);
+  return result.response.text();
+}
+
 export async function generateRoadmap(
   prompt: string,
   preferences?: RoadmapPreferences,
@@ -420,8 +496,30 @@ export async function generateRoadmap(
       if (error.status === 401) {
         throw new Error("API key is invalid. Please check your OpenAI API key.");
       }
-      if (error.status === 429 || error.message?.includes("rate_limit")) {
-        throw new Error("API rate limit exceeded. Please wait 1-2 minutes and try again.");
+      
+      // Rate limit - try Gemini fallback
+      if (isRateLimitError(error)) {
+        console.log("OpenAI rate limited, trying Gemini fallback...");
+        
+        // Wait a bit before trying Gemini
+        await sleep(1000);
+        
+        try {
+          const geminiResult = await generateRoadmapWithGemini(systemPrompt, userPrompt);
+          const validation = validateRoadmap(geminiResult);
+          
+          if (validation.isValid) {
+            console.log("Roadmap generated successfully with Gemini fallback");
+            return geminiResult;
+          }
+          
+          // Return anyway if validation has minor issues
+          console.warn("Gemini result has validation warnings:", validation.errors);
+          return geminiResult;
+        } catch (geminiError: any) {
+          console.error("Gemini fallback also failed:", geminiError.message);
+          throw new Error("Both OpenAI and Gemini are unavailable. Please try again later.");
+        }
       }
     }
   }
@@ -473,9 +571,17 @@ export async function chatWithAI(
   } catch (error: any) {
     console.error("AI Error:", error.message);
 
-    // Throw specific errors
-    if (error.status === 429 || error.message?.includes("rate_limit")) {
-      throw new Error("API rate limit exceeded. Please wait 1-2 minutes and try again.");
+    // Rate limit - try Gemini fallback
+    if (isRateLimitError(error)) {
+      console.log("OpenAI rate limited for chat, trying Gemini fallback...");
+      
+      try {
+        await sleep(500);
+        return await chatWithGemini(message, context);
+      } catch (geminiError: any) {
+        console.error("Gemini chat fallback also failed:", geminiError.message);
+        throw new Error("Both OpenAI and Gemini are unavailable. Please try again later.");
+      }
     }
 
     if (error.status === 404) {
