@@ -20,13 +20,13 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { 
-    MapPin, 
-    Calendar, 
-    Edit2, 
-    Clock, 
-    Trophy, 
-    Zap, 
+import {
+    MapPin,
+    Calendar,
+    Edit2,
+    Clock,
+    Trophy,
+    Zap,
     X,
     FolderOpen,
     CheckCircle2,
@@ -53,7 +53,7 @@ export function ProfilePage() {
 
     const fetchProfile = async () => {
         if (!user?.id) return;
-        
+
         try {
             setIsLoading(true);
             const data = await getProfile(user.id);
@@ -91,7 +91,7 @@ export function ProfilePage() {
     const handleNavigateToProject = async (projectId: string, projectTitle: string) => {
         try {
             const project = await getProject(projectId);
-            
+
             if (project.roadmaps && project.roadmaps.length > 0) {
                 const roadmap = project.roadmaps[0];
                 const nodes = Array.isArray(roadmap.nodes) ? roadmap.nodes : [];
@@ -102,7 +102,7 @@ export function ProfilePage() {
             } else {
                 clearRoadmap();
             }
-            
+
             setCurrentProject(projectId, projectTitle);
             navigate("/");
         } catch (error) {
@@ -178,9 +178,9 @@ export function ProfilePage() {
                                 <div className="flex flex-col sm:flex-row items-center sm:items-center gap-2 sm:gap-3">
                                     <h2 className="text-2xl sm:text-3xl font-bold">{profile.name || "User"}</h2>
                                     <Badge variant="secondary" className={`
-                                        ${profile.tier === "PRO" ? "bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 border-yellow-500/50" : 
-                                          profile.tier === "ENTERPRISE" ? "bg-purple-500/20 text-purple-600 dark:text-purple-400 border-purple-500/50" :
-                                          "bg-secondary text-secondary-foreground"}
+                                        ${profile.tier === "PRO" ? "bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 border-yellow-500/50" :
+                                            profile.tier === "ENTERPRISE" ? "bg-purple-500/20 text-purple-600 dark:text-purple-400 border-purple-500/50" :
+                                                "bg-secondary text-secondary-foreground"}
                                     `}>
                                         <Sparkles className="w-3 h-3 mr-1" />
                                         {profile.tier}
@@ -188,7 +188,7 @@ export function ProfilePage() {
                                 </div>
                                 <p className="text-base text-muted-foreground font-medium">{profile.jobRole || "Learner"}</p>
                                 <p className="text-sm text-muted-foreground">{profile.bio || "No bio yet. Click edit to add one!"}</p>
-                                
+
                                 {/* Info Pills */}
                                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-2">
                                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -225,8 +225,8 @@ export function ProfilePage() {
                             </div>
                             <p className="text-xs text-muted-foreground mt-3">
                                 {profile.currentStreak === 0 ? "Start learning today!" :
-                                 profile.currentStreak === profile.longestStreak ? "Personal best!" :
-                                 `Best: ${profile.longestStreak} days`}
+                                    profile.currentStreak === profile.longestStreak ? "Personal best!" :
+                                        `Best: ${profile.longestStreak} days`}
                             </p>
                         </CardContent>
                     </Card>
@@ -245,7 +245,7 @@ export function ProfilePage() {
                             </div>
                             <p className="text-xs text-muted-foreground mt-3">
                                 {profile.totalLearningMinutes === 0 ? "Start your journey!" :
-                                 `${profile.totalLearningMinutes % 60}m more this session`}
+                                    `${profile.totalLearningMinutes % 60}m more this session`}
                             </p>
                         </CardContent>
                     </Card>
@@ -281,7 +281,7 @@ export function ProfilePage() {
                                 <span className="text-2xl font-bold">{stats.totalQuizzesPassed}</span>
                             </div>
                             <p className="text-xs text-muted-foreground mt-3">
-                                {stats.totalQuizzesTaken > 0 
+                                {stats.totalQuizzesTaken > 0
                                     ? `${Math.round((stats.totalQuizzesPassed / stats.totalQuizzesTaken) * 100)}% pass rate`
                                     : "Complete quizzes to track"}
                             </p>
@@ -322,8 +322,8 @@ export function ProfilePage() {
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                                 {projects.map((project, index) => (
-                                    <div 
-                                        key={project.id} 
+                                    <div
+                                        key={project.id}
                                         className="animate-in fade-in-50 slide-in-from-bottom-4 duration-300"
                                         style={{ animationDelay: `${index * 100}ms` }}
                                     >
@@ -337,7 +337,7 @@ export function ProfilePage() {
                     <TabsContent value="achievements" className="mt-0 animate-in fade-in-50 duration-300">
                         <Card>
                             <CardContent className="p-6">
-                                <BadgesSection 
+                                <BadgesSection
                                     stats={{
                                         completedTopics: stats.totalCompletedTopics,
                                         completedRoadmaps: stats.totalCompletedRoadmaps,
@@ -376,6 +376,7 @@ interface EditProfileDialogProps {
 }
 
 function EditProfileDialog({ isOpen, onClose, profile, userId, onProfileUpdated }: EditProfileDialogProps) {
+    const updateUser = useAuthStore((state) => state.updateUser);
     const [formData, setFormData] = useState({
         name: profile.name || "",
         bio: profile.bio || "",
@@ -409,6 +410,11 @@ function EditProfileDialog({ isOpen, onClose, profile, userId, onProfileUpdated 
                 location: formData.location,
                 jobRole: formData.jobRole,
                 avatarUrl: formData.avatarUrl,
+            });
+            // Sync to auth store for sidebar and chat
+            updateUser({
+                name: updatedUser.name,
+                avatarUrl: updatedUser.avatarUrl,
             });
             onProfileUpdated(updatedUser);
         } catch (error) {
@@ -449,17 +455,13 @@ function EditProfileDialog({ isOpen, onClose, profile, userId, onProfileUpdated 
                             <Label htmlFor="avatarUrl" className="text-xs text-muted-foreground">
                                 Avatar URL
                             </Label>
-                            <div className="flex gap-2 mt-1">
-                                <Input
-                                    id="avatarUrl"
-                                    placeholder="https://example.com/avatar.jpg"
-                                    value={formData.avatarUrl}
-                                    onChange={(e) => setFormData({ ...formData, avatarUrl: e.target.value })}
-                                />
-                                <Button type="button" variant="outline" size="icon" className="shrink-0">
-                                    <Camera className="h-4 w-4" />
-                                </Button>
-                            </div>
+                            <Input
+                                id="avatarUrl"
+                                placeholder="https://example.com/avatar.jpg"
+                                value={formData.avatarUrl}
+                                onChange={(e) => setFormData({ ...formData, avatarUrl: e.target.value })}
+                                className="mt-1"
+                            />
                         </div>
                     </div>
 
@@ -537,7 +539,7 @@ function ProfileSkeleton() {
                 <div className="h-6 w-20 bg-muted rounded animate-pulse"></div>
                 <div className="h-8 w-8 bg-muted rounded animate-pulse"></div>
             </div>
-            
+
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Profile Card Skeleton */}
                 <div className="border rounded-lg p-6 mb-6">
@@ -577,7 +579,7 @@ interface ProjectCardProps {
 
 function ProjectCard({ project, onNavigate }: ProjectCardProps) {
     const totalRoadmaps = project.roadmaps.length;
-    
+
     return (
         <Card className="group overflow-hidden border-border/50 hover:border-primary/50 hover:shadow-xl transition-all duration-300 bg-card hover:-translate-y-1">
             <div className="relative h-28 sm:h-32 overflow-hidden bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-pink-500/20">
@@ -613,26 +615,24 @@ function ProjectCard({ project, onNavigate }: ProjectCardProps) {
                         </div>
                         <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
                             <div
-                                className={`h-full rounded-full transition-all duration-500 ${
-                                    project.overallProgress === 100 
-                                        ? "bg-gradient-to-r from-green-500 to-emerald-500" 
-                                        : "bg-gradient-to-r from-blue-500 to-purple-500"
-                                }`}
+                                className={`h-full rounded-full transition-all duration-500 ${project.overallProgress === 100
+                                    ? "bg-gradient-to-r from-green-500 to-emerald-500"
+                                    : "bg-gradient-to-r from-blue-500 to-purple-500"
+                                    }`}
                                 style={{ width: `${project.overallProgress}%` }}
                             ></div>
                         </div>
                     </div>
 
                     <div className="pt-3 flex items-center justify-between border-t">
-                        <Badge variant="outline" className={`text-xs font-normal ${
-                            project.overallProgress === 100 
-                                ? "border-green-500/50 text-green-600 bg-green-500/10" 
-                                : project.overallProgress > 0 
-                                    ? "border-blue-500/50 text-blue-600 bg-blue-500/10"
-                                    : ""
-                        }`}>
-                            {project.overallProgress === 100 ? "Completed" : 
-                             project.overallProgress > 0 ? "In Progress" : "Not Started"}
+                        <Badge variant="outline" className={`text-xs font-normal ${project.overallProgress === 100
+                            ? "border-green-500/50 text-green-600 bg-green-500/10"
+                            : project.overallProgress > 0
+                                ? "border-blue-500/50 text-blue-600 bg-blue-500/10"
+                                : ""
+                            }`}>
+                            {project.overallProgress === 100 ? "Completed" :
+                                project.overallProgress > 0 ? "In Progress" : "Not Started"}
                         </Badge>
                         <Button size="sm" variant="ghost" className="h-7 text-xs hover:bg-primary/10 hover:text-primary" onClick={onNavigate}>
                             Continue

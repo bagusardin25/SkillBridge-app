@@ -418,7 +418,7 @@ export function Sidebar({ className }: { className?: string }) {
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <Avatar className="h-8 w-8 border flex-shrink-0">
-                                        <AvatarImage src="" alt={user.name || user.email} />
+                                        <AvatarImage src={user.avatarUrl || ""} alt={user.name || user.email} />
                                         <AvatarFallback>{getInitials(user.name, user.email)}</AvatarFallback>
                                     </Avatar>
                                     <div className="flex flex-col min-w-0">
