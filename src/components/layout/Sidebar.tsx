@@ -35,6 +35,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuthStore } from "@/store/useAuthStore";
 import { NewProjectDialog } from "@/components/ui/NewProjectDialog";
+import { Logo } from "@/components/ui/Logo";
 import { createProject, getProjects, deleteProject, updateProject, type Project } from "@/lib/api";
 import { toast } from "sonner";
 
@@ -65,7 +66,7 @@ export function Sidebar({ className }: { className?: string }) {
     // Filter projects based on search query
     const filteredProjects = useMemo(() => {
         if (!searchQuery.trim()) return projects;
-        return projects.filter(p => 
+        return projects.filter(p =>
             p.title.toLowerCase().includes(searchQuery.toLowerCase())
         );
     }, [projects, searchQuery]);
@@ -303,7 +304,10 @@ export function Sidebar({ className }: { className?: string }) {
             )}>
                 {/* Header with toggle */}
                 <div className="flex items-center justify-between px-4 py-3 border-b">
-                    <span className="font-semibold text-lg whitespace-nowrap">SkillBridge</span>
+                    <div className="flex items-center gap-2">
+                        <Logo size={28} />
+                        <span className="font-semibold text-lg whitespace-nowrap">SkillBridge</span>
+                    </div>
                     <Button
                         variant="ghost"
                         size="icon"
@@ -341,7 +345,7 @@ export function Sidebar({ className }: { className?: string }) {
                             </Button>
                         </div>
                     </div>
-                    
+
                     <div className="px-3">
                         <h2 className="mb-2 px-4 text-sm font-medium text-muted-foreground">
                             Projects

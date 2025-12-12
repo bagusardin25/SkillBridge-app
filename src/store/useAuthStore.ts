@@ -7,6 +7,7 @@ export interface User {
   name: string | null;
   role: string;
   tier: string;
+  avatarUrl?: string | null;
   createdAt?: string;
   updatedAt?: string;
 }

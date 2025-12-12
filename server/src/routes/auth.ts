@@ -128,6 +128,13 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ error: "Invalid email or password" });
     }
 
+    // Check if user has a password (OAuth users don't have one)
+    if (!user.password) {
+      return res.status(401).json({
+        error: "This account uses Google/GitHub login. Please sign in with OAuth."
+      });
+    }
+
     const isValidPassword = await bcrypt.compare(password, user.password);
 
     if (!isValidPassword) {
@@ -144,6 +151,7 @@ router.post("/login", async (req, res) => {
         name: user.name,
         role: user.role,
         tier: user.tier,
+        avatarUrl: user.avatarUrl,
         createdAt: user.createdAt.toISOString(),
         updatedAt: user.updatedAt.toISOString(),
       },
@@ -166,6 +174,7 @@ router.get("/me", authMiddleware, async (req, res) => {
         name: true,
         role: true,
         tier: true,
+        avatarUrl: true,
         subscriptionEnd: true,
         createdAt: true,
         updatedAt: true,
@@ -416,7 +425,7 @@ router.get("/google", (req, res) => {
   try {
     const state = generateState();
     oauthStates.set(state, { provider: "google", createdAt: Date.now() });
-    
+
     const authUrl = getGoogleAuthUrl(state);
     res.redirect(authUrl);
   } catch (error) {
@@ -448,16 +457,16 @@ router.get("/google/callback", async (req, res) => {
 
     // Exchange code for tokens
     const tokens = await getGoogleTokens(code as string);
-    
+
     // Get user info
     const userInfo = await getGoogleUserInfo(tokens.access_token);
-    
+
     // Find or create user
     const user = await findOrCreateOAuthUser(userInfo);
-    
+
     // Generate JWT
     const token = generateJwtToken(user.id, user.email);
-    
+
     // Redirect to frontend with token
     res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}`);
   } catch (error) {
@@ -471,7 +480,7 @@ router.get("/github", (req, res) => {
   try {
     const state = generateState();
     oauthStates.set(state, { provider: "github", createdAt: Date.now() });
-    
+
     const authUrl = getGitHubAuthUrl(state);
     res.redirect(authUrl);
   } catch (error) {
@@ -503,16 +512,16 @@ router.get("/github/callback", async (req, res) => {
 
     // Exchange code for token
     const accessToken = await getGitHubToken(code as string);
-    
+
     // Get user info
     const userInfo = await getGitHubUserInfo(accessToken);
-    
+
     // Find or create user
     const user = await findOrCreateOAuthUser(userInfo);
-    
+
     // Generate JWT
     const token = generateJwtToken(user.id, user.email);
-    
+
     // Redirect to frontend with token
     res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}`);
   } catch (error) {

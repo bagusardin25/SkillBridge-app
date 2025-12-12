@@ -7,6 +7,7 @@ export interface AuthUser {
   name: string | null;
   role: string;
   tier: string;
+  avatarUrl?: string | null;
 }
 
 export interface AuthResponse {
@@ -51,7 +52,7 @@ export async function loginUser(credentials: LoginCredentials): Promise<AuthResp
   });
 
   const data = await res.json();
-  
+
   if (!res.ok) {
     throw new Error(data.error || "Failed to login");
   }
@@ -67,7 +68,7 @@ export async function registerUser(credentials: RegisterCredentials): Promise<Re
   });
 
   const data = await res.json();
-  
+
   if (!res.ok) {
     throw new Error(data.error || "Failed to register");
   }
@@ -77,13 +78,13 @@ export async function registerUser(credentials: RegisterCredentials): Promise<Re
 
 export async function verifyEmail(token: string): Promise<VerificationResponse> {
   const res = await fetch(`${API_URL}/auth/verify-email/${token}`);
-  
+
   const data = await res.json();
-  
+
   if (!res.ok) {
     throw new Error(data.error || "Failed to verify email");
   }
-  
+
   return data;
 }
 
@@ -95,7 +96,7 @@ export async function resendVerification(email: string): Promise<VerificationRes
   });
 
   const data = await res.json();
-  
+
   if (!res.ok) {
     throw new Error(data.error || "Failed to resend verification");
   }
@@ -111,7 +112,7 @@ export async function forgotPassword(email: string): Promise<VerificationRespons
   });
 
   const data = await res.json();
-  
+
   if (!res.ok) {
     throw new Error(data.error || "Failed to process request");
   }
@@ -127,7 +128,7 @@ export async function resetPassword(token: string, password: string): Promise<Ve
   });
 
   const data = await res.json();
-  
+
   if (!res.ok) {
     throw new Error(data.error || "Failed to reset password");
   }
@@ -143,7 +144,7 @@ export async function getCurrentUser(token: string): Promise<AuthUser> {
   });
 
   const data = await res.json();
-  
+
   if (!res.ok) {
     throw new Error(data.error || "Failed to get user");
   }
@@ -177,33 +178,33 @@ export async function createProject(title: string, userId: string): Promise<Proj
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ title, userId }),
   });
-  
+
   if (!res.ok) {
     const error = await res.json();
     throw new Error(error.error || "Failed to create project");
   }
-  
+
   return res.json();
 }
 
 export async function getProjects(userId?: string): Promise<Project[]> {
   const url = userId ? `${API_URL}/project?userId=${userId}` : `${API_URL}/project`;
   const res = await fetch(url);
-  
+
   if (!res.ok) {
     throw new Error("Failed to fetch projects");
   }
-  
+
   return res.json();
 }
 
 export async function getProject(id: string): Promise<Project> {
   const res = await fetch(`${API_URL}/project/${id}`);
-  
+
   if (!res.ok) {
     throw new Error("Failed to fetch project");
   }
-  
+
   return res.json();
 }
 
@@ -211,7 +212,7 @@ export async function deleteProject(id: string): Promise<void> {
   const res = await fetch(`${API_URL}/project/${id}`, {
     method: "DELETE",
   });
-  
+
   if (!res.ok) {
     throw new Error("Failed to delete project");
   }
@@ -223,11 +224,11 @@ export async function updateProject(id: string, title: string): Promise<Project>
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ title }),
   });
-  
+
   if (!res.ok) {
     throw new Error("Failed to update project");
   }
-  
+
   return res.json();
 }
 
@@ -271,7 +272,7 @@ export interface RoadmapPreferences {
 
 // Roadmap Functions
 export async function generateRoadmap(
-  prompt: string, 
+  prompt: string,
   projectId?: string,
   preferences?: RoadmapPreferences
 ): Promise<GeneratedRoadmap> {
@@ -282,7 +283,7 @@ export async function generateRoadmap(
   });
 
   const data = await res.json();
-  
+
   if (!res.ok) {
     throw new Error(data.error || "Failed to generate roadmap");
   }
@@ -301,7 +302,7 @@ export async function createRoadmap(
   });
 
   const responseData = await res.json();
-  
+
   if (!res.ok) {
     throw new Error(responseData.error || "Failed to create roadmap");
   }
@@ -310,7 +311,7 @@ export async function createRoadmap(
 }
 
 export async function updateRoadmap(
-  id: string, 
+  id: string,
   data: { nodes?: unknown; edges?: unknown; title?: string }
 ): Promise<GeneratedRoadmap> {
   const res = await fetch(`${API_URL}/roadmap/${id}`, {
@@ -320,7 +321,7 @@ export async function updateRoadmap(
   });
 
   const responseData = await res.json();
-  
+
   if (!res.ok) {
     throw new Error(responseData.error || "Failed to update roadmap");
   }
@@ -332,7 +333,7 @@ export async function getRoadmap(id: string): Promise<GeneratedRoadmap> {
   const res = await fetch(`${API_URL}/roadmap/${id}`);
 
   const data = await res.json();
-  
+
   if (!res.ok) {
     throw new Error(data.error || "Failed to get roadmap");
   }
@@ -362,13 +363,13 @@ export function extractTopicFromPrompt(prompt: string): string {
     .replace(/\s+(roadmap|path|jalur|untuk|for|about|tentang|dari|from|cara|how)\s+/gi, " ")
     .replace(/\s+(saya|saya ingin|saya mau|i want|i need|gue|gw|aku)\s+/gi, " ")
     .trim();
-  
+
   // Get important words, max 4
   const words = cleaned.split(/\s+/).filter(w => w.length > 2);
-  const title = words.slice(0, 4).map(w => 
+  const title = words.slice(0, 4).map(w =>
     w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
   ).join(" ");
-  
+
   return title || "New Chat";
 }
 
@@ -393,7 +394,7 @@ export async function generateQuiz(topic: string, description?: string): Promise
   });
 
   const data = await res.json();
-  
+
   if (!res.ok) {
     throw new Error(data.error || "Failed to generate quiz");
   }
@@ -427,7 +428,7 @@ export async function submitQuiz(params: SubmitQuizParams): Promise<QuizSubmitRe
   });
 
   const data = await res.json();
-  
+
   if (!res.ok) {
     throw new Error(data.error || "Failed to submit quiz");
   }
@@ -448,8 +449,8 @@ export interface QuizResultData {
 }
 
 export async function getQuizResult(
-  roadmapId: string, 
-  nodeId: string, 
+  roadmapId: string,
+  nodeId: string,
   userId: string
 ): Promise<QuizResultData | null> {
   const res = await fetch(`${API_URL}/quiz/result/${roadmapId}/${nodeId}/${userId}`);
@@ -459,7 +460,7 @@ export async function getQuizResult(
   }
 
   const data = await res.json();
-  
+
   if (!res.ok) {
     throw new Error(data.error || "Failed to get quiz result");
   }
@@ -527,7 +528,7 @@ export async function getProfile(userId: string): Promise<ProfileResponse> {
   const res = await fetch(`${API_URL}/profile/${userId}`);
 
   const data = await res.json();
-  
+
   if (!res.ok) {
     throw new Error(data.error || "Failed to get profile");
   }
@@ -551,7 +552,7 @@ export async function updateProfile(userId: string, params: UpdateProfileParams)
   });
 
   const data = await res.json();
-  
+
   if (!res.ok) {
     throw new Error(data.error || "Failed to update profile");
   }
@@ -567,7 +568,7 @@ export async function updateStreak(userId: string): Promise<{ currentStreak: num
   });
 
   const data = await res.json();
-  
+
   if (!res.ok) {
     throw new Error(data.error || "Failed to update streak");
   }
@@ -584,7 +585,7 @@ export async function addLearningTime(userId: string, minutes: number): Promise<
   });
 
   const data = await res.json();
-  
+
   if (!res.ok) {
     throw new Error(data.error || "Failed to add learning time");
   }
@@ -601,7 +602,7 @@ export async function addXp(userId: string, amount: number): Promise<{ id: strin
   });
 
   const data = await res.json();
-  
+
   if (!res.ok) {
     throw new Error(data.error || "Failed to add XP");
   }

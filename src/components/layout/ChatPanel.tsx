@@ -51,10 +51,10 @@ function formatTime(timestamp: number): string {
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMin = Math.floor(diffMs / 60000);
-    
+
     if (diffMin < 1) return "Just now";
     if (diffMin < 60) return `${diffMin}m ago`;
-    
+
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
@@ -67,7 +67,7 @@ function MarkdownContent({ content }: { content: string }) {
                     code({ className, children, ...props }) {
                         const match = /language-(\w+)/.exec(className || '');
                         const isInline = !match;
-                        
+
                         if (isInline) {
                             return (
                                 <code className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono" {...props}>
@@ -75,7 +75,7 @@ function MarkdownContent({ content }: { content: string }) {
                                 </code>
                             );
                         }
-                        
+
                         return (
                             <div className="relative group my-2">
                                 <SyntaxHighlighter
@@ -105,13 +105,13 @@ function MarkdownContent({ content }: { content: string }) {
 // Copy button component
 function CopyButton({ text, className }: { text: string; className?: string }) {
     const [copied, setCopied] = useState(false);
-    
+
     const handleCopy = async () => {
         await navigator.clipboard.writeText(text);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
-    
+
     return (
         <TooltipProvider delayDuration={0}>
             <Tooltip>
@@ -141,11 +141,11 @@ function CopyButton({ text, className }: { text: string; className?: string }) {
 // Typewriter component for streaming messages
 function TypewriterText({ text, onComplete }: { text: string; onComplete?: () => void }) {
     const [displayedText, setDisplayedText] = useState("");
-    
+
     useEffect(() => {
         let charIndex = 0;
         setDisplayedText("");
-        
+
         // Start typing after thinking delay
         const delayTimer = setTimeout(() => {
             const typeInterval = setInterval(() => {
@@ -157,13 +157,13 @@ function TypewriterText({ text, onComplete }: { text: string; onComplete?: () =>
                     onComplete?.();
                 }
             }, TYPING_SPEED);
-            
+
             return () => clearInterval(typeInterval);
         }, THINKING_DELAY);
-        
+
         return () => clearTimeout(delayTimer);
     }, [text, onComplete]);
-    
+
     return <>{displayedText}<span className="animate-pulse">|</span></>;
 }
 
@@ -184,12 +184,12 @@ export function ChatPanel() {
     const [lastUserMessage, setLastUserMessage] = useState<string>("");
     const scrollRef = useRef<HTMLDivElement>(null);
     const abortControllerRef = useRef<AbortController | null>(null);
-    const { 
-        setNodes, 
-        setEdges, 
-        setProjectTitle, 
-        currentProjectId, 
-        setCurrentRoadmapId, 
+    const {
+        setNodes,
+        setEdges,
+        setProjectTitle,
+        currentProjectId,
+        setCurrentRoadmapId,
         setCurrentProject,
         contextualChatTopic,
         setContextualChatTopic,
@@ -198,19 +198,19 @@ export function ChatPanel() {
     const { user } = useAuthStore();
     const hasHandledTopic = useRef(false);
     const isCreatingProject = useRef(false);
-    
+
     // Mark streaming message as complete
     const handleStreamingComplete = useCallback((messageId: string) => {
-        setMessages(prev => prev.map(msg => 
+        setMessages(prev => prev.map(msg =>
             msg.id === messageId ? { ...msg, isStreaming: false } : msg
         ));
     }, []);
 
     // Handle feedback (like/dislike)
     const handleFeedback = useCallback((messageId: string, feedback: "like" | "dislike") => {
-        setMessages(prev => prev.map(msg => 
-            msg.id === messageId 
-                ? { ...msg, feedback: msg.feedback === feedback ? null : feedback } 
+        setMessages(prev => prev.map(msg =>
+            msg.id === messageId
+                ? { ...msg, feedback: msg.feedback === feedback ? null : feedback }
                 : msg
         ));
     }, []);
@@ -290,7 +290,7 @@ export function ChatPanel() {
 
         const userMessage = messageToSend;
         setLastUserMessage(userMessage);
-        
+
         // Only add user message if not regenerating
         if (!regenerateMessage) {
             const newUserMessage: Message = {
@@ -301,7 +301,7 @@ export function ChatPanel() {
             };
             setMessages((prev) => [...prev, newUserMessage]);
         }
-        
+
         setInputValue("");
         setIsLoading(true);
         abortControllerRef.current = new AbortController();
@@ -310,7 +310,7 @@ export function ChatPanel() {
             // Check if this is a roadmap generation request
             if (isRoadmapRequest(userMessage)) {
                 let projectId = currentProjectId;
-                
+
                 // Auto-create project if none selected
                 if (!projectId && user?.id) {
                     const projectTitle = extractTopicFromPrompt(userMessage);
@@ -326,10 +326,10 @@ export function ChatPanel() {
                 if (projectId) {
                     saveChatMessage(projectId, "user", userMessage);
                 }
-                
+
                 // Generate roadmap using AI (pass projectId and preferences to save to DB)
                 const roadmap = await generateRoadmap(userMessage, projectId || undefined, preferences);
-                
+
                 // Check if AI returned a chat response instead of roadmap
                 if ((roadmap as any).type === "chat") {
                     const chatMessage = (roadmap as any).message;
@@ -350,10 +350,10 @@ export function ChatPanel() {
                 } else {
                     // Valid roadmap - render to canvas progressively
                     const { nodes, edges } = convertToReactFlowNodes(roadmap);
-                    
+
                     // Set project title first
                     setProjectTitle(roadmap.title);
-                    
+
                     // Track roadmap ID for future updates
                     if (roadmap.id) {
                         setCurrentRoadmapId(roadmap.id);
@@ -366,7 +366,7 @@ export function ChatPanel() {
                     // Progressive rendering - add nodes one by one
                     const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
                     const displayedNodes: typeof nodes = [];
-                    
+
                     for (let i = 0; i < nodes.length; i++) {
                         await delay(120); // 120ms delay between each node
                         displayedNodes.push(nodes[i]);
@@ -455,8 +455,8 @@ export function ChatPanel() {
             const errorMessage: Message = {
                 id: (Date.now() + 1).toString(),
                 role: "assistant",
-                content: error instanceof Error 
-                    ? `Error: ${error.message}` 
+                content: error instanceof Error
+                    ? `Error: ${error.message}`
                     : "Failed to connect to server. Make sure the backend is running on port 3001.",
                 timestamp: Date.now(),
             };
@@ -545,7 +545,7 @@ export function ChatPanel() {
                                     I can help you build learning roadmaps. Try asking:
                                 </p>
                             </div>
-                            
+
                             {/* Preferences Section */}
                             <div className="w-full px-2">
                                 <button
@@ -564,11 +564,11 @@ export function ChatPanel() {
                                         showPreferences && "rotate-180"
                                     )} />
                                 </button>
-                                
+
                                 <div className={cn(
                                     "grid transition-all duration-300 ease-out",
-                                    showPreferences 
-                                        ? "grid-rows-[1fr] opacity-100 mt-2" 
+                                    showPreferences
+                                        ? "grid-rows-[1fr] opacity-100 mt-2"
                                         : "grid-rows-[0fr] opacity-0 mt-0"
                                 )}>
                                     <div className="overflow-hidden">
@@ -589,7 +589,7 @@ export function ChatPanel() {
                                                     </SelectContent>
                                                 </Select>
                                             </div>
-                                            
+
                                             <div className="space-y-1.5">
                                                 <label className="text-[10px] font-medium text-muted-foreground">Learning Time</label>
                                                 <Select
@@ -606,7 +606,7 @@ export function ChatPanel() {
                                                     </SelectContent>
                                                 </Select>
                                             </div>
-                                            
+
                                             <div className="space-y-1.5">
                                                 <label className="text-[10px] font-medium text-muted-foreground">Learning Style</label>
                                                 <Select
@@ -623,7 +623,7 @@ export function ChatPanel() {
                                                     </SelectContent>
                                                 </Select>
                                             </div>
-                                            
+
                                             <div className="space-y-1.5">
                                                 <label className="text-[10px] font-medium text-muted-foreground">Goal</label>
                                                 <Select
@@ -645,7 +645,7 @@ export function ChatPanel() {
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div className="flex flex-col gap-2 w-full px-2 mt-4">
                                 <div className="flex items-center gap-1.5 px-1 mb-1">
                                     <span className="text-sm">💡</span>
@@ -674,7 +674,7 @@ export function ChatPanel() {
                                 }
                             }
                             const isLastAiMessage = msg.role === "assistant" && index === lastAiIndex;
-                            
+
                             return (
                                 <div
                                     key={msg.id}
@@ -691,8 +691,10 @@ export function ChatPanel() {
                                             </>
                                         ) : (
                                             <>
-                                                <AvatarImage src="/user-avatar.png" />
-                                                <AvatarFallback>You</AvatarFallback>
+                                                <AvatarImage src={user?.avatarUrl || ""} />
+                                                <AvatarFallback className="bg-secondary text-secondary-foreground">
+                                                    {user?.name?.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) || user?.email?.slice(0, 2).toUpperCase() || "ME"}
+                                                </AvatarFallback>
                                             </>
                                         )}
                                     </Avatar>
@@ -706,7 +708,7 @@ export function ChatPanel() {
                                                 {formatTime(msg.timestamp)}
                                             </span>
                                         )}
-                                        
+
                                         <div
                                             className={cn(
                                                 "rounded-lg p-3 text-sm shadow-sm",
@@ -716,9 +718,9 @@ export function ChatPanel() {
                                             )}
                                         >
                                             {msg.isStreaming ? (
-                                                <TypewriterText 
-                                                    text={msg.content} 
-                                                    onComplete={() => handleStreamingComplete(msg.id)} 
+                                                <TypewriterText
+                                                    text={msg.content}
+                                                    onComplete={() => handleStreamingComplete(msg.id)}
                                                 />
                                             ) : (
                                                 msg.role === "assistant" ? (
@@ -728,7 +730,7 @@ export function ChatPanel() {
                                                 )
                                             )}
                                         </div>
-                                        
+
                                         {/* Action buttons for AI messages */}
                                         {msg.role === "assistant" && !msg.isStreaming && (
                                             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -748,7 +750,7 @@ export function ChatPanel() {
                                                         <TooltipContent><p className="text-xs">Copy</p></TooltipContent>
                                                     </Tooltip>
                                                 </TooltipProvider>
-                                                
+
                                                 {/* Regenerate - only on last AI message */}
                                                 {isLastAiMessage && (
                                                     <TooltipProvider delayDuration={0}>
@@ -768,9 +770,9 @@ export function ChatPanel() {
                                                         </Tooltip>
                                                     </TooltipProvider>
                                                 )}
-                                                
+
                                                 <div className="w-px h-4 bg-border mx-1" />
-                                                
+
                                                 {/* Like */}
                                                 <TooltipProvider delayDuration={0}>
                                                     <Tooltip>
@@ -787,7 +789,7 @@ export function ChatPanel() {
                                                         <TooltipContent><p className="text-xs">Good response</p></TooltipContent>
                                                     </Tooltip>
                                                 </TooltipProvider>
-                                                
+
                                                 {/* Dislike */}
                                                 <TooltipProvider delayDuration={0}>
                                                     <Tooltip>
@@ -841,9 +843,9 @@ export function ChatPanel() {
                         <TooltipProvider delayDuration={0}>
                             <Tooltip>
                                 <TooltipTrigger asChild>
-                                    <Button 
-                                        type="button" 
-                                        size="icon" 
+                                    <Button
+                                        type="button"
+                                        size="icon"
                                         variant="destructive"
                                         onClick={handleStopGeneration}
                                     >

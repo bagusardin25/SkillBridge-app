@@ -1,73 +1,110 @@
-# React + TypeScript + Vite
+# 🌉 SkillBridge
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> **AI-Powered Learning Roadmap Generator** - Build personalized learning paths with AI assistance
 
-Currently, two official plugins are available:
+![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![Node.js](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## ✨ Features
 
-## React Compiler
+- 🤖 **AI-Generated Roadmaps** - Just describe your goal, AI creates structured learning path
+- 🗺️ **Visual Flowchart** - Interactive roadmap like roadmap.sh with branching paths
+- 💬 **AI Tutor Chat** - Ask questions about any topic, get contextual explanations
+- 📝 **Mini Quiz System** - Test your understanding, auto-mark topics as done
+- 📊 **Progress Tracking** - XP, levels, streaks, and completion stats
+- 🔐 **OAuth Login** - Sign in with Google or GitHub
+- 🌙 **Dark Mode** - Easy on the eyes
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🚀 Quick Start
 
-## Expanding the ESLint configuration
+### Prerequisites
+- Node.js v18+
+- PostgreSQL v14+
+- OpenAI API Key
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Installation
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+```bash
+# Clone repository
+git clone <repo-url>
+cd SkillBridge
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+# Install dependencies
+npm install
+cd server && npm install && cd ..
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Setup environment
+cp server/.env.example server/.env
+# Edit server/.env with your credentials
+
+# Setup database
+npm run db:push
+npm run db:generate
+
+# Run development server
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Open http://localhost:5173 🎉
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 🛠️ Tech Stack
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+| Layer | Technology |
+|-------|------------|
+| Frontend | React 19, TypeScript, Vite, TailwindCSS |
+| UI Components | shadcn/ui, Radix UI |
+| Flow Canvas | React Flow (xyflow) |
+| State | Zustand |
+| Backend | Express, TypeScript |
+| Database | PostgreSQL, Prisma ORM |
+| AI | OpenAI GPT-4o-mini |
+| Auth | JWT, OAuth 2.0 |
+
+## 📁 Project Structure
+
 ```
+SkillBridge/
+├── src/                    # Frontend
+│   ├── components/         # React components
+│   ├── pages/              # Route pages
+│   ├── store/              # Zustand stores
+│   └── lib/                # API & utilities
+│
+├── server/                 # Backend
+│   ├── src/
+│   │   ├── routes/         # API endpoints
+│   │   ├── services/       # AI, OAuth, Email
+│   │   └── middleware/     # Auth middleware
+│   └── prisma/             # Database schema
+│
+└── README.md
+```
+
+## 🔑 Environment Variables
+
+```env
+# Database
+DATABASE_URL="postgresql://..."
+
+# AI
+OPENAI_API_KEY="sk-..."
+
+# Auth
+JWT_SECRET="your-secret"
+
+# OAuth (optional)
+GOOGLE_CLIENT_ID="..."
+GOOGLE_CLIENT_SECRET="..."
+GITHUB_CLIENT_ID="..."
+GITHUB_CLIENT_SECRET="..."
+```
+
+## 📄 License
+
+MIT License - feel free to use for your own projects!
+
+---
+
+Built with ❤️ for **Education & Upskilling**
