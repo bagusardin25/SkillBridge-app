@@ -11,6 +11,17 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { getPublicRoadmap, type PublicRoadmap } from "@/lib/api";
+import { CustomNode } from "@/components/nodes/CustomNode";
+
+const nodeTypes = {
+    default: CustomNode,
+    input: CustomNode,
+    output: CustomNode,
+    roadmapCard: CustomNode,
+    decision: CustomNode,
+    "start-end": CustomNode,
+    project: CustomNode,
+};
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -165,6 +176,7 @@ export function SharePage() {
                 <ReactFlow
                     nodes={nodes}
                     edges={edges}
+                    nodeTypes={nodeTypes}
                     nodesDraggable={false}
                     nodesConnectable={false}
                     elementsSelectable={false}

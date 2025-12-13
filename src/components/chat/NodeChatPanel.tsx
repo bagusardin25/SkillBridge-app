@@ -142,7 +142,7 @@ export function NodeChatPanel({ nodeId, topic }: NodeChatPanelProps) {
                         <div className="space-y-4">
                             <div className="text-center py-4">
                                 <Sparkles className="h-8 w-8 text-primary mx-auto mb-2" />
-                                <h4 className="font-medium">Ask AI about {topic}</h4>
+                                <h4 className="font-medium break-words">Ask AI about {topic}</h4>
                                 <p className="text-xs text-muted-foreground mt-1">
                                     Get personalized explanations and guidance.
                                 </p>
@@ -155,12 +155,12 @@ export function NodeChatPanel({ nodeId, topic }: NodeChatPanelProps) {
                                         key={i}
                                         variant="outline"
                                         size="sm"
-                                        className="w-full justify-start text-left h-auto py-2 text-xs"
+                                        className="w-full justify-start text-left h-auto py-2 text-xs whitespace-normal"
                                         onClick={() => handleSend(question)}
                                         disabled={isSending}
                                     >
                                         <MessageSquare className="h-3.5 w-3.5 mr-2 flex-shrink-0" />
-                                        <span className="line-clamp-2">{question}</span>
+                                        <span className="break-words">{question}</span>
                                     </Button>
                                 ))}
                             </div>
