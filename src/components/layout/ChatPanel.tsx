@@ -535,7 +535,7 @@ export function ChatPanel() {
                         variant="ghost" 
                         size="icon" 
                         className="h-7 w-7 md:hidden" 
-                        onClick={() => useRoadmapStore.getState().setAiPanelOpen(false)}
+                        onClick={() => useRoadmapStore.getState().toggleAiPanel()}
                     >
                         <X className="h-4 w-4" />
                     </Button>
