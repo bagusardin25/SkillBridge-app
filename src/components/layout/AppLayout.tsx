@@ -50,14 +50,27 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 </div>
 
                 {/* Right Panel - Chat or Detail */}
+                {/* Mobile: Full-screen overlay */}
+                {showDetailPanel && (
+                    <div className="md:hidden fixed inset-0 z-50 bg-background animate-in slide-in-from-right duration-300">
+                        <NodeDetailPanel />
+                    </div>
+                )}
+                {showChatPanel && (
+                    <div className="md:hidden fixed inset-0 z-50 bg-background animate-in slide-in-from-right duration-300">
+                        <ChatPanel />
+                    </div>
+                )}
+
+                {/* Desktop: Side panels */}
                 {showDetailPanel ? (
-                    <div className="h-full transition-all duration-300 ease-in-out animate-in slide-in-from-right">
+                    <div className="hidden md:block h-full transition-all duration-300 ease-in-out animate-in slide-in-from-right">
                         <NodeDetailPanel />
                     </div>
                 ) : (
                     <div
                         className={`
-                            border-l bg-background h-full
+                            hidden md:block border-l bg-background h-full
                             transition-all duration-300 ease-in-out
                             ${showChatPanel ? "w-80 translate-x-0 animate-in slide-in-from-right" : "w-0 translate-x-full border-l-0"}
                         `}
