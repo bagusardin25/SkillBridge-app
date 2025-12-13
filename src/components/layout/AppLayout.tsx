@@ -60,6 +60,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     <div className="md:hidden fixed inset-0 z-50 bg-background animate-in slide-in-from-right duration-300">
                         <ChatPanel />
                     </div>
+
                 )}
 
                 {/* Desktop: Side panels */}
