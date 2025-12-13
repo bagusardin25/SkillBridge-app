@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Bot, Sparkles, Trash2, Settings2, ChevronDown, Copy, Check, RefreshCw, ThumbsUp, ThumbsDown, Square } from "lucide-react";
+import { Send, Bot, Sparkles, Trash2, Settings2, ChevronDown, Copy, Check, RefreshCw, ThumbsUp, ThumbsDown, Square, X } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { generateRoadmap, createProject, extractTopicFromPrompt, saveChatMessage } from "@/lib/api";
@@ -524,11 +524,22 @@ export function ChatPanel() {
                         <span className="text-[10px] text-muted-foreground">Powered by SkillBridge</span>
                     </div>
                 </div>
-                {messages.length > 0 && (
-                    <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={clearChat}>
-                        <Trash2 className="h-4 w-4" />
+                <div className="flex items-center gap-1">
+                    {messages.length > 0 && (
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={clearChat}>
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
+                    )}
+                    {/* Close button - mobile only */}
+                    <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-7 w-7 md:hidden" 
+                        onClick={() => useRoadmapStore.getState().setAiPanelOpen(false)}
+                    >
+                        <X className="h-4 w-4" />
                     </Button>
-                )}
+                </div>
             </div>
 
             {/* Chat Area */}
