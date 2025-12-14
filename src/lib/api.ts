@@ -406,7 +406,7 @@ export async function getCachedQuiz(roadmapId: string, nodeId: string, userId: s
   try {
     const res = await fetch(`${API_URL}/quiz/cached/${roadmapId}/${nodeId}/${userId}`);
     const data = await res.json();
-    
+
     if (data.cached && data.questions) {
       return { questions: data.questions as QuizQuestion[] };
     }
@@ -737,4 +737,49 @@ export async function sendNodeChatMessage(
   }
 
   return res.json();
+}
+
+// Get general chat history for a project
+export async function getChatHistory(
+  projectId: string
+): Promise<{ messages: ChatMessage[] }> {
+  const res = await fetch(`${API_URL}/chat/${projectId}`);
+
+  if (!res.ok) {
+    return { messages: [] };
+  }
+
+  return res.json();
+}
+
+// Send general chat message (without node context)
+export async function sendGeneralChatMessage(
+  message: string,
+  projectId: string | null,
+  context?: { role: string; content: string }[]
+): Promise<{ reply: string }> {
+  const res = await fetch(`${API_URL}/chat`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message, projectId, context }),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.error || "Failed to send message");
+  }
+
+  return data;
+}
+
+// Clear chat history for a project
+export async function clearChatHistory(projectId: string): Promise<void> {
+  const res = await fetch(`${API_URL}/chat/${projectId}`, {
+    method: "DELETE",
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to clear chat history");
+  }
 }

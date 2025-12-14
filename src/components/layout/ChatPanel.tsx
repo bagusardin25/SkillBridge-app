@@ -5,7 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, Bot, Sparkles, Trash2, Settings2, ChevronDown, Copy, Check, RefreshCw, ThumbsUp, ThumbsDown, Square, X } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { generateRoadmap, createProject, extractTopicFromPrompt, saveChatMessage } from "@/lib/api";
+import { generateRoadmap, createProject, extractTopicFromPrompt, saveChatMessage, getChatHistory, sendGeneralChatMessage, clearChatHistory } from "@/lib/api";
 import type { RoadmapPreferences } from "@/lib/api";
 import { convertToReactFlowNodes, isRoadmapRequest } from "@/lib/layoutUtils";
 import { useRoadmapStore } from "@/store/useRoadmapStore";
@@ -239,19 +239,14 @@ export function ChatPanel() {
             }
 
             try {
-                const response = await fetch(`http://localhost:3001/api/chat/${currentProjectId}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    const loadedMessages: Message[] = data.messages.map((msg: { id: string; role: string; content: string }) => ({
-                        id: msg.id,
-                        role: msg.role as "user" | "assistant",
-                        content: msg.content,
-                        isStreaming: false,
-                    }));
-                    setMessages(loadedMessages);
-                } else {
-                    setMessages([]);
-                }
+                const data = await getChatHistory(currentProjectId);
+                const loadedMessages: Message[] = data.messages.map((msg: { id: string; role: string; content: string }) => ({
+                    id: msg.id,
+                    role: msg.role as "user" | "assistant",
+                    content: msg.content,
+                    isStreaming: false,
+                }));
+                setMessages(loadedMessages);
             } catch (error) {
                 console.error("Failed to load chat history:", error);
                 setMessages([]);
@@ -410,52 +405,31 @@ export function ChatPanel() {
                     onProjectCreated?.(newProject.id);
                 }
 
-                const response = await fetch("http://localhost:3001/api/chat", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        message: userMessage,
-                        projectId: projectId,
-                        context: messages.map((m) => ({
-                            role: m.role,
-                            content: m.content,
-                        })),
-                    }),
-                });
+                const context = messages.map((m) => ({
+                    role: m.role,
+                    content: m.content,
+                }));
+                const data = await sendGeneralChatMessage(userMessage, projectId, context);
 
-                const data = await response.json();
-
-                if (response.ok) {
-                    const messageId = (Date.now() + 1).toString();
-                    const newAiMessage: Message = {
-                        id: messageId,
-                        role: "assistant",
-                        content: data.reply,
-                        isStreaming: true,
-                        timestamp: Date.now(),
-                    };
-                    setMessages((prev) => [...prev, newAiMessage]);
-                } else {
-                    const errorMessage: Message = {
-                        id: (Date.now() + 1).toString(),
-                        role: "assistant",
-                        content: `Error: ${data.error || "Failed to get response"}`,
-                        timestamp: Date.now(),
-                    };
-                    setMessages((prev) => [...prev, errorMessage]);
-                }
+                const messageId = (Date.now() + 1).toString();
+                const newAiMessage: Message = {
+                    id: messageId,
+                    role: "assistant",
+                    content: data.reply,
+                    isStreaming: true,
+                    timestamp: Date.now(),
+                };
+                setMessages((prev) => [...prev, newAiMessage]);
             }
         } catch (error) {
             // Don't show error if it was aborted
             if (error instanceof Error && error.name === 'AbortError') {
                 return;
             }
-            
+
             // Determine user-friendly error message
             let errorContent = "";
-            
+
             if (error instanceof TypeError && error.message === "Failed to fetch") {
                 errorContent = "🔌 **Tidak dapat terhubung ke server**\n\nKemungkinan penyebab:\n- Server backend belum dijalankan\n- Koneksi internet terputus\n\nSilakan coba lagi dalam beberapa saat.";
             } else if (error instanceof Error && (error.message.includes("rate limit") || error.message.includes("429"))) {
@@ -467,7 +441,7 @@ export function ChatPanel() {
                     ? `❌ **Terjadi kesalahan**\n\n${error.message}\n\nSilakan coba lagi.`
                     : "❌ **Terjadi kesalahan**\n\nTidak dapat memproses permintaan. Silakan coba lagi.";
             }
-            
+
             const errorMessage: Message = {
                 id: (Date.now() + 1).toString(),
                 role: "assistant",
@@ -513,9 +487,7 @@ export function ChatPanel() {
         setMessages([]);
         if (currentProjectId) {
             try {
-                await fetch(`http://localhost:3001/api/chat/${currentProjectId}`, {
-                    method: "DELETE",
-                });
+                await clearChatHistory(currentProjectId);
             } catch (error) {
                 console.error("Failed to clear chat history:", error);
             }
@@ -545,10 +517,10 @@ export function ChatPanel() {
                         </Button>
                     )}
                     {/* Close button - mobile only */}
-                    <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-7 w-7 md:hidden" 
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 md:hidden"
                         onClick={() => useRoadmapStore.getState().toggleAiPanel()}
                     >
                         <X className="h-4 w-4" />
