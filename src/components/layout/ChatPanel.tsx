@@ -194,6 +194,7 @@ export function ChatPanel() {
         setCurrentProject,
         contextualChatTopic,
         setContextualChatTopic,
+        incrementProjectsVersion,
     } = useRoadmapStore();
     const { user } = useAuthStore();
     const hasHandledTopic = useRef(false);
@@ -327,6 +328,8 @@ export function ChatPanel() {
                         }
 
                         toast.success(`Project "${newProject.title}" dibuat!`);
+                        // Trigger sidebar refresh via version counter
+                        incrementProjectsVersion();
                     } catch (projectError) {
                         console.error("Failed to create project:", projectError);
                         toast.error("Gagal membuat project. Chat akan dilanjutkan tanpa project.");
@@ -432,6 +435,8 @@ export function ChatPanel() {
                         }
 
                         toast.success(`Project "${newProject.title}" dibuat!`);
+                        // Trigger sidebar refresh via version counter
+                        incrementProjectsVersion();
                     } catch (projectError) {
                         console.error("Failed to create project for chat:", projectError);
                         toast.error("Gagal membuat project. Chat akan dilanjutkan tanpa project.");

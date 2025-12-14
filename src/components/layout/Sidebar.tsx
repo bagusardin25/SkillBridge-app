@@ -60,6 +60,7 @@ export function Sidebar({ className }: { className?: string }) {
         setOnProjectCreated,
         isSidebarOpen,
         toggleSidebar,
+        projectsVersion,
     } = useRoadmapStore();
     const { user, logout } = useAuthStore();
     const navigate = useNavigate();
@@ -89,6 +90,13 @@ export function Sidebar({ className }: { className?: string }) {
             fetchProjects();
         }
     }, [user?.id]);
+
+    // Re-fetch projects when projectsVersion changes (triggered by Header or ChatPanel)
+    useEffect(() => {
+        if (user?.id && projectsVersion > 0) {
+            fetchProjects();
+        }
+    }, [projectsVersion, user?.id]);
 
     // Register refresh callback for when new project is created from chat
     useEffect(() => {
@@ -126,13 +134,13 @@ export function Sidebar({ className }: { className?: string }) {
             // roadmap.nodes and roadmap.edges are stored as JSON
             let nodes = Array.isArray(roadmap.nodes) ? roadmap.nodes : [];
             const edges = Array.isArray(roadmap.edges) ? roadmap.edges : [];
-            
+
             // Fetch quiz results and merge with nodes to restore completion status
             if (user?.id) {
                 const quizResults = await getQuizResultsForRoadmap(roadmap.id, user.id);
                 nodes = mergeNodesWithQuizResults(nodes, quizResults);
             }
-            
+
             setNodes(nodes);
             setEdges(edges);
             setCurrentRoadmapId(roadmap.id); // Track roadmap ID for updates
@@ -142,7 +150,7 @@ export function Sidebar({ className }: { className?: string }) {
         }
 
         setCurrentProject(project.id, project.title);
-        
+
         // Tutup sidebar HANYA di mobile (dan hanya jika sedang terbuka)
         if (window.innerWidth < 768 && isSidebarOpen) {
             toggleSidebar();

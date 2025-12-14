@@ -37,6 +37,7 @@ export function Header() {
         setCurrentProject,
         setCurrentRoadmapId,
         onProjectCreated,
+        incrementProjectsVersion,
     } = useRoadmapStore();
 
     const { user } = useAuthStore();
@@ -140,10 +141,13 @@ export function Header() {
             // Set roadmap ID
             setCurrentRoadmapId(roadmap.id);
 
-            // Notify sidebar to refresh
+            // Notify sidebar to refresh via callback
             if (onProjectCreated) {
                 onProjectCreated(project.id);
             }
+
+            // Also trigger version-based refresh as a fallback
+            incrementProjectsVersion();
 
             toast.success(`Project "${title}" berhasil dibuat!`);
         } catch (error) {

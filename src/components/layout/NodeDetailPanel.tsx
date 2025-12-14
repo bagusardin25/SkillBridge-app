@@ -68,13 +68,13 @@ export function NodeDetailPanel() {
     const data = selectedNode?.data as RoadmapNodeData | undefined;
 
     // Find prerequisite nodes (nodes that point to this node)
-    const prerequisiteNodes = selectedNode 
+    const prerequisiteNodes = selectedNode
         ? edges
             .filter(e => e.target === selectedNode.id)
             .map(e => nodes.find(n => n.id === e.source))
             .filter((n): n is typeof nodes[0] => n !== undefined)
         : [];
-    
+
     // Check if all prerequisites are completed (either quizPassed or isCompleted)
     const incompletePrerequisites = prerequisiteNodes.filter(
         n => {
@@ -131,9 +131,27 @@ export function NodeDetailPanel() {
 
     return (
         <div className="flex flex-col h-full border-l bg-background w-full md:w-96 shadow-xl">
+            {/* Panel Header - Similar to ChatPanel */}
+            <div className="p-3 border-b bg-muted/10 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <div className="relative">
+                        <div className="h-8 w-8 rounded-full bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center border border-violet-200 dark:border-violet-800">
+                            <BookOpen className="h-5 w-5 text-violet-600 dark:text-violet-400" />
+                        </div>
+                    </div>
+                    <div>
+                        <h2 className="text-sm font-semibold leading-none">Node Details</h2>
+                        <span className="text-[10px] text-muted-foreground">Resources & AI Tutor</span>
+                    </div>
+                </div>
+                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={closeDetailPanel}>
+                    <X className="h-4 w-4" />
+                </Button>
+            </div>
+
             <Tabs defaultValue="resources" className="flex-1 flex flex-col overflow-hidden">
-                {/* Header with Tabs and Status Badge */}
-                <div className="p-3 border-b bg-muted/10">
+                {/* Tabs Header */}
+                <div className="px-3 pt-2 pb-0">
                     <div className="flex items-center justify-between gap-2">
                         <TabsList className="h-8 flex-1">
                             <TabsTrigger value="resources" className="text-xs px-2 gap-1">
@@ -147,11 +165,10 @@ export function NodeDetailPanel() {
                         </TabsList>
 
                         {/* Status Badge (read-only) */}
-                        <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${
-                            isCompleted 
-                                ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400" 
+                        <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${isCompleted
+                                ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400"
                                 : "bg-muted text-muted-foreground"
-                        }`}>
+                            }`}>
                             {isCompleted ? (
                                 <CheckCircle2 className="h-3.5 w-3.5" />
                             ) : (
@@ -159,11 +176,6 @@ export function NodeDetailPanel() {
                             )}
                             {isCompleted ? "Done" : "Pending"}
                         </div>
-
-                        {/* Close Button */}
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={closeDetailPanel}>
-                            <X className="h-4 w-4" />
-                        </Button>
                     </div>
                 </div>
 
@@ -220,9 +232,8 @@ export function NodeDetailPanel() {
                                                             target="_blank"
                                                             rel="noopener noreferrer"
                                                             onClick={() => handleResourceClick(resource)}
-                                                            className={`text-sm hover:underline flex items-center gap-1 ${
-                                                                isVisited ? "text-muted-foreground" : "text-primary"
-                                                            }`}
+                                                            className={`text-sm hover:underline flex items-center gap-1 ${isVisited ? "text-muted-foreground" : "text-primary"
+                                                                }`}
                                                         >
                                                             {displayName}
                                                             {isVisited ? (
@@ -268,9 +279,8 @@ export function NodeDetailPanel() {
                                                         target="_blank"
                                                         rel="noopener noreferrer"
                                                         onClick={() => handleResourceClick(video)}
-                                                        className={`text-sm hover:underline flex items-center gap-1 ${
-                                                            isVisited ? "text-muted-foreground" : "text-primary"
-                                                        }`}
+                                                        className={`text-sm hover:underline flex items-center gap-1 ${isVisited ? "text-muted-foreground" : "text-primary"
+                                                            }`}
                                                     >
                                                         {videoName}
                                                         {isVisited ? (
@@ -326,7 +336,7 @@ export function NodeDetailPanel() {
                                             </ul>
                                         </div>
                                     ) : (
-                                        <Button 
+                                        <Button
                                             onClick={() => setShowQuiz(true)}
                                             className="w-full h-14 text-base bg-primary hover:bg-primary/90"
                                             size="lg"
@@ -337,7 +347,7 @@ export function NodeDetailPanel() {
                                     )}
                                 </div>
                             )}
-                            
+
                             {/* Info for optional nodes */}
                             {data.category === "optional" && (
                                 <div className="pt-4 border-t">
@@ -358,7 +368,7 @@ export function NodeDetailPanel() {
                                                     This is an optional topic. No quiz required - explore at your own pace!
                                                 </p>
                                             </div>
-                                            <Button 
+                                            <Button
                                                 onClick={() => {
                                                     if (selectedNode) {
                                                         updateNodeData(selectedNode.id, {
@@ -377,7 +387,7 @@ export function NodeDetailPanel() {
                                     )}
                                 </div>
                             )}
-                            
+
                             {/* Project section with completion functionality */}
                             {data.category === "project" && (
                                 <div className="pt-4 border-t space-y-4">
@@ -427,7 +437,7 @@ export function NodeDetailPanel() {
                                                     💡 Tips: Gunakan AI Tutor jika butuh bantuan dalam mengerjakan project ini!
                                                 </p>
                                             </div>
-                                            <Button 
+                                            <Button
                                                 onClick={() => {
                                                     if (selectedNode) {
                                                         updateNodeData(selectedNode.id, {

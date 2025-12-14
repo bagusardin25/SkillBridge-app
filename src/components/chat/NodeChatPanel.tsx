@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -6,6 +6,84 @@ import { useRoadmapStore } from "@/store/useRoadmapStore";
 import { getNodeChatHistory, sendNodeChatMessage, type ChatMessage } from "@/lib/api";
 import { Sparkles, Send, Loader2, MessageSquare, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import ReactMarkdown from "react-markdown";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+
+const TYPING_SPEED = 15; // ms per character
+const THINKING_DELAY = 500; // ms before starting to type
+
+// Markdown renderer with syntax highlighting
+function MarkdownContent({ content }: { content: string }) {
+    return (
+        <div className="prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-ol:my-1 prose-li:my-0">
+            <ReactMarkdown
+                components={{
+                    code({ className, children, ...props }) {
+                        const match = /language-(\w+)/.exec(className || '');
+                        const isInline = !match;
+
+                        if (isInline) {
+                            return (
+                                <code className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono" {...props}>
+                                    {children}
+                                </code>
+                            );
+                        }
+
+                        return (
+                            <div className="relative group my-2">
+                                <SyntaxHighlighter
+                                    style={oneDark}
+                                    language={match[1]}
+                                    PreTag="div"
+                                    customStyle={{
+                                        margin: 0,
+                                        borderRadius: '0.5rem',
+                                        fontSize: '0.75rem',
+                                    }}
+                                >
+                                    {String(children).replace(/\n$/, '')}
+                                </SyntaxHighlighter>
+                            </div>
+                        );
+                    },
+                }}
+            >
+                {content}
+            </ReactMarkdown>
+        </div>
+    );
+}
+
+// Typewriter component for streaming AI responses
+function TypewriterText({ text, onComplete }: { text: string; onComplete?: () => void }) {
+    const [displayedText, setDisplayedText] = useState("");
+
+    useEffect(() => {
+        let charIndex = 0;
+        setDisplayedText("");
+
+        // Start typing after thinking delay
+        const delayTimer = setTimeout(() => {
+            const typeInterval = setInterval(() => {
+                if (charIndex < text.length) {
+                    setDisplayedText(text.slice(0, charIndex + 1));
+                    charIndex++;
+                } else {
+                    clearInterval(typeInterval);
+                    onComplete?.();
+                }
+            }, TYPING_SPEED);
+
+            return () => clearInterval(typeInterval);
+        }, THINKING_DELAY);
+
+        return () => clearTimeout(delayTimer);
+    }, [text, onComplete]);
+
+    return <>{displayedText}<span className="animate-pulse">|</span></>;
+}
 
 interface NodeChatPanelProps {
     nodeId: string;
@@ -18,7 +96,15 @@ export function NodeChatPanel({ nodeId, topic }: NodeChatPanelProps) {
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [isSending, setIsSending] = useState(false);
+    const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
+
+    // Mark streaming message as complete
+    const handleStreamingComplete = useCallback((messageId: string) => {
+        if (streamingMessageId === messageId) {
+            setStreamingMessageId(null);
+        }
+    }, [streamingMessageId]);
 
     const suggestedQuestions = [
         `What is ${topic} and why is it important?`,
@@ -31,7 +117,7 @@ export function NodeChatPanel({ nodeId, topic }: NodeChatPanelProps) {
     useEffect(() => {
         const loadHistory = async () => {
             if (!currentProjectId) return;
-            
+
             setIsLoading(true);
             try {
                 const data = await getNodeChatHistory(currentProjectId, nodeId);
@@ -98,6 +184,8 @@ export function NodeChatPanel({ nodeId, topic }: NodeChatPanelProps) {
                 createdAt: new Date().toISOString(),
             };
 
+            // Set this message as streaming before adding
+            setStreamingMessageId(aiMessage.id);
             setMessages(prev => [...prev, aiMessage]);
         } catch (error) {
             toast.error("Failed to get AI response");
@@ -147,7 +235,7 @@ export function NodeChatPanel({ nodeId, topic }: NodeChatPanelProps) {
                                     Get personalized explanations and guidance.
                                 </p>
                             </div>
-                            
+
                             <div className="space-y-2">
                                 <p className="text-xs font-medium text-muted-foreground">Suggested questions:</p>
                                 {suggestedQuestions.map((question, i) => (
@@ -167,24 +255,38 @@ export function NodeChatPanel({ nodeId, topic }: NodeChatPanelProps) {
                         </div>
                     ) : (
                         // Chat messages
-                        messages.map((message) => (
-                            <div
-                                key={message.id}
-                                className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
-                            >
+                        messages.map((message) => {
+                            const isStreaming = message.id === streamingMessageId;
+
+                            return (
                                 <div
-                                    className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${
-                                        message.role === "user"
+                                    key={message.id}
+                                    className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+                                >
+                                    <div
+                                        className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${message.role === "user"
                                             ? "bg-primary text-primary-foreground"
                                             : "bg-muted"
-                                    }`}
-                                >
-                                    <p className="whitespace-pre-wrap">{message.content}</p>
+                                            }`}
+                                    >
+                                        {message.role === "user" ? (
+                                            <p className="whitespace-pre-wrap">{message.content}</p>
+                                        ) : isStreaming ? (
+                                            <div className="prose prose-sm dark:prose-invert max-w-none">
+                                                <TypewriterText
+                                                    text={message.content}
+                                                    onComplete={() => handleStreamingComplete(message.id)}
+                                                />
+                                            </div>
+                                        ) : (
+                                            <MarkdownContent content={message.content} />
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        ))
+                            );
+                        })
                     )}
-                    
+
                     {/* Typing indicator */}
                     {isSending && (
                         <div className="flex justify-start">

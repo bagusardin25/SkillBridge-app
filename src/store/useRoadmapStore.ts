@@ -26,6 +26,7 @@ interface RoadmapStore {
     contextualChatTopic: string | null;
     onProjectCreated: ((projectId: string) => void) | null;
     placingNodeType: string | null;
+    projectsVersion: number;
     onNodesChange: (changes: NodeChange<RoadmapNode>[]) => void;
     onEdgesChange: (changes: EdgeChange<RoadmapEdge>[]) => void;
     setNodes: (nodes: RoadmapNode[]) => void;
@@ -51,6 +52,7 @@ interface RoadmapStore {
     askAiAboutTopic: (topic: string) => void;
     setOnProjectCreated: (callback: ((projectId: string) => void) | null) => void;
     setPlacingNodeType: (type: string | null) => void;
+    incrementProjectsVersion: () => void;
 }
 
 export const useRoadmapStore = create<RoadmapStore>()(
@@ -65,14 +67,15 @@ export const useRoadmapStore = create<RoadmapStore>()(
             isDetailPanelOpen: false,
             isSidebarOpen: typeof window !== 'undefined' && window.innerWidth >= 768,
             contextualChatTopic: null,
-            isDarkMode: typeof window !== 'undefined' 
-                ? localStorage.getItem('theme') !== 'light' 
+            isDarkMode: typeof window !== 'undefined'
+                ? localStorage.getItem('theme') !== 'light'
                 : true,
             currentProjectId: null,
             currentProjectTitle: '',
             currentRoadmapId: null,
             onProjectCreated: null,
             placingNodeType: null,
+            projectsVersion: 0,
 
             onNodesChange: (changes) => {
                 set({
@@ -93,7 +96,7 @@ export const useRoadmapStore = create<RoadmapStore>()(
             setEdges: (edges) => {
                 set({ edges });
             },
-            
+
             setProjectTitle: (title) => {
                 set({ currentProjectTitle: title });
             },
@@ -167,8 +170,8 @@ export const useRoadmapStore = create<RoadmapStore>()(
             toggleAiPanel: () => {
                 const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
                 const currentState = get().isAiPanelOpen;
-                
-                set({ 
+
+                set({
                     isAiPanelOpen: !currentState,
                     // Di mobile, tutup sidebar kiri saat buka panel kanan
                     ...(isMobile && !currentState && { isSidebarOpen: false })
@@ -181,8 +184,8 @@ export const useRoadmapStore = create<RoadmapStore>()(
 
             openDetailPanel: () => {
                 const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-                
-                set({ 
+
+                set({
                     isDetailPanelOpen: true,
                     // Di mobile, tutup sidebar kiri saat buka detail panel
                     ...(isMobile && { isSidebarOpen: false })
@@ -198,7 +201,7 @@ export const useRoadmapStore = create<RoadmapStore>()(
             },
 
             askAiAboutTopic: (topic) => {
-                set({ 
+                set({
                     contextualChatTopic: topic,
                     isDetailPanelOpen: false,
                     isAiPanelOpen: true,
@@ -208,13 +211,13 @@ export const useRoadmapStore = create<RoadmapStore>()(
             toggleSidebar: () => {
                 const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
                 const currentState = get().isSidebarOpen;
-                
-                set({ 
+
+                set({
                     isSidebarOpen: !currentState,
                     // Di mobile, tutup panel kanan saat buka sidebar kiri
-                    ...(isMobile && !currentState && { 
-                        isAiPanelOpen: false, 
-                        isDetailPanelOpen: false 
+                    ...(isMobile && !currentState && {
+                        isAiPanelOpen: false,
+                        isDetailPanelOpen: false
                     })
                 });
             },
@@ -244,6 +247,10 @@ export const useRoadmapStore = create<RoadmapStore>()(
             setPlacingNodeType: (type) => {
                 set({ placingNodeType: type });
             },
+
+            incrementProjectsVersion: () => {
+                set({ projectsVersion: get().projectsVersion + 1 });
+            },
         }),
         {
             limit: 50,
@@ -252,7 +259,7 @@ export const useRoadmapStore = create<RoadmapStore>()(
                 edges: state.edges,
             }),
             // Equality check to avoid tracking micro-changes during drag
-            equality: (pastState, currentState) => 
+            equality: (pastState, currentState) =>
                 JSON.stringify(pastState) === JSON.stringify(currentState),
         }
     )
