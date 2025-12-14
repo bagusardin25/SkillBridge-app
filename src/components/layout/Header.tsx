@@ -38,7 +38,7 @@ export function Header() {
         setCurrentRoadmapId,
         onProjectCreated,
     } = useRoadmapStore();
-    
+
     const { user } = useAuthStore();
     const [showSaveDialog, setShowSaveDialog] = useState(false);
     const [showCertificate, setShowCertificate] = useState(false);
@@ -65,7 +65,7 @@ export function Header() {
                     id: p.id,
                     title: p.title,
                     totalNodes: roadmapNodes.length,
-                    completedNodes: roadmapNodes.filter((n: { data?: { isCompleted?: boolean; quizPassed?: boolean } }) => 
+                    completedNodes: roadmapNodes.filter((n: { data?: { isCompleted?: boolean; quizPassed?: boolean } }) =>
                         n.data?.isCompleted || n.data?.quizPassed
                     ).length,
                 };
@@ -126,25 +126,25 @@ export function Header() {
         try {
             // Create new project
             const project = await createProject(title, user.id);
-            
+
             // Set as current project
             setCurrentProject(project.id, project.title);
-            
+
             // Create roadmap for the project with current nodes/edges
             const roadmap = await createRoadmap(project.id, {
                 title,
                 nodes,
                 edges,
             });
-            
+
             // Set roadmap ID
             setCurrentRoadmapId(roadmap.id);
-            
+
             // Notify sidebar to refresh
             if (onProjectCreated) {
                 onProjectCreated(project.id);
             }
-            
+
             toast.success(`Project "${title}" berhasil dibuat!`);
         } catch (error) {
             toast.error("Gagal membuat project");
@@ -231,9 +231,9 @@ export function Header() {
             <div className="flex items-center gap-3">
                 {/* Mobile: Hamburger menu for sidebar - Hide when right panel is open */}
                 {!(isAiPanelOpen || isDetailPanelOpen) && (
-                    <Button 
-                        variant="ghost" 
-                        size="icon" 
+                    <Button
+                        variant="ghost"
+                        size="icon"
                         className="md:hidden h-9 w-9"
                         onClick={toggleSidebar}
                     >
@@ -308,10 +308,10 @@ export function Header() {
                 <TooltipProvider delayDuration={300}>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                onClick={handleExport} 
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={handleExport}
                                 disabled={isExporting || nodes.length === 0}
                                 className="hidden sm:flex"
                             >
@@ -331,9 +331,9 @@ export function Header() {
                 <TooltipProvider delayDuration={300}>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Button 
-                                variant="ghost" 
-                                size="sm" 
+                            <Button
+                                variant="ghost"
+                                size="sm"
                                 onClick={() => setShowShare(true)}
                                 disabled={nodes.length === 0}
                                 className="hidden sm:flex"
@@ -346,18 +346,18 @@ export function Header() {
                     </Tooltip>
                 </TooltipProvider>
 
-                 {/* Save Button - Icon only on mobile */}
-                 <TooltipProvider delayDuration={300}>
+                {/* Save Button - Icon only on mobile */}
+                <TooltipProvider delayDuration={300}>
                     <Tooltip>
                         <TooltipTrigger asChild>
                             {/* Mobile: Icon only */}
-                            <Button 
-                                variant="outline" 
-                                size="icon" 
+                            <Button
+                                variant="outline"
+                                size="icon"
                                 onClick={handleSave}
                                 disabled={isSaving || nodes.length === 0}
                                 className="sm:hidden h-9 w-9"
-                             >
+                            >
                                 {isSaving ? (
                                     <Loader2 className="h-4 w-4 animate-spin" />
                                 ) : (
@@ -372,13 +372,13 @@ export function Header() {
                     <Tooltip>
                         <TooltipTrigger asChild>
                             {/* Desktop: With text */}
-                             <Button 
-                                variant="outline" 
-                                size="sm" 
+                            <Button
+                                variant="outline"
+                                size="sm"
                                 onClick={handleSave}
                                 disabled={isSaving || nodes.length === 0}
                                 className="hidden sm:flex"
-                             >
+                            >
                                 {isSaving ? (
                                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                                 ) : (
@@ -390,6 +390,18 @@ export function Header() {
                         <TooltipContent>Save Project (Ctrl+S)</TooltipContent>
                     </Tooltip>
                 </TooltipProvider>
+
+                {/* Mobile: Certificate Button - Show when 100% complete */}
+                {progressPercentage === 100 && (
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setShowCertificate(true)}
+                        className="sm:hidden h-9 w-9 text-emerald-600 border-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950 animate-pulse"
+                    >
+                        <Award className="h-4 w-4" />
+                    </Button>
+                )}
 
                 {/* AI Panel Toggle - Mobile: Only show when panel is closed */}
                 {!isAiPanelOpen && (
