@@ -5,7 +5,7 @@ import { prisma } from "../lib/prisma.js";
 
 const router = Router();
 
-const PASSING_PERCENTAGE = 0.9; // 90% to pass
+const PASSING_PERCENTAGE = 0.8; // 80% to pass (4 of 5 questions)
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -276,6 +276,40 @@ router.get("/results/:roadmapId/:userId", async (req, res) => {
     console.error("Get quiz results error:", error.message);
     res.status(500).json({
       error: error.message || "Failed to get quiz results",
+    });
+  }
+});
+
+// GET /api/quiz/cached/:roadmapId/:nodeId/:userId - Get cached quiz questions if exists
+router.get("/cached/:roadmapId/:nodeId/:userId", async (req, res) => {
+  try {
+    const { roadmapId, nodeId, userId } = req.params;
+
+    const existingResult = await prisma.quizResult.findUnique({
+      where: {
+        roadmapId_nodeId_userId: {
+          roadmapId,
+          nodeId,
+          userId,
+        },
+      },
+      select: {
+        questions: true,
+      },
+    });
+
+    if (existingResult && existingResult.questions) {
+      return res.json({
+        questions: existingResult.questions,
+        cached: true,
+      });
+    }
+
+    return res.json({ cached: false });
+  } catch (error: any) {
+    console.error("Get cached quiz error:", error.message);
+    res.status(500).json({
+      error: error.message || "Failed to get cached quiz",
     });
   }
 });

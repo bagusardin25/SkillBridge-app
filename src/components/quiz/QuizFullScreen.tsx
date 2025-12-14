@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { generateQuiz, submitQuiz, addXp, type QuizQuestion } from "@/lib/api";
+import { generateQuiz, getCachedQuiz, submitQuiz, addXp, type QuizQuestion } from "@/lib/api";
 import { QuizQuestionCard } from "./QuizQuestion";
 import { 
   Loader2, 
@@ -33,7 +33,7 @@ interface QuizFullScreenProps {
 
 type QuizState = "loading" | "ready" | "submitting" | "completed" | "failed" | "error" | "timeout";
 
-const PASSING_PERCENTAGE = 90;
+const PASSING_PERCENTAGE = 80;
 const QUIZ_TIME_LIMIT = 300; // 5 minutes in seconds
 const WARNING_TIME = 60; // Show warning when 1 minute left
 
@@ -78,6 +78,18 @@ export function QuizFullScreen({
     }
 
     try {
+      // Cek apakah ada quiz yang sudah tersimpan di database
+      if (user?.id && currentRoadmapId) {
+        const cachedQuiz = await getCachedQuiz(currentRoadmapId, nodeId, user.id);
+        if (cachedQuiz) {
+          setQuestions(cachedQuiz.questions);
+          setAnswers(new Array(cachedQuiz.questions.length).fill(null));
+          setQuizState("ready");
+          return;
+        }
+      }
+      
+      // Jika belum ada, generate quiz baru via AI
       const response = await generateQuiz(topic, description);
       setQuestions(response.questions);
       setAnswers(new Array(response.questions.length).fill(null));

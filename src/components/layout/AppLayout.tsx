@@ -65,9 +65,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 </div>
 
                 {/* Right Panel - Chat or Detail */}
-                {/* Mobile: Overlay drawer with backdrop */}
+                {/* Mobile: Overlay drawer with backdrop - start below header */}
                 {showDetailPanel && (
-                    <div className="md:hidden fixed inset-0 z-[60]">
+                    <div className="md:hidden fixed inset-x-0 top-14 bottom-0 z-[60]">
                         {/* Backdrop */}
                         <div 
                             className="absolute inset-0 bg-black/50 animate-in fade-in duration-200" 
@@ -80,7 +80,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     </div>
                 )}
                 {showChatPanel && (
-                    <div className="md:hidden fixed inset-0 z-[60]">
+                    <div className="md:hidden fixed inset-x-0 top-14 bottom-0 z-[60]">
                         {/* Backdrop */}
                         <div 
                             className="absolute inset-0 bg-black/50 animate-in fade-in duration-200" 

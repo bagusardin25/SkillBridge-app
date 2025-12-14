@@ -75,9 +75,13 @@ export function NodeDetailPanel() {
             .filter((n): n is typeof nodes[0] => n !== undefined)
         : [];
     
-    // Check if all prerequisites are completed
+    // Check if all prerequisites are completed (either quizPassed or isCompleted)
     const incompletePrerequisites = prerequisiteNodes.filter(
-        n => !(n.data as RoadmapNodeData)?.quizPassed
+        n => {
+            const nodeData = n.data as RoadmapNodeData;
+            // Node dianggap selesai jika quizPassed ATAU isCompleted
+            return !(nodeData?.quizPassed || nodeData?.isCompleted);
+        }
     );
     const allPrerequisitesPassed = incompletePrerequisites.length === 0;
 
@@ -386,6 +390,24 @@ export function NodeDetailPanel() {
                                                 <p className="font-medium text-emerald-700 dark:text-emerald-400">Project Completed!</p>
                                                 <p className="text-sm text-emerald-600 dark:text-emerald-500">Great job finishing this project.</p>
                                             </div>
+                                        </div>
+                                    ) : !allPrerequisitesPassed ? (
+                                        <div className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <Lock className="h-5 w-5 text-amber-600" />
+                                                <p className="font-medium text-amber-700 dark:text-amber-400">Project Terkunci</p>
+                                            </div>
+                                            <p className="text-sm text-amber-600 dark:text-amber-500 mb-3">
+                                                Selesaikan topik berikut terlebih dahulu:
+                                            </p>
+                                            <ul className="space-y-1">
+                                                {incompletePrerequisites.map(node => (
+                                                    <li key={node.id} className="text-sm text-amber-700 dark:text-amber-400 flex items-center gap-2">
+                                                        <Circle className="h-3 w-3" />
+                                                        {(node.data as RoadmapNodeData).label}
+                                                    </li>
+                                                ))}
+                                            </ul>
                                         </div>
                                     ) : (
                                         <>

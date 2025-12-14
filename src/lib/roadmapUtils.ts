@@ -32,8 +32,10 @@ export function mergeNodesWithQuizResults<T extends RoadmapNodeLike>(
     ...node,
     data: {
       ...node.data,
+      // Set quizPassed based on quiz results
       quizPassed: passedNodeIds.has(node.id),
-      isCompleted: passedNodeIds.has(node.id),
+      // Preserve existing isCompleted OR set from quiz results
+      isCompleted: node.data?.isCompleted || passedNodeIds.has(node.id),
     },
   }));
 }

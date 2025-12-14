@@ -129,8 +129,26 @@ router.post("/", async (req, res) => {
     res.json({ reply });
   } catch (error) {
     console.error("Error in chat:", error);
-    const message = error instanceof Error ? error.message : "Failed to process chat";
-    res.status(500).json({ error: message });
+    
+    let message = "Terjadi kesalahan saat memproses permintaan";
+    let statusCode = 500;
+    
+    if (error instanceof Error) {
+      if (error.message.includes("rate limit") || error.message.includes("429") || error.message.includes("Rate limit")) {
+        message = "Server sedang sibuk. Silakan coba lagi dalam beberapa detik.";
+        statusCode = 429;
+      } else if (error.message.includes("unavailable")) {
+        message = "Layanan AI sedang tidak tersedia. Silakan coba lagi nanti.";
+        statusCode = 503;
+      } else if (error.message.includes("API key")) {
+        message = "Konfigurasi server bermasalah. Silakan hubungi administrator.";
+        statusCode = 500;
+      } else {
+        message = error.message;
+      }
+    }
+    
+    res.status(statusCode).json({ error: message });
   }
 });
 

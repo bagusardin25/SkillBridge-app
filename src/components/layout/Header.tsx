@@ -245,8 +245,8 @@ export function Header() {
                     <span className="font-bold text-foreground truncate max-w-[120px] sm:max-w-none">{currentProjectTitle}</span>
                 </div>
 
-                {/* Progress Stats */}
-                {totalNodes > 0 && (
+                {/* Progress Stats - Hide when 100% complete */}
+                {totalNodes > 0 && progressPercentage < 100 && (
                     <div className="hidden md:flex items-center gap-3 ml-4 pl-4 border-l">
                         <div className="flex items-center gap-2">
                             <Progress value={progressPercentage} className="w-24 h-2" />
@@ -254,22 +254,23 @@ export function Header() {
                                 {completedNodes}/{totalNodes}
                             </span>
                         </div>
-                        <span className={`text-xs font-bold ${progressPercentage === 100 ? 'text-emerald-500' : 'text-primary'}`}>
+                        <span className="text-xs font-bold text-primary">
                             {progressPercentage}%
                         </span>
-                        {/* Certificate Button - only show when 100% complete */}
-                        {progressPercentage === 100 && (
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setShowCertificate(true)}
-                                className="ml-2 text-emerald-600 border-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950"
-                            >
-                                <Award className="h-4 w-4 mr-1" />
-                                Certificate
-                            </Button>
-                        )}
                     </div>
+                )}
+
+                {/* Certificate Button - Show separately when 100% complete */}
+                {progressPercentage === 100 && (
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowCertificate(true)}
+                        className="hidden md:flex ml-2 text-emerald-600 border-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950"
+                    >
+                        <Award className="h-4 w-4 mr-1" />
+                        <span className="hidden lg:inline">Certificate</span>
+                    </Button>
                 )}
             </div>
 

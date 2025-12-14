@@ -402,6 +402,20 @@ export async function generateQuiz(topic: string, description?: string): Promise
   return data;
 }
 
+export async function getCachedQuiz(roadmapId: string, nodeId: string, userId: string): Promise<QuizResponse | null> {
+  try {
+    const res = await fetch(`${API_URL}/quiz/cached/${roadmapId}/${nodeId}/${userId}`);
+    const data = await res.json();
+    
+    if (data.cached && data.questions) {
+      return { questions: data.questions as QuizQuestion[] };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export interface SubmitQuizParams {
   roadmapId: string;
   nodeId: string;

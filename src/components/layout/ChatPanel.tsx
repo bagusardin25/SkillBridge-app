@@ -452,12 +452,26 @@ export function ChatPanel() {
             if (error instanceof Error && error.name === 'AbortError') {
                 return;
             }
+            
+            // Determine user-friendly error message
+            let errorContent = "";
+            
+            if (error instanceof TypeError && error.message === "Failed to fetch") {
+                errorContent = "🔌 **Tidak dapat terhubung ke server**\n\nKemungkinan penyebab:\n- Server backend belum dijalankan\n- Koneksi internet terputus\n\nSilakan coba lagi dalam beberapa saat.";
+            } else if (error instanceof Error && (error.message.includes("rate limit") || error.message.includes("429"))) {
+                errorContent = "⏳ **Server sedang sibuk**\n\nTerlalu banyak permintaan dalam waktu singkat. Silakan tunggu beberapa detik dan coba lagi.";
+            } else if (error instanceof Error && error.message.includes("unavailable")) {
+                errorContent = "🔧 **Layanan AI sedang tidak tersedia**\n\nSilakan coba lagi dalam beberapa menit.";
+            } else {
+                errorContent = error instanceof Error
+                    ? `❌ **Terjadi kesalahan**\n\n${error.message}\n\nSilakan coba lagi.`
+                    : "❌ **Terjadi kesalahan**\n\nTidak dapat memproses permintaan. Silakan coba lagi.";
+            }
+            
             const errorMessage: Message = {
                 id: (Date.now() + 1).toString(),
                 role: "assistant",
-                content: error instanceof Error
-                    ? `Error: ${error.message}`
-                    : "Failed to connect to server. Make sure the backend is running on port 3001.",
+                content: errorContent,
                 timestamp: Date.now(),
             };
             setMessages((prev) => [...prev, errorMessage]);
