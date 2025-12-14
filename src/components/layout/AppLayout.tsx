@@ -77,14 +77,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 {/* Right Panel - Chat or Detail */}
                 {/* Mobile: Overlay drawer with backdrop - start below header */}
                 {showDetailPanel && (
-                    <div className="md:hidden fixed inset-x-0 top-14 bottom-0 z-[60]">
-                        {/* Backdrop */}
-                        <div 
-                            className="absolute inset-0 bg-black/50 animate-in fade-in duration-200" 
-                            onClick={() => useRoadmapStore.getState().closeDetailPanel()}
-                        />
-                        {/* Detail panel */}
-                        <div className="absolute right-0 top-0 h-full w-full max-w-md bg-background shadow-xl animate-in slide-in-from-right duration-300">
+                    <div className="md:hidden fixed inset-0 z-[60]">
+                        {/* Detail panel - fullscreen on mobile */}
+                        <div className="absolute inset-0 bg-background animate-in fade-in duration-200">
                             <NodeDetailPanel />
                         </div>
                     </div>

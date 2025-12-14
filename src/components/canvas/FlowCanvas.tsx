@@ -332,7 +332,7 @@ export function FlowCanvas() {
                 {nodes.length > 0 && (
                     <MiniMap
                         position="bottom-right"
-                        className="!bg-card !border !border-border rounded-lg shadow-lg m-4"
+                        className="!bg-card !border !border-border rounded-lg shadow-lg m-4 hidden sm:block"
                         maskColor="rgba(0, 0, 0, 0.3)"
                         zoomable
                         pannable
