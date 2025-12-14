@@ -106,7 +106,7 @@ export function BillingPage() {
             {/* Header */}
             <div className="sticky top-0 z-[60] h-14 border-b bg-background flex items-center justify-between px-4">
                 <h1 className="text-lg font-semibold">Billing</h1>
-                <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
+                <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
                     <X className="h-5 w-5" />
                 </Button>
             </div>

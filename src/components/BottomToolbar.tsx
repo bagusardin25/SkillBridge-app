@@ -95,22 +95,22 @@ export function BottomToolbar() {
     };
 
     const actionButtonClass = (isDisabled = false) =>
-        `flex items-center justify-center w-8 h-8 rounded-md transition-all ${isDisabled
+        `flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-md transition-all ${isDisabled
             ? "text-muted-foreground opacity-50 cursor-not-allowed"
             : "hover:bg-muted text-foreground cursor-pointer active:scale-90"
         }`;
 
     const toolButtonClass = (isActive = false) =>
-        `flex items-center justify-center w-10 h-10 rounded-lg transition-all ${isActive
+        `flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-lg transition-all ${isActive
             ? "bg-primary text-primary-foreground"
             : "hover:bg-muted text-foreground cursor-pointer active:scale-90"
         }`;
 
     return (
         <TooltipProvider delayDuration={0}>
-            <div className="fixed bottom-2 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-1 animate-in slide-in-from-bottom-4 duration-500">
-                {/* Undo/Redo Bar - di atas main toolbar */}
-                <div className="flex items-center gap-1 p-1.5 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 border border-border/50 rounded-lg shadow-sm">
+            <div className="fixed bottom-2 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-0.5 sm:gap-1 animate-in slide-in-from-bottom-4 duration-500">
+                {/* Undo/Redo Bar - Hidden on mobile */}
+                <div className="hidden sm:flex items-center gap-1 p-1.5 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 border border-border/50 rounded-lg shadow-sm">
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <button onClick={() => undo()} className={actionButtonClass()}>
@@ -187,8 +187,8 @@ export function BottomToolbar() {
                     </DropdownMenu>
                 </div>
 
-                {/* Main Tools Bar */}
-                <div className="flex items-center gap-1 p-1.5 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 border border-border/50 rounded-xl shadow-xl">
+                {/* Main Tools Bar - Compact on mobile */}
+                <div className="flex items-center gap-0.5 sm:gap-1 p-1 sm:p-1.5 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 border border-border/50 rounded-xl shadow-xl">
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <button
@@ -213,7 +213,7 @@ export function BottomToolbar() {
                         <TooltipContent>Hand Tool</TooltipContent>
                     </Tooltip>
 
-                    <div className="w-px h-6 bg-border/50 mx-1" />
+                    <div className="w-px h-5 sm:h-6 bg-border/50 mx-0.5 sm:mx-1" />
 
                     {/* Implemented Tools */}
                     <Tooltip>
@@ -229,7 +229,7 @@ export function BottomToolbar() {
                     </Tooltip>
 
 
-                    <div className="w-px h-6 bg-border/50 mx-1" />
+                    <div className="w-px h-5 sm:h-6 bg-border/50 mx-0.5 sm:mx-1" />
 
                     {/* Shape Nodes - Click to activate placement mode, then click on canvas */}
                     <Tooltip>

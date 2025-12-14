@@ -24,6 +24,7 @@ import { Award, BarChart3, Share2 } from "lucide-react";
 export function Header() {
     const {
         isAiPanelOpen,
+        isDetailPanelOpen,
         toggleAiPanel,
         toggleSidebar,
         isDarkMode,
@@ -228,15 +229,17 @@ export function Header() {
     return (
         <header className="h-14 border-b bg-background flex items-center justify-between px-4">
             <div className="flex items-center gap-3">
-                {/* Mobile: Hamburger menu for sidebar */}
-                <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="md:hidden h-9 w-9"
-                    onClick={toggleSidebar}
-                >
-                    <Menu className="h-5 w-5" />
-                </Button>
+                {/* Mobile: Hamburger menu for sidebar - Hide when right panel is open */}
+                {!(isAiPanelOpen || isDetailPanelOpen) && (
+                    <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="md:hidden h-9 w-9"
+                        onClick={toggleSidebar}
+                    >
+                        <Menu className="h-5 w-5" />
+                    </Button>
+                )}
 
                 {/* Project Title / Breadcrumb */}
                 <div className="flex items-center gap-2 text-sm">
@@ -388,20 +391,17 @@ export function Header() {
                     </Tooltip>
                 </TooltipProvider>
 
-                {/* AI Panel Toggle - Icon only on mobile */}
-                {/* Mobile: Icon only */}
-                <Button
-                    variant={isAiPanelOpen ? "secondary" : "default"}
-                    size="icon"
-                    onClick={toggleAiPanel}
-                    className={`sm:hidden h-9 w-9 ${!isAiPanelOpen ? "shadow-sm" : ""}`}
-                >
-                    {isAiPanelOpen ? (
-                        <PanelRightClose className="h-4 w-4" />
-                    ) : (
+                {/* AI Panel Toggle - Mobile: Only show when panel is closed */}
+                {!isAiPanelOpen && (
+                    <Button
+                        variant="default"
+                        size="icon"
+                        onClick={toggleAiPanel}
+                        className="sm:hidden h-9 w-9 shadow-sm"
+                    >
                         <MessageSquare className="h-4 w-4" />
-                    )}
-                </Button>
+                    </Button>
+                )}
                 {/* Desktop: With text */}
                 <Button
                     variant={isAiPanelOpen ? "secondary" : "default"}

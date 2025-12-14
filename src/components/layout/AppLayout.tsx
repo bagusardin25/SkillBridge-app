@@ -11,12 +11,22 @@ import { useLocation } from "react-router-dom";
 // Helper component to conditionally render toolbar
 function BottomToolbarWrapper() {
     const location = useLocation();
+    const { isAiPanelOpen, isDetailPanelOpen } = useRoadmapStore();
+    
     if (location.pathname === "/profile") return null;
-    return <BottomToolbar />;
+    
+    // Hide on mobile when panel is open (using CSS for SSR compatibility)
+    const hideOnMobile = isAiPanelOpen || isDetailPanelOpen;
+    
+    return (
+        <div className={hideOnMobile ? "hidden md:block" : ""}>
+            <BottomToolbar />
+        </div>
+    );
 }
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
-    const { isAiPanelOpen, isDetailPanelOpen, isDarkMode, selectedNodeIds, isSidebarOpen, toggleSidebar, toggleAiPanel } = useRoadmapStore();
+    const { isAiPanelOpen, isDetailPanelOpen, isDarkMode, selectedNodeIds, isSidebarOpen, toggleSidebar } = useRoadmapStore();
 
     // Show detail panel when a node is selected and detail panel is open
     const showDetailPanel = isDetailPanelOpen && selectedNodeIds.length > 0;
@@ -80,14 +90,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     </div>
                 )}
                 {showChatPanel && (
-                    <div className="md:hidden fixed inset-x-0 top-14 bottom-0 z-[60]">
-                        {/* Backdrop */}
-                        <div 
-                            className="absolute inset-0 bg-black/50 animate-in fade-in duration-200" 
-                            onClick={toggleAiPanel}
-                        />
-                        {/* Chat panel */}
-                        <div className="absolute right-0 top-0 h-full w-full max-w-md bg-background shadow-xl animate-in slide-in-from-right duration-300">
+                    <div className="md:hidden fixed inset-0 z-[60]">
+                        {/* Chat panel - fullscreen on mobile */}
+                        <div className="absolute inset-0 bg-background animate-in fade-in duration-200">
                             <ChatPanel />
                         </div>
                     </div>

@@ -150,7 +150,7 @@ export function ProfilePage() {
                 <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => navigate("/")}
+                    onClick={() => navigate(-1)}
                 >
                     <X className="h-5 w-5" />
                 </Button>

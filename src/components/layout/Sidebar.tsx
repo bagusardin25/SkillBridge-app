@@ -149,13 +149,11 @@ export function Sidebar({ className }: { className?: string }) {
         }
     };
 
-    // Helper untuk navigasi dan tutup sidebar di mobile
+    // Helper untuk navigasi - tidak tutup sidebar agar saat back, user kembali ke sidebar
     const handleNavigate = (path: string) => {
         navigate(path);
-        // Tutup sidebar HANYA di mobile (dan hanya jika sedang terbuka)
-        if (window.innerWidth < 768 && isSidebarOpen) {
-            toggleSidebar();
-        }
+        // Jangan tutup sidebar saat navigate ke settings pages
+        // Biarkan sidebar tetap terbuka agar saat back (navigate(-1)), user kembali ke sidebar
     };
 
     const handleLogout = () => {
