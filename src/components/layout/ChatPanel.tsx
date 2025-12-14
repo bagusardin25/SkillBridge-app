@@ -10,6 +10,7 @@ import type { RoadmapPreferences } from "@/lib/api";
 import { convertToReactFlowNodes, isRoadmapRequest } from "@/lib/layoutUtils";
 import { useRoadmapStore } from "@/store/useRoadmapStore";
 import { useAuthStore } from "@/store/useAuthStore";
+import { toast } from "sonner";
 import {
     Select,
     SelectContent,
@@ -193,7 +194,6 @@ export function ChatPanel() {
         setCurrentProject,
         contextualChatTopic,
         setContextualChatTopic,
-        onProjectCreated,
     } = useRoadmapStore();
     const { user } = useAuthStore();
     const hasHandledTopic = useRef(false);
@@ -308,13 +308,30 @@ export function ChatPanel() {
 
                 // Auto-create project if none selected
                 if (!projectId && user?.id) {
-                    const projectTitle = extractTopicFromPrompt(userMessage);
-                    const newProject = await createProject(projectTitle, user.id);
-                    projectId = newProject.id;
-                    isCreatingProject.current = true;
-                    setCurrentProject(newProject.id, newProject.title);
-                    // Notify sidebar to refresh
-                    onProjectCreated?.(newProject.id);
+                    try {
+                        const projectTitle = extractTopicFromPrompt(userMessage);
+                        console.log("Creating project:", projectTitle, "for user:", user.id);
+                        const newProject = await createProject(projectTitle, user.id);
+                        console.log("Project created successfully:", newProject);
+                        projectId = newProject.id;
+                        isCreatingProject.current = true;
+                        setCurrentProject(newProject.id, newProject.title);
+
+                        // Use fresh callback from store to ensure we get the latest
+                        const freshCallback = useRoadmapStore.getState().onProjectCreated;
+                        if (freshCallback) {
+                            console.log("Calling onProjectCreated callback");
+                            freshCallback(newProject.id);
+                        } else {
+                            console.warn("onProjectCreated callback is not registered");
+                        }
+
+                        toast.success(`Project "${newProject.title}" dibuat!`);
+                    } catch (projectError) {
+                        console.error("Failed to create project:", projectError);
+                        toast.error("Gagal membuat project. Chat akan dilanjutkan tanpa project.");
+                        // Continue without project - user can still see the roadmap
+                    }
                 }
 
                 // Save user message to DB
@@ -396,13 +413,30 @@ export function ChatPanel() {
 
                 // Auto-create project if none selected
                 if (!projectId && user?.id) {
-                    const projectTitle = extractTopicFromPrompt(userMessage);
-                    const newProject = await createProject(projectTitle, user.id);
-                    projectId = newProject.id;
-                    isCreatingProject.current = true;
-                    setCurrentProject(newProject.id, newProject.title);
-                    // Notify sidebar to refresh
-                    onProjectCreated?.(newProject.id);
+                    try {
+                        const projectTitle = extractTopicFromPrompt(userMessage);
+                        console.log("Creating project for chat:", projectTitle, "for user:", user.id);
+                        const newProject = await createProject(projectTitle, user.id);
+                        console.log("Project created for chat successfully:", newProject);
+                        projectId = newProject.id;
+                        isCreatingProject.current = true;
+                        setCurrentProject(newProject.id, newProject.title);
+
+                        // Use fresh callback from store to ensure we get the latest
+                        const freshCallback = useRoadmapStore.getState().onProjectCreated;
+                        if (freshCallback) {
+                            console.log("Calling onProjectCreated callback for chat");
+                            freshCallback(newProject.id);
+                        } else {
+                            console.warn("onProjectCreated callback is not registered for chat");
+                        }
+
+                        toast.success(`Project "${newProject.title}" dibuat!`);
+                    } catch (projectError) {
+                        console.error("Failed to create project for chat:", projectError);
+                        toast.error("Gagal membuat project. Chat akan dilanjutkan tanpa project.");
+                        // Continue without project - user can still chat
+                    }
                 }
 
                 const context = messages.map((m) => ({
@@ -497,7 +531,7 @@ export function ChatPanel() {
     return (
         <div className="flex flex-col h-full border-l bg-background w-full md:w-80 shadow-xl">
             {/* Header */}
-            <div className="p-4 border-b flex items-center justify-between bg-muted/10">
+            <div className="h-14 px-4 border-b flex items-center justify-between bg-muted/10">
                 <div className="flex items-center gap-3">
                     <div className="relative">
                         <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">

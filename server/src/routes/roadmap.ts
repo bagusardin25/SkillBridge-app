@@ -16,25 +16,25 @@ router.post("/generate", async (req, res) => {
     // Validate preferences if provided
     const validPreferences: RoadmapPreferences | undefined = preferences
       ? {
-          skillLevel: preferences.skillLevel || "beginner",
-          learningTime: preferences.learningTime || "moderate",
-          learningStyle: preferences.learningStyle || "balanced",
-          goal: preferences.goal || "career",
-        }
+        skillLevel: preferences.skillLevel || "beginner",
+        learningTime: preferences.learningTime || "moderate",
+        learningStyle: preferences.learningStyle || "balanced",
+        goal: preferences.goal || "career",
+      }
       : undefined;
 
     // Generate roadmap using AI with preferences
     const roadmapData = await generateRoadmap(prompt, validPreferences);
 
     // Check if response is a valid roadmap
-    const isValidRoadmap = roadmapData.title && 
-                           roadmapData.nodes && 
-                           Array.isArray(roadmapData.nodes) && 
-                           roadmapData.nodes.length > 0;
+    const isValidRoadmap = roadmapData.title &&
+      roadmapData.nodes &&
+      Array.isArray(roadmapData.nodes) &&
+      roadmapData.nodes.length > 0;
 
     if (!isValidRoadmap) {
       // Return friendly chat response instead of error
-      const defaultMessage = (roadmapData as any).error || 
+      const defaultMessage = (roadmapData as any).error ||
         "Hmm, saya tidak bisa membuat roadmap dari request tersebut. 🤔\n\n" +
         "Coba dengan format seperti:\n" +
         "• \"Buat roadmap belajar React\"\n" +
@@ -42,7 +42,7 @@ router.post("/generate", async (req, res) => {
         "• \"Jalur belajar menjadi Backend Developer\"\n\n" +
         "Ada topik teknologi yang ingin dipelajari?";
 
-      return res.status(200).json({ 
+      return res.status(200).json({
         type: "chat",
         message: defaultMessage
       });
@@ -91,6 +91,41 @@ router.post("/", async (req, res) => {
   } catch (error) {
     console.error("Error creating roadmap:", error);
     res.status(500).json({ error: "Failed to create roadmap" });
+  }
+});
+
+// GET /api/roadmap/public/:id - Get public roadmap (no auth required)
+// NOTE: This route MUST be defined BEFORE /:id to prevent 'public' being matched as an id
+router.get("/public/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const roadmap = await prisma.roadmap.findUnique({
+      where: { id },
+      include: {
+        project: {
+          select: {
+            title: true,
+            user: {
+              select: { name: true, avatarUrl: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!roadmap) {
+      return res.status(404).json({ error: "Roadmap not found" });
+    }
+
+    if (!roadmap.isPublic) {
+      return res.status(403).json({ error: "This roadmap is private" });
+    }
+
+    res.json(roadmap);
+  } catch (error) {
+    console.error("Error fetching public roadmap:", error);
+    res.status(500).json({ error: "Failed to fetch roadmap" });
   }
 });
 
@@ -171,38 +206,5 @@ router.patch("/:id/public", async (req, res) => {
   }
 });
 
-// GET /api/roadmap/public/:id - Get public roadmap (no auth required)
-router.get("/public/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const roadmap = await prisma.roadmap.findUnique({
-      where: { id },
-      include: {
-        project: {
-          select: {
-            title: true,
-            user: {
-              select: { name: true, avatarUrl: true },
-            },
-          },
-        },
-      },
-    });
-
-    if (!roadmap) {
-      return res.status(404).json({ error: "Roadmap not found" });
-    }
-
-    if (!roadmap.isPublic) {
-      return res.status(403).json({ error: "This roadmap is private" });
-    }
-
-    res.json(roadmap);
-  } catch (error) {
-    console.error("Error fetching public roadmap:", error);
-    res.status(500).json({ error: "Failed to fetch roadmap" });
-  }
-});
-
 export default router;
+

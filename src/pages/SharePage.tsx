@@ -10,17 +10,18 @@ import {
     type Edge,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+import "@xyflow/react/dist/style.css";
 import { getPublicRoadmap, type PublicRoadmap } from "@/lib/api";
-import { CustomNode } from "@/components/nodes/CustomNode";
+import { ReadOnlyNode } from "@/components/nodes/ReadOnlyNode";
 
 const nodeTypes = {
-    default: CustomNode,
-    input: CustomNode,
-    output: CustomNode,
-    roadmapCard: CustomNode,
-    decision: CustomNode,
-    "start-end": CustomNode,
-    project: CustomNode,
+    default: ReadOnlyNode,
+    input: ReadOnlyNode,
+    output: ReadOnlyNode,
+    roadmapCard: ReadOnlyNode,
+    decision: ReadOnlyNode,
+    "start-end": ReadOnlyNode,
+    project: ReadOnlyNode,
 };
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -120,16 +121,24 @@ export function SharePage() {
         );
     }
 
+    // Debug logging
+    console.log("Roadmap data:", roadmap);
+    console.log("Raw nodes:", roadmap.nodes);
+    console.log("Raw edges:", roadmap.edges);
+
     const nodes = (roadmap.nodes as Node[]) || [];
     const edges = (roadmap.edges as Edge[]) || [];
     const authorName = roadmap.project.user.name || "Anonymous";
+
+    console.log("Parsed nodes:", nodes);
+    console.log("Parsed edges:", edges);
 
     return (
         <div className="min-h-screen bg-background flex flex-col">
             {/* Header */}
             <header className="h-14 border-b bg-background flex items-center justify-between px-4 sticky top-0 z-50">
                 <div className="flex items-center gap-4">
-                    <button 
+                    <button
                         onClick={() => navigate("/")}
                         className="flex items-center gap-2 hover:opacity-80 transition-opacity"
                     >
@@ -171,8 +180,8 @@ export function SharePage() {
                 </div>
             </div>
 
-            {/* ReactFlow Canvas */}
-            <div className="flex-1">
+            {/* ReactFlow Canvas - needs explicit height */}
+            <div className="flex-1 min-h-[500px] h-[calc(100vh-280px)]">
                 <ReactFlow
                     nodes={nodes}
                     edges={edges}
@@ -185,6 +194,7 @@ export function SharePage() {
                     fitView
                     fitViewOptions={{ padding: 0.2 }}
                     className="bg-background"
+                    defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
                 >
                     <Background variant={BackgroundVariant.Dots} gap={20} size={1} />
                     <Controls className="bg-background border-border" showInteractive={false} />
