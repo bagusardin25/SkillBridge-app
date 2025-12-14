@@ -11,6 +11,7 @@ import { AuthCallbackPage } from "@/pages/AuthCallbackPage";
 import { ProfilePage } from "@/pages/ProfilePage";
 import { SettingsPage } from "@/pages/SettingsPage";
 import { BillingPage } from "@/pages/BillingPage";
+import { LanguagePage } from "@/pages/LanguagePage";
 import { SharePage } from "@/pages/SharePage";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -110,6 +111,14 @@ function App() {
           element={
             <ProtectedRoute>
               <BillingPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/language"
+          element={
+            <ProtectedRoute>
+              <LanguagePage />
             </ProtectedRoute>
           }
         />

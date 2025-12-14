@@ -38,7 +38,6 @@ import { NewProjectDialog } from "@/components/ui/NewProjectDialog";
 import { Logo } from "@/components/ui/Logo";
 import { createProject, getProjects, deleteProject, updateProject, getQuizResultsForRoadmap, type Project } from "@/lib/api";
 import { mergeNodesWithQuizResults } from "@/lib/roadmapUtils";
-import { LanguageDialog } from "@/components/ui/LanguageDialog";
 import { toast } from "sonner";
 
 export function Sidebar({ className }: { className?: string }) {
@@ -51,7 +50,6 @@ export function Sidebar({ className }: { className?: string }) {
     const [newTitle, setNewTitle] = useState("");
     const [newProjectId, setNewProjectId] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
-    const [showLanguageDialog, setShowLanguageDialog] = useState(false);
     const {
         currentProjectId,
         setCurrentProject,
@@ -320,7 +318,7 @@ export function Sidebar({ className }: { className?: string }) {
                                 Billing
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => setShowLanguageDialog(true)}>
+                            <DropdownMenuItem onClick={() => handleNavigate("/language")}>
                                 <Globe className="mr-2 h-4 w-4" />
                                 Language
                             </DropdownMenuItem>
@@ -505,7 +503,7 @@ export function Sidebar({ className }: { className?: string }) {
                                             Billing
                                         </DropdownMenuItem>
                                         <DropdownMenuSeparator />
-                                        <DropdownMenuItem onClick={() => setShowLanguageDialog(true)}>
+                                        <DropdownMenuItem onClick={() => handleNavigate("/language")}>
                                             <Globe className="mr-2 h-4 w-4" />
                                             Language
                                         </DropdownMenuItem>
@@ -580,11 +578,6 @@ export function Sidebar({ className }: { className?: string }) {
                 </AlertDialogContent>
             </AlertDialog>
 
-            {/* Language Dialog */}
-            <LanguageDialog
-                open={showLanguageDialog}
-                onOpenChange={setShowLanguageDialog}
-            />
         </div>
     );
 }

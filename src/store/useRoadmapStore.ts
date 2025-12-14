@@ -165,7 +165,14 @@ export const useRoadmapStore = create<RoadmapStore>()(
             },
 
             toggleAiPanel: () => {
-                set({ isAiPanelOpen: !get().isAiPanelOpen });
+                const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+                const currentState = get().isAiPanelOpen;
+                
+                set({ 
+                    isAiPanelOpen: !currentState,
+                    // Di mobile, tutup sidebar kiri saat buka panel kanan
+                    ...(isMobile && !currentState && { isSidebarOpen: false })
+                });
             },
 
             toggleDetailPanel: () => {
@@ -173,7 +180,13 @@ export const useRoadmapStore = create<RoadmapStore>()(
             },
 
             openDetailPanel: () => {
-                set({ isDetailPanelOpen: true });
+                const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+                
+                set({ 
+                    isDetailPanelOpen: true,
+                    // Di mobile, tutup sidebar kiri saat buka detail panel
+                    ...(isMobile && { isSidebarOpen: false })
+                });
             },
 
             closeDetailPanel: () => {
@@ -193,7 +206,17 @@ export const useRoadmapStore = create<RoadmapStore>()(
             },
 
             toggleSidebar: () => {
-                set({ isSidebarOpen: !get().isSidebarOpen });
+                const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+                const currentState = get().isSidebarOpen;
+                
+                set({ 
+                    isSidebarOpen: !currentState,
+                    // Di mobile, tutup panel kanan saat buka sidebar kiri
+                    ...(isMobile && !currentState && { 
+                        isAiPanelOpen: false, 
+                        isDetailPanelOpen: false 
+                    })
+                });
             },
 
             toggleTheme: () => {

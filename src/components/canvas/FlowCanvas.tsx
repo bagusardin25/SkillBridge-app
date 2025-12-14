@@ -317,6 +317,7 @@ export function FlowCanvas() {
                 selectionOnDrag={interactionMode === "select" && !placingNodeType}
                 panOnScroll={true}
                 zoomOnScroll={false}
+                zoomOnPinch={true}
                 nodeTypes={nodeTypes}
                 edgeTypes={edgeTypes}
                 defaultEdgeOptions={defaultEdgeOptions}
