@@ -509,7 +509,7 @@ export function ChatPanel() {
     };
 
     return (
-        <div className="flex flex-col h-full border-l bg-background w-80 shadow-xl">
+        <div className="flex flex-col h-full border-l bg-background w-full md:w-80 shadow-xl">
             {/* Header */}
             <div className="p-4 border-b flex items-center justify-between bg-muted/10">
                 <div className="flex items-center gap-3">

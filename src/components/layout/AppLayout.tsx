@@ -16,7 +16,7 @@ function BottomToolbarWrapper() {
 }
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
-    const { isAiPanelOpen, isDetailPanelOpen, isDarkMode, selectedNodeIds } = useRoadmapStore();
+    const { isAiPanelOpen, isDetailPanelOpen, isDarkMode, selectedNodeIds, isSidebarOpen, toggleSidebar, toggleAiPanel } = useRoadmapStore();
 
     // Show detail panel when a node is selected and detail panel is open
     const showDetailPanel = isDetailPanelOpen && selectedNodeIds.length > 0;
@@ -34,10 +34,25 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     return (
         <ReactFlowProvider>
             <div className="flex h-screen overflow-hidden bg-background text-foreground">
-                {/* Left Sidebar - Always rendered, handles its own collapsed state */}
+                {/* Left Sidebar - Desktop: Always visible */}
                 <div className="hidden md:flex h-full">
                     <Sidebar />
                 </div>
+
+                {/* Left Sidebar - Mobile: Overlay drawer */}
+                {isSidebarOpen && (
+                    <div className="md:hidden fixed inset-0 z-[60]">
+                        {/* Backdrop */}
+                        <div 
+                            className="absolute inset-0 bg-black/50 animate-in fade-in duration-200" 
+                            onClick={toggleSidebar}
+                        />
+                        {/* Sidebar panel */}
+                        <div className="absolute left-0 top-0 h-full w-72 bg-background shadow-xl animate-in slide-in-from-left duration-300">
+                            <Sidebar />
+                        </div>
+                    </div>
+                )}
 
                 {/* Main Content Area */}
                 <div className="flex-1 flex flex-col overflow-hidden relative">
@@ -50,17 +65,32 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 </div>
 
                 {/* Right Panel - Chat or Detail */}
-                {/* Mobile: Full-screen overlay */}
+                {/* Mobile: Overlay drawer with backdrop */}
                 {showDetailPanel && (
-                    <div className="md:hidden fixed inset-0 z-50 bg-background animate-in slide-in-from-right duration-300">
-                        <NodeDetailPanel />
+                    <div className="md:hidden fixed inset-0 z-[60]">
+                        {/* Backdrop */}
+                        <div 
+                            className="absolute inset-0 bg-black/50 animate-in fade-in duration-200" 
+                            onClick={() => useRoadmapStore.getState().closeDetailPanel()}
+                        />
+                        {/* Detail panel */}
+                        <div className="absolute right-0 top-0 h-full w-full max-w-md bg-background shadow-xl animate-in slide-in-from-right duration-300">
+                            <NodeDetailPanel />
+                        </div>
                     </div>
                 )}
                 {showChatPanel && (
-                    <div className="md:hidden fixed inset-0 z-50 bg-background animate-in slide-in-from-right duration-300">
-                        <ChatPanel />
+                    <div className="md:hidden fixed inset-0 z-[60]">
+                        {/* Backdrop */}
+                        <div 
+                            className="absolute inset-0 bg-black/50 animate-in fade-in duration-200" 
+                            onClick={toggleAiPanel}
+                        />
+                        {/* Chat panel */}
+                        <div className="absolute right-0 top-0 h-full w-full max-w-md bg-background shadow-xl animate-in slide-in-from-right duration-300">
+                            <ChatPanel />
+                        </div>
                     </div>
-
                 )}
 
                 {/* Desktop: Side panels */}

@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Folder, MoreHorizontal, Settings, LogOut, User, Globe, CreditCard, Trash2, Pencil, PanelLeftClose, PanelLeft, Search } from "lucide-react";
+import { Plus, Folder, MoreHorizontal, Settings, LogOut, User, Globe, CreditCard, Trash2, Pencil, PanelLeftClose, PanelLeft, Search, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { useRoadmapStore } from "@/store/useRoadmapStore";
@@ -144,10 +144,28 @@ export function Sidebar({ className }: { className?: string }) {
         }
 
         setCurrentProject(project.id, project.title);
+        
+        // Tutup sidebar HANYA di mobile (dan hanya jika sedang terbuka)
+        if (window.innerWidth < 768 && isSidebarOpen) {
+            toggleSidebar();
+        }
+    };
+
+    // Helper untuk navigasi dan tutup sidebar di mobile
+    const handleNavigate = (path: string) => {
+        navigate(path);
+        // Tutup sidebar HANYA di mobile (dan hanya jika sedang terbuka)
+        if (window.innerWidth < 768 && isSidebarOpen) {
+            toggleSidebar();
+        }
     };
 
     const handleLogout = () => {
         logout();
+        // Tutup sidebar HANYA di mobile (dan hanya jika sedang terbuka)
+        if (window.innerWidth < 768 && isSidebarOpen) {
+            toggleSidebar();
+        }
         navigate("/login");
         toast.success("Logged out successfully");
     };
@@ -224,14 +242,18 @@ export function Sidebar({ className }: { className?: string }) {
         <div className={cn(
             "border-r bg-background h-full flex flex-col",
             "transition-all duration-300 ease-in-out",
-            isSidebarOpen ? "w-64" : "w-14",
+            // Mobile: always full width, Desktop: depends on isSidebarOpen
+            "w-full md:w-auto",
+            isSidebarOpen ? "md:w-64" : "md:w-14",
             className
         )}>
-            {/* Collapsed View */}
+            {/* Collapsed View - Desktop only */}
             <div className={cn(
-                "flex flex-col items-center py-3 gap-2 h-full",
+                "flex-col items-center py-3 gap-2 h-full",
                 "transition-opacity duration-300",
-                isSidebarOpen ? "hidden" : "flex"
+                // Hide on mobile, show on desktop when collapsed
+                "hidden",
+                !isSidebarOpen && "md:flex"
             )}>
                 {/* Expand button */}
                 <Button
@@ -282,18 +304,18 @@ export function Sidebar({ className }: { className?: string }) {
                                 </Avatar>
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start" side="right" className="w-56">
+                        <DropdownMenuContent align="start" side="right" className="w-56 z-[70]">
                             <DropdownMenuLabel>My Account</DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => navigate("/profile")}>
+                            <DropdownMenuItem onClick={() => handleNavigate("/profile")}>
                                 <User className="mr-2 h-4 w-4" />
                                 Profile
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => navigate("/settings")}>
+                            <DropdownMenuItem onClick={() => handleNavigate("/settings")}>
                                 <Settings className="mr-2 h-4 w-4" />
                                 Settings
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => navigate("/billing")}>
+                            <DropdownMenuItem onClick={() => handleNavigate("/billing")}>
                                 <CreditCard className="mr-2 h-4 w-4" />
                                 Billing
                             </DropdownMenuItem>
@@ -314,11 +336,13 @@ export function Sidebar({ className }: { className?: string }) {
                 )}
             </div>
 
-            {/* Expanded View */}
+            {/* Expanded View - Always show on mobile, show on desktop when expanded */}
             <div className={cn(
                 "flex flex-col h-full pb-4",
                 "transition-opacity duration-300",
-                isSidebarOpen ? "flex opacity-100" : "hidden opacity-0"
+                // Always show on mobile, on desktop show only when sidebar is open
+                "flex opacity-100",
+                !isSidebarOpen && "md:hidden md:opacity-0"
             )}>
                 {/* Header with toggle */}
                 <div className="flex items-center justify-between px-4 py-3 border-b">
@@ -326,15 +350,28 @@ export function Sidebar({ className }: { className?: string }) {
                         <Logo size={28} />
                         <span className="font-semibold text-lg whitespace-nowrap">SkillBridge</span>
                     </div>
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={toggleSidebar}
-                        className="h-8 w-8"
-                        title="Collapse sidebar"
-                    >
-                        <PanelLeftClose className="h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                        {/* Mobile: Close button */}
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={toggleSidebar}
+                            className="h-8 w-8 md:hidden"
+                            title="Close sidebar"
+                        >
+                            <X className="h-4 w-4" />
+                        </Button>
+                        {/* Desktop: Collapse button */}
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={toggleSidebar}
+                            className="h-8 w-8 hidden md:flex"
+                            title="Collapse sidebar"
+                        >
+                            <PanelLeftClose className="h-4 w-4" />
+                        </Button>
+                    </div>
                 </div>
 
                 {/* Search */}
@@ -407,7 +444,7 @@ export function Sidebar({ className }: { className?: string }) {
                                                     <MoreHorizontal className="h-4 w-4" />
                                                 </Button>
                                             </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end" className="w-40">
+                                            <DropdownMenuContent align="end" className="w-40 z-[70]">
                                                 <DropdownMenuItem onClick={(e) => handleRenameClick(project, e)}>
                                                     <Pencil className="mr-2 h-4 w-4" />
                                                     Rename
@@ -452,18 +489,18 @@ export function Sidebar({ className }: { className?: string }) {
                                             <span className="sr-only">Open menu</span>
                                         </Button>
                                     </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" className="w-56">
+                                    <DropdownMenuContent align="end" className="w-56 z-[70]">
                                         <DropdownMenuLabel>My Account</DropdownMenuLabel>
                                         <DropdownMenuSeparator />
-                                        <DropdownMenuItem onClick={() => navigate("/profile")}>
+                                        <DropdownMenuItem onClick={() => handleNavigate("/profile")}>
                                             <User className="mr-2 h-4 w-4" />
                                             Profile
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => navigate("/settings")}>
+                                        <DropdownMenuItem onClick={() => handleNavigate("/settings")}>
                                             <Settings className="mr-2 h-4 w-4" />
                                             Settings
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => navigate("/billing")}>
+                                        <DropdownMenuItem onClick={() => handleNavigate("/billing")}>
                                             <CreditCard className="mr-2 h-4 w-4" />
                                             Billing
                                         </DropdownMenuItem>

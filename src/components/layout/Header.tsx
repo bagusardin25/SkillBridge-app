@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Save, MessageSquare, PanelRightClose, Sun, Moon, Download, Loader2 } from "lucide-react";
+import { Save, MessageSquare, PanelRightClose, Sun, Moon, Download, Loader2, Menu } from "lucide-react";
 import { toPng } from "html-to-image";
 import { getNodesBounds, useReactFlow } from "@xyflow/react";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,7 @@ export function Header() {
     const {
         isAiPanelOpen,
         toggleAiPanel,
+        toggleSidebar,
         isDarkMode,
         toggleTheme,
         currentProjectTitle,
@@ -226,12 +227,22 @@ export function Header() {
 
     return (
         <header className="h-14 border-b bg-background flex items-center justify-between px-4">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+                {/* Mobile: Hamburger menu for sidebar */}
+                <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="md:hidden h-9 w-9"
+                    onClick={toggleSidebar}
+                >
+                    <Menu className="h-5 w-5" />
+                </Button>
+
                 {/* Project Title / Breadcrumb */}
                 <div className="flex items-center gap-2 text-sm">
                     <span className="font-semibold text-muted-foreground hidden sm:inline-block">SkillBridge</span>
                     <span className="text-muted-foreground hidden sm:inline-block">/</span>
-                    <span className="font-bold text-foreground">{currentProjectTitle}</span>
+                    <span className="font-bold text-foreground truncate max-w-[120px] sm:max-w-none">{currentProjectTitle}</span>
                 </div>
 
                 {/* Progress Stats */}
@@ -262,12 +273,12 @@ export function Header() {
                 )}
             </div>
 
-            <div className="flex items-center gap-3">
-                {/* Dashboard Button */}
+            <div className="flex items-center gap-2 sm:gap-3">
+                {/* Dashboard Button - Hidden on mobile */}
                 <TooltipProvider delayDuration={300}>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Button variant="ghost" size="icon" onClick={() => setShowDashboard(true)}>
+                            <Button variant="ghost" size="icon" onClick={() => setShowDashboard(true)} className="hidden sm:flex">
                                 <BarChart3 className="h-5 w-5" />
                             </Button>
                         </TooltipTrigger>
@@ -275,11 +286,11 @@ export function Header() {
                     </Tooltip>
                 </TooltipProvider>
 
-                {/* Theme Toggle */}
+                {/* Theme Toggle - Hidden on mobile */}
                 <TooltipProvider delayDuration={300}>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
+                            <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme" className="hidden sm:flex">
                                 {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                             </Button>
                         </TooltipTrigger>
@@ -287,7 +298,7 @@ export function Header() {
                     </Tooltip>
                 </TooltipProvider>
 
-                <Separator orientation="vertical" className="h-6 mx-1" />
+                <Separator orientation="vertical" className="hidden sm:block h-6 mx-1" />
 
                 {/* Export Button */}
                 <TooltipProvider delayDuration={300}>
@@ -331,15 +342,38 @@ export function Header() {
                     </Tooltip>
                 </TooltipProvider>
 
-                 {/* Save Button */}
+                 {/* Save Button - Icon only on mobile */}
                  <TooltipProvider delayDuration={300}>
                     <Tooltip>
                         <TooltipTrigger asChild>
+                            {/* Mobile: Icon only */}
+                            <Button 
+                                variant="outline" 
+                                size="icon" 
+                                onClick={handleSave}
+                                disabled={isSaving || nodes.length === 0}
+                                className="sm:hidden h-9 w-9"
+                             >
+                                {isSaving ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                    <Save className="h-4 w-4" />
+                                )}
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Save Project (Ctrl+S)</TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+                <TooltipProvider delayDuration={300}>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            {/* Desktop: With text */}
                              <Button 
                                 variant="outline" 
                                 size="sm" 
                                 onClick={handleSave}
                                 disabled={isSaving || nodes.length === 0}
+                                className="hidden sm:flex"
                              >
                                 {isSaving ? (
                                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -353,12 +387,26 @@ export function Header() {
                     </Tooltip>
                 </TooltipProvider>
 
-                {/* AI Panel Toggle */}
+                {/* AI Panel Toggle - Icon only on mobile */}
+                {/* Mobile: Icon only */}
                 <Button
-                    variant={isAiPanelOpen ? "secondary" : "default"} // Changed "outline" to "default" to highlight
+                    variant={isAiPanelOpen ? "secondary" : "default"}
+                    size="icon"
+                    onClick={toggleAiPanel}
+                    className={`sm:hidden h-9 w-9 ${!isAiPanelOpen ? "shadow-sm" : ""}`}
+                >
+                    {isAiPanelOpen ? (
+                        <PanelRightClose className="h-4 w-4" />
+                    ) : (
+                        <MessageSquare className="h-4 w-4" />
+                    )}
+                </Button>
+                {/* Desktop: With text */}
+                <Button
+                    variant={isAiPanelOpen ? "secondary" : "default"}
                     size="sm"
                     onClick={toggleAiPanel}
-                    className={!isAiPanelOpen ? "shadow-sm" : ""}
+                    className={`hidden sm:flex ${!isAiPanelOpen ? "shadow-sm" : ""}`}
                 >
                     {isAiPanelOpen ? (
                         <PanelRightClose className="h-4 w-4 mr-2" />

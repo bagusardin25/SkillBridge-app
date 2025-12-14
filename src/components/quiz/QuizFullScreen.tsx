@@ -478,8 +478,8 @@ export function QuizFullScreen({
   const currentQuestion = questions[currentIndex];
   const currentAnswer = answers[currentIndex];
   const isLastQuestion = currentIndex === questions.length - 1;
-  const progress = ((currentIndex + 1) / questions.length) * 100;
   const answeredCount = answers.filter(a => a !== null).length;
+  const progress = (answeredCount / questions.length) * 100;
   const allAnswered = answeredCount === questions.length;
 
   return (

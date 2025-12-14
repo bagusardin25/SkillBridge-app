@@ -106,7 +106,7 @@ export function NodeDetailPanel() {
 
     if (!selectedNode || !data) {
         return (
-            <div className="flex flex-col h-full border-l bg-background w-80">
+            <div className="flex flex-col h-full border-l bg-background w-full md:w-80">
                 <div className="p-4 border-b flex items-center justify-between">
                     <h2 className="text-sm font-semibold">Node Details</h2>
                     <Button variant="ghost" size="icon" className="h-7 w-7" onClick={closeDetailPanel}>
@@ -126,7 +126,7 @@ export function NodeDetailPanel() {
     const isCompleted = data.quizPassed || data.isCompleted;
 
     return (
-        <div className="flex flex-col h-full border-l bg-background w-96 shadow-xl">
+        <div className="flex flex-col h-full border-l bg-background w-full md:w-96 shadow-xl">
             <Tabs defaultValue="resources" className="flex-1 flex flex-col overflow-hidden">
                 {/* Header with Tabs and Status Badge */}
                 <div className="p-3 border-b bg-muted/10">
@@ -334,14 +334,94 @@ export function NodeDetailPanel() {
                                 </div>
                             )}
                             
-                            {/* Info for optional/project nodes */}
-                            {(data.category === "optional" || data.category === "project") && (
+                            {/* Info for optional nodes */}
+                            {data.category === "optional" && (
                                 <div className="pt-4 border-t">
-                                    <div className="p-4 bg-muted/50 rounded-lg">
-                                        <p className="text-sm text-muted-foreground">
-                                            This is {data.category === "optional" ? "an optional" : "a project"} topic. No quiz required - explore at your own pace!
-                                        </p>
-                                    </div>
+                                    {isCompleted ? (
+                                        <div className="flex items-center gap-3 p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                                            <div className="h-10 w-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center flex-shrink-0">
+                                                <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                                            </div>
+                                            <div>
+                                                <p className="font-medium text-emerald-700 dark:text-emerald-400">Completed!</p>
+                                                <p className="text-sm text-emerald-600 dark:text-emerald-500">You've explored this optional topic.</p>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            <div className="p-4 bg-muted/50 rounded-lg">
+                                                <p className="text-sm text-muted-foreground">
+                                                    This is an optional topic. No quiz required - explore at your own pace!
+                                                </p>
+                                            </div>
+                                            <Button 
+                                                onClick={() => {
+                                                    if (selectedNode) {
+                                                        updateNodeData(selectedNode.id, {
+                                                            isCompleted: true,
+                                                            status: "done"
+                                                        });
+                                                    }
+                                                }}
+                                                variant="outline"
+                                                className="w-full"
+                                            >
+                                                <CheckCircle2 className="h-4 w-4 mr-2" />
+                                                Mark as Complete
+                                            </Button>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                            
+                            {/* Project section with completion functionality */}
+                            {data.category === "project" && (
+                                <div className="pt-4 border-t space-y-4">
+                                    {isCompleted ? (
+                                        <div className="flex items-center gap-3 p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                                            <div className="h-10 w-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center flex-shrink-0">
+                                                <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                                            </div>
+                                            <div>
+                                                <p className="font-medium text-emerald-700 dark:text-emerald-400">Project Completed!</p>
+                                                <p className="text-sm text-emerald-600 dark:text-emerald-500">Great job finishing this project.</p>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                                                <h4 className="font-medium text-emerald-700 dark:text-emerald-400 mb-2">
+                                                    🚀 Cara Menyelesaikan Project Ini:
+                                                </h4>
+                                                <ol className="text-sm text-emerald-600 dark:text-emerald-500 space-y-2 list-decimal list-inside">
+                                                    <li>Pelajari semua resources yang tersedia di atas</li>
+                                                    <li>Buat project sesuai dengan topik "{data.label}"</li>
+                                                    <li>Implementasikan konsep yang sudah dipelajari</li>
+                                                    <li>Setelah selesai, klik tombol di bawah untuk menandai selesai</li>
+                                                </ol>
+                                            </div>
+                                            <div className="p-3 bg-muted/50 rounded-lg">
+                                                <p className="text-xs text-muted-foreground">
+                                                    💡 Tips: Gunakan AI Tutor jika butuh bantuan dalam mengerjakan project ini!
+                                                </p>
+                                            </div>
+                                            <Button 
+                                                onClick={() => {
+                                                    if (selectedNode) {
+                                                        updateNodeData(selectedNode.id, {
+                                                            isCompleted: true,
+                                                            status: "done"
+                                                        });
+                                                    }
+                                                }}
+                                                className="w-full h-12 bg-emerald-600 hover:bg-emerald-700"
+                                                size="lg"
+                                            >
+                                                <CheckCircle2 className="h-5 w-5 mr-2" />
+                                                Saya Sudah Menyelesaikan Project Ini
+                                            </Button>
+                                        </>
+                                    )}
                                 </div>
                             )}
                         </div>

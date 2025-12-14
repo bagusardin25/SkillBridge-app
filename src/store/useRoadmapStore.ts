@@ -61,9 +61,9 @@ export const useRoadmapStore = create<RoadmapStore>()(
             selectedNodeIds: [],
             interactionMode: "select" as InteractionMode,
             isEditMode: true,
-            isAiPanelOpen: true,
+            isAiPanelOpen: typeof window !== 'undefined' && window.innerWidth >= 768,
             isDetailPanelOpen: false,
-            isSidebarOpen: true,
+            isSidebarOpen: typeof window !== 'undefined' && window.innerWidth >= 768,
             contextualChatTopic: null,
             isDarkMode: typeof window !== 'undefined' 
                 ? localStorage.getItem('theme') !== 'light' 
