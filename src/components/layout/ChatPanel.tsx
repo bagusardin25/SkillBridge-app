@@ -692,7 +692,6 @@ export function ChatPanel() {
                                         onClick={() => handleSuggestionClick(suggestion.text)}
                                         className="flex items-center gap-2.5 text-xs text-left p-3 rounded-lg border bg-card hover:bg-primary/5 hover:border-primary/30 hover:shadow-sm transition-all duration-200 active:scale-[0.98]"
                                     >
-                                        <span className="text-base">{suggestion.icon}</span>
                                         <span>{suggestion.text}</span>
                                     </button>
                                 ))}
