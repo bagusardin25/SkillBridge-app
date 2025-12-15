@@ -445,80 +445,68 @@ export async function generateRoadmap(
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
-      // Add validation feedback for retry attempts
+      console.log(`Generating roadmap with Gemini (attempt ${attempt + 1})...`);
+
       let retryContext = "";
       if (attempt > 0 && lastValidationErrors.length > 0) {
         retryContext = `\n\nPREVIOUS ATTEMPT HAD ERRORS - Please fix:\n${lastValidationErrors.join("\n")}`;
       }
 
-      const response = await openai.chat.completions.create({
-        model: MODEL,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt + retryContext },
-        ],
-        response_format: { type: "json_object" },
-        temperature: 0.4, // Lower temperature for more consistent, accurate output
-      });
-
-      const text = response.choices[0]?.message?.content || "";
-
-      // Clean up response - remove markdown code blocks if present
-      const cleanedText = text
-        .replace(/```json\n?/g, "")
-        .replace(/```\n?/g, "")
-        .trim();
-
-      const roadmapData = JSON.parse(cleanedText) as RoadmapResponse;
-
-      // Validate the response
-      const validation = validateRoadmap(roadmapData);
+      const geminiResult = await generateRoadmapWithGemini(systemPrompt, userPrompt + retryContext);
+      const validation = validateRoadmap(geminiResult);
 
       if (validation.isValid) {
-        console.log(`Roadmap generated successfully on attempt ${attempt + 1}`);
-        return roadmapData;
+        console.log("Roadmap generated successfully with Gemini");
+        return geminiResult;
       }
 
       // Store validation errors for retry
       lastValidationErrors = validation.errors;
-      console.warn(`Attempt ${attempt + 1} validation failed:`, validation.errors);
+      console.warn(`Gemini attempt ${attempt + 1} validation failed:`, validation.errors);
 
       // If this is the last attempt, return anyway but log warning
       if (attempt === maxRetries - 1) {
         console.warn("Max retries reached, returning roadmap with validation warnings");
-        return roadmapData;
+        return geminiResult;
       }
-    } catch (error: any) {
-      lastError = error;
-      console.error(`Attempt ${attempt + 1} error:`, error.message);
+    } catch (geminiError: any) {
+      lastError = geminiError;
+      console.error(`Gemini attempt ${attempt + 1} error:`, geminiError.message);
 
-      // Don't retry for certain errors
-      if (error.status === 401) {
-        throw new Error("API key is invalid. Please check your OpenAI API key.");
-      }
-      
-      // Rate limit - try Gemini fallback
-      if (isRateLimitError(error)) {
-        console.log("OpenAI rate limited, trying Gemini fallback...");
-        
-        // Wait a bit before trying Gemini
-        await sleep(1000);
-        
+      // If Gemini fails, try OpenAI as fallback (only on last attempt)
+      if (attempt === maxRetries - 1) {
+        console.log("Gemini failed, trying OpenAI as fallback...");
+
         try {
-          const geminiResult = await generateRoadmapWithGemini(systemPrompt, userPrompt);
-          const validation = validateRoadmap(geminiResult);
-          
+          const response = await openai.chat.completions.create({
+            model: MODEL,
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: userPrompt },
+            ],
+            response_format: { type: "json_object" },
+            temperature: 0.4,
+          });
+
+          const text = response.choices[0]?.message?.content || "";
+          const cleanedText = text
+            .replace(/```json\n?/g, "")
+            .replace(/```\n?/g, "")
+            .trim();
+
+          const roadmapData = JSON.parse(cleanedText) as RoadmapResponse;
+          const validation = validateRoadmap(roadmapData);
+
           if (validation.isValid) {
-            console.log("Roadmap generated successfully with Gemini fallback");
-            return geminiResult;
+            console.log("Roadmap generated successfully with OpenAI fallback");
+            return roadmapData;
           }
-          
-          // Return anyway if validation has minor issues
-          console.warn("Gemini result has validation warnings:", validation.errors);
-          return geminiResult;
-        } catch (geminiError: any) {
-          console.error("Gemini fallback also failed:", geminiError.message);
-          throw new Error("Both OpenAI and Gemini are unavailable. Please try again later.");
+
+          console.warn("OpenAI result has validation warnings:", validation.errors);
+          return roadmapData;
+        } catch (openaiError: any) {
+          console.error("OpenAI fallback also failed:", openaiError.message);
+          throw new Error("Both Gemini and OpenAI are unavailable. Please try again later.");
         }
       }
     }
@@ -543,52 +531,49 @@ export async function chatWithAI(
     throw new Error("Mock mode is enabled. Please set USE_MOCK=false in server/.env");
   }
 
+  // Try Gemini first (it's free and reliable)
   try {
-    const messages: { role: "system" | "user" | "assistant"; content: string }[] = [
-      { role: "system", content: CHAT_PROMPT },
-    ];
+    console.log("Using Gemini for chat...");
+    return await chatWithGemini(message, context);
+  } catch (geminiError: any) {
+    console.error("Gemini chat error:", geminiError.message);
+    console.log("Trying OpenAI as fallback...");
 
-    // Add conversation history
-    if (context) {
-      for (const msg of context) {
-        messages.push({
-          role: msg.role === "user" ? "user" : "assistant",
-          content: msg.content,
-        });
+    // Fallback to OpenAI
+    try {
+      const messages: { role: "system" | "user" | "assistant"; content: string }[] = [
+        { role: "system", content: CHAT_PROMPT },
+      ];
+
+      // Add conversation history
+      if (context) {
+        for (const msg of context) {
+          messages.push({
+            role: msg.role === "user" ? "user" : "assistant",
+            content: msg.content,
+          });
+        }
       }
-    }
 
-    // Add current user message
-    messages.push({ role: "user", content: message });
+      // Add current user message
+      messages.push({ role: "user", content: message });
 
-    const response = await openai.chat.completions.create({
-      model: MODEL,
-      messages,
-      temperature: 0.7, // Balanced creativity for teaching explanations
-    });
+      const response = await openai.chat.completions.create({
+        model: MODEL,
+        messages,
+        temperature: 0.7, // Balanced creativity for teaching explanations
+      });
 
-    return response.choices[0]?.message?.content || "";
-  } catch (error: any) {
-    console.error("AI Error:", error.message);
+      return response.choices[0]?.message?.content || "";
+    } catch (openaiError: any) {
+      console.error("OpenAI chat error:", openaiError.message);
 
-    // Rate limit - try Gemini fallback
-    if (isRateLimitError(error)) {
-      console.log("OpenAI rate limited for chat, trying Gemini fallback...");
-      
-      try {
-        await sleep(500);
-        return await chatWithGemini(message, context);
-      } catch (geminiError: any) {
-        console.error("Gemini chat fallback also failed:", geminiError.message);
-        throw new Error("Both OpenAI and Gemini are unavailable. Please try again later.");
+      if (openaiError.status === 404) {
+        throw new Error("Model not found. Please check the model configuration.");
       }
-    }
 
-    if (error.status === 404) {
-      throw new Error("Model not found. Please check the model configuration.");
+      throw new Error("Both Gemini and OpenAI are unavailable. Please try again later.");
     }
-
-    throw new Error(`AI chat failed: ${error.message}`);
   }
 }
 
