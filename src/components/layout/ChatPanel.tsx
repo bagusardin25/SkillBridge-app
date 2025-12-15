@@ -38,9 +38,9 @@ type Message = {
 };
 
 const SUGGESTIONS = [
-    { icon: "🚀", text: "Buatkan roadmap React Developer" },
-    { icon: "📚", text: "Jelaskan konsep System Design" },
-    { icon: "🎯", text: "Bagaimana cara belajar Go?" },
+    { text: "Buatkan roadmap React Developer" },
+    { text: "Jelaskan konsep System Design" },
+    { text: "Bagaimana cara belajar Go?" },
 ];
 
 const TYPING_SPEED = 15; // ms per character
@@ -684,7 +684,6 @@ export function ChatPanel() {
 
                             <div className="flex flex-col gap-2 w-full px-2 mt-4">
                                 <div className="flex items-center gap-1.5 px-1 mb-1">
-                                    <span className="text-sm">💡</span>
                                     <span className="text-[11px] font-medium text-muted-foreground">Mulai dengan pertanyaan:</span>
                                 </div>
                                 {SUGGESTIONS.map((suggestion, index) => (
