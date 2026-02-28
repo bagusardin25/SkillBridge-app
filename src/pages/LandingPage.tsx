@@ -209,6 +209,10 @@ function FeaturesSection() {
         <section id="features" className="relative py-24 sm:py-32">
             <div className="landing-grain" />
 
+            {/* Ambient glows for richer background */}
+            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-600/[0.07] rounded-full blur-[130px] pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-violet-600/[0.08] rounded-full blur-[120px] pointer-events-none" />
+
             <div className="relative z-10 max-w-7xl mx-auto px-6">
                 {/* Section header */}
                 <div className="text-center mb-16">
@@ -358,8 +362,8 @@ function AppPreviewSection() {
                             onMouseEnter={() => { isPausedRef.current = true; }}
                             onMouseLeave={() => { isPausedRef.current = false; }}
                             className={`relative px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 overflow-hidden ${activeTab === i
-                                    ? "bg-white/10 text-white border border-violet-500/40 shadow-lg shadow-violet-500/10"
-                                    : "text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
+                                ? "bg-white/10 text-white border border-violet-500/40 shadow-lg shadow-violet-500/10"
+                                : "text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
                                 }`}
                         >
                             {/* Progress bar inside active tab */}

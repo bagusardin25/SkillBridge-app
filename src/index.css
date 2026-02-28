@@ -194,16 +194,38 @@ html {
 
 /* Main landing wrapper */
 .landing-page {
-  background: linear-gradient(180deg,
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(59, 32, 120, 0.35) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 20%, rgba(30, 58, 138, 0.25) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 50% at 20% 60%, rgba(88, 28, 135, 0.18) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 40% at 70% 80%, rgba(30, 27, 75, 0.3) 0%, transparent 55%),
+    linear-gradient(180deg,
       #020617 0%,
-      #0f0a2a 25%,
-      #0c1025 50%,
-      #080d1e 75%,
+      #070b1e 10%,
+      #0c0f2d 25%,
+      #0e1130 40%,
+      #0a0e28 60%,
+      #070a1f 80%,
       #020617 100%);
   color: #fff;
   min-height: 100vh;
   overflow-x: hidden;
   position: relative;
+}
+
+/* Subtle grid pattern overlay */
+.landing-page::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, black 20%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, black 20%, transparent 70%);
 }
 
 /* Grain / noise texture overlay */
@@ -212,7 +234,7 @@ html {
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  opacity: 0.035;
+  opacity: 0.045;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
   background-repeat: repeat;
   background-size: 128px 128px;
@@ -220,15 +242,16 @@ html {
 
 /* Glassmorphism nav when scrolled */
 .landing-nav-scrolled {
-  background: rgba(2, 6, 23, 0.8);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(2, 6, 23, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
 }
 
 /* Gradient text effect */
 .landing-gradient-text {
-  background: linear-gradient(135deg, #8b5cf6, #a78bfa, #c084fc);
+  background: linear-gradient(135deg, #8b5cf6, #a78bfa, #c084fc, #e879f9);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -239,35 +262,34 @@ html {
   position: absolute;
   border-radius: 50%;
   pointer-events: none;
-  filter: blur(100px);
-  opacity: 0.4;
+  filter: blur(120px);
 }
 
 .landing-glow-blob-1 {
-  width: 500px;
-  height: 500px;
-  top: -100px;
-  left: -150px;
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.3), transparent 70%);
-  animation: landing-float-1 12s ease-in-out infinite;
+  width: 900px;
+  height: 700px;
+  top: -200px;
+  left: -200px;
+  background: radial-gradient(circle, rgba(124, 58, 237, 0.35) 0%, rgba(59, 32, 120, 0.1) 50%, transparent 70%);
+  animation: landing-float-1 14s ease-in-out infinite;
 }
 
 .landing-glow-blob-2 {
-  width: 400px;
-  height: 400px;
-  top: 20%;
-  right: -100px;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.25), transparent 70%);
-  animation: landing-float-2 15s ease-in-out infinite;
+  width: 800px;
+  height: 600px;
+  top: 10%;
+  right: -250px;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.3) 0%, rgba(30, 58, 138, 0.08) 50%, transparent 70%);
+  animation: landing-float-2 18s ease-in-out infinite;
 }
 
 .landing-glow-blob-3 {
-  width: 350px;
-  height: 350px;
-  bottom: 10%;
-  left: 30%;
-  background: radial-gradient(circle, rgba(168, 85, 247, 0.2), transparent 70%);
-  animation: landing-float-3 10s ease-in-out infinite;
+  width: 600px;
+  height: 600px;
+  bottom: 5%;
+  left: 20%;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.22) 0%, rgba(88, 28, 135, 0.05) 50%, transparent 70%);
+  animation: landing-float-3 12s ease-in-out infinite;
 }
 
 @keyframes landing-float-1 {
@@ -277,8 +299,12 @@ html {
     transform: translate(0, 0) scale(1);
   }
 
-  50% {
-    transform: translate(40px, 30px) scale(1.1);
+  33% {
+    transform: translate(50px, 30px) scale(1.08);
+  }
+
+  66% {
+    transform: translate(-20px, 50px) scale(1.03);
   }
 }
 
@@ -289,8 +315,12 @@ html {
     transform: translate(0, 0) scale(1);
   }
 
-  50% {
-    transform: translate(-30px, 40px) scale(1.05);
+  33% {
+    transform: translate(-40px, 50px) scale(1.06);
+  }
+
+  66% {
+    transform: translate(30px, -20px) scale(0.97);
   }
 }
 
@@ -301,8 +331,12 @@ html {
     transform: translate(0, 0) scale(1);
   }
 
-  50% {
-    transform: translate(20px, -30px) scale(1.15);
+  33% {
+    transform: translate(30px, -40px) scale(1.12);
+  }
+
+  66% {
+    transform: translate(-20px, 20px) scale(1.05);
   }
 }
 
@@ -310,13 +344,16 @@ html {
 .landing-feature-card {
   padding: 1.75rem;
   border-radius: 1rem;
-  background: linear-gradient(135deg,
-      rgba(255, 255, 255, 0.04) 0%,
-      rgba(255, 255, 255, 0.01) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  transition: all 0.3s ease;
+  background: linear-gradient(160deg,
+      rgba(255, 255, 255, 0.06) 0%,
+      rgba(139, 92, 246, 0.03) 40%,
+      rgba(255, 255, 255, 0.02) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 .landing-feature-card::before {
@@ -325,19 +362,39 @@ html {
   inset: 0;
   border-radius: 1rem;
   background: linear-gradient(135deg,
-      rgba(139, 92, 246, 0.08) 0%,
-      transparent 60%);
+      rgba(139, 92, 246, 0.12) 0%,
+      rgba(59, 130, 246, 0.06) 40%,
+      transparent 70%);
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.4s ease;
+}
+
+/* Subtle top edge highlight on cards */
+.landing-feature-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.3), transparent);
+  opacity: 0;
+  transition: opacity 0.4s ease;
 }
 
 .landing-feature-card:hover {
-  border-color: rgba(139, 92, 246, 0.2);
-  transform: translateY(-4px);
-  box-shadow: 0 12px 40px -12px rgba(139, 92, 246, 0.15);
+  border-color: rgba(139, 92, 246, 0.25);
+  transform: translateY(-6px);
+  box-shadow:
+    0 16px 50px -12px rgba(139, 92, 246, 0.2),
+    0 0 20px -5px rgba(139, 92, 246, 0.08);
 }
 
 .landing-feature-card:hover::before {
+  opacity: 1;
+}
+
+.landing-feature-card:hover::after {
   opacity: 1;
 }
 
