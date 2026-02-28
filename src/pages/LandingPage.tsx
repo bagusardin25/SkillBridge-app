@@ -44,6 +44,11 @@ function useCursorSpotlight() {
     const spotlightRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
+        // Only enable spotlight on devices that support hover (desktops/laptops)
+        // to save CPU/Battery on mobile decives.
+        const isHoverSupported = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+        if (!isHoverSupported) return;
+
         const el = spotlightRef.current;
         if (!el) return;
 

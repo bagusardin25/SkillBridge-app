@@ -582,3 +582,38 @@ html {
 .scroll-delay-6 {
   transition-delay: 0.6s;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   Mobile Performance Optimizations (Degradation)
+   ═══════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+
+  /* 1. Reduce expensive blur and disable GPU will-change cache */
+  .landing-glow-blob {
+    filter: blur(40px);
+    will-change: auto;
+  }
+
+  /* 2. Disable heavy layout morphing animations on mobile */
+  .landing-glow-blob-1,
+  .landing-glow-blob-2,
+  .landing-glow-blob-3 {
+    animation: none;
+  }
+
+  /* 3. Hide cursor spotlight element entirely */
+  .landing-cursor-spotlight {
+    display: none !important;
+  }
+
+  /* 4. Downgrade glass processing on cards to a lighter blur */
+  .landing-feature-card {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  /* 5. Lighten the noise texture slightly */
+  .landing-grain {
+    opacity: 0.02;
+  }
+}
