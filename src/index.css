@@ -61,8 +61,14 @@
 
   /* Smooth dark mode transition for major elements */
   .dark body,
-  header, nav, aside, main, footer,
-  [class*="bg-background"], [class*="bg-card"], [class*="bg-muted"] {
+  header,
+  nav,
+  aside,
+  main,
+  footer,
+  [class*="bg-background"],
+  [class*="bg-card"],
+  [class*="bg-muted"] {
     transition: background-color 0.3s ease, border-color 0.3s ease, color 0.2s ease;
   }
 }
@@ -188,14 +194,12 @@ html {
 
 /* Main landing wrapper */
 .landing-page {
-  background: linear-gradient(
-    180deg,
-    #020617 0%,
-    #0f0a2a 25%,
-    #0c1025 50%,
-    #080d1e 75%,
-    #020617 100%
-  );
+  background: linear-gradient(180deg,
+      #020617 0%,
+      #0f0a2a 25%,
+      #0c1025 50%,
+      #080d1e 75%,
+      #020617 100%);
   color: #fff;
   min-height: 100vh;
   overflow-x: hidden;
@@ -267,29 +271,48 @@ html {
 }
 
 @keyframes landing-float-1 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(40px, 30px) scale(1.1); }
+
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate(40px, 30px) scale(1.1);
+  }
 }
 
 @keyframes landing-float-2 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(-30px, 40px) scale(1.05); }
+
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate(-30px, 40px) scale(1.05);
+  }
 }
 
 @keyframes landing-float-3 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(20px, -30px) scale(1.15); }
+
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate(20px, -30px) scale(1.15);
+  }
 }
 
 /* Feature cards */
 .landing-feature-card {
   padding: 1.75rem;
   border-radius: 1rem;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.04) 0%,
-    rgba(255, 255, 255, 0.01) 100%
-  );
+  background: linear-gradient(135deg,
+      rgba(255, 255, 255, 0.04) 0%,
+      rgba(255, 255, 255, 0.01) 100%);
   border: 1px solid rgba(255, 255, 255, 0.06);
   transition: all 0.3s ease;
   position: relative;
@@ -301,11 +324,9 @@ html {
   position: absolute;
   inset: 0;
   border-radius: 1rem;
-  background: linear-gradient(
-    135deg,
-    rgba(139, 92, 246, 0.08) 0%,
-    transparent 60%
-  );
+  background: linear-gradient(135deg,
+      rgba(139, 92, 246, 0.08) 0%,
+      transparent 60%);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -318,4 +339,41 @@ html {
 
 .landing-feature-card:hover::before {
   opacity: 1;
+}
+
+/* Browser mockup frame */
+.landing-browser-frame {
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 0 0 1px rgba(139, 92, 246, 0.05),
+    0 20px 60px -15px rgba(0, 0, 0, 0.5),
+    0 0 40px -10px rgba(139, 92, 246, 0.1);
+  transition: box-shadow 0.3s ease;
+}
+
+.landing-browser-frame:hover {
+  box-shadow:
+    0 0 0 1px rgba(139, 92, 246, 0.15),
+    0 25px 70px -15px rgba(0, 0, 0, 0.6),
+    0 0 60px -10px rgba(139, 92, 246, 0.15);
+}
+
+/* Fade-in animation for tab text transitions */
+@keyframes landing-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.landing-fade-in {
+  animation: landing-fade-in 0.4s ease-out;
 }

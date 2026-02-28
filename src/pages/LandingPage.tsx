@@ -13,7 +13,7 @@ import {
     Target,
     BookOpen,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 // ─── Navbar ────────────────────────────────────────────────
 function Navbar() {
@@ -28,8 +28,8 @@ function Navbar() {
     return (
         <nav
             className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
-                    ? "landing-nav-scrolled"
-                    : "bg-transparent"
+                ? "landing-nav-scrolled"
+                : "bg-transparent"
                 }`}
         >
             <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -41,6 +41,9 @@ function Navbar() {
                 <div className="hidden md:flex items-center gap-8 text-sm text-gray-300">
                     <a href="#features" className="hover:text-white transition-colors">
                         Features
+                    </a>
+                    <a href="#preview" className="hover:text-white transition-colors">
+                        Preview
                     </a>
                     <a href="#how-it-works" className="hover:text-white transition-colors">
                         How It Works
@@ -244,6 +247,184 @@ function FeaturesSection() {
                             </div>
                         );
                     })}
+                </div>
+            </div>
+        </section>
+    );
+}
+
+// ─── App Preview Section ───────────────────────────────────
+const previewTabs = [
+    {
+        id: "roadmap",
+        label: "AI Roadmap",
+        image: "/screenshots/app-roadmap.png",
+        title: "Interactive Visual Roadmaps",
+        description:
+            "AI generates a structured learning path as a beautiful flowchart. Each node represents a topic, connected in the optimal learning order.",
+    },
+    {
+        id: "details",
+        label: "Resources",
+        image: "/screenshots/app-node-details.png",
+        title: "Rich Learning Resources",
+        description:
+            "Click any node to see curated resources — videos, articles, and documentation. Track your progress with quiz milestones.",
+    },
+    {
+        id: "ai-tutor",
+        label: "AI Tutor",
+        image: "/screenshots/app-ai-tutor.png",
+        title: "Personal AI Tutor",
+        description:
+            "Stuck on a concept? Chat with the AI tutor for contextual explanations. It understands exactly which topic you're studying.",
+    },
+    {
+        id: "quiz",
+        label: "Quiz",
+        image: "/screenshots/app-quiz.png",
+        title: "AI-Generated Quizzes",
+        description:
+            "Test your understanding with auto-generated quizzes. Timed, multiple choice, and fully adaptive to each topic node.",
+    },
+];
+
+function AppPreviewSection() {
+    const [activeTab, setActiveTab] = useState(0);
+    const [progress, setProgress] = useState(0);
+    const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const isPausedRef = useRef(false);
+
+    const AUTO_CYCLE_MS = 6000;
+    const TICK_MS = 50;
+
+    const startCycle = useCallback(() => {
+        if (intervalRef.current) clearInterval(intervalRef.current);
+        setProgress(0);
+        intervalRef.current = setInterval(() => {
+            if (isPausedRef.current) return;
+            setProgress((prev) => {
+                if (prev >= 100) {
+                    setActiveTab((t) => (t + 1) % previewTabs.length);
+                    return 0;
+                }
+                return prev + (TICK_MS / AUTO_CYCLE_MS) * 100;
+            });
+        }, TICK_MS);
+    }, []);
+
+    useEffect(() => {
+        startCycle();
+        return () => {
+            if (intervalRef.current) clearInterval(intervalRef.current);
+        };
+    }, [startCycle]);
+
+    const handleTabClick = (index: number) => {
+        setActiveTab(index);
+        setProgress(0);
+        startCycle();
+    };
+
+    const tab = previewTabs[activeTab];
+
+    return (
+        <section id="preview" className="relative py-24 sm:py-32">
+            <div className="landing-grain" />
+
+            {/* Background glow */}
+            <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-violet-600/8 rounded-full blur-[120px] pointer-events-none" />
+
+            <div className="relative z-10 max-w-6xl mx-auto px-6">
+                {/* Section header */}
+                <div className="text-center mb-12">
+                    <p className="text-sm font-semibold tracking-[0.2em] uppercase text-violet-400 mb-4">
+                        See It In Action
+                    </p>
+                    <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white">
+                        A glimpse into SkillBridge
+                    </h2>
+                    <p className="mt-4 text-gray-400 text-lg max-w-2xl mx-auto">
+                        Real screenshots from the app — explore the core experience.
+                    </p>
+                </div>
+
+                {/* Tabs */}
+                <div className="flex flex-wrap justify-center gap-2 mb-8">
+                    {previewTabs.map((t, i) => (
+                        <button
+                            key={t.id}
+                            onClick={() => handleTabClick(i)}
+                            onMouseEnter={() => { isPausedRef.current = true; }}
+                            onMouseLeave={() => { isPausedRef.current = false; }}
+                            className={`relative px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 overflow-hidden ${activeTab === i
+                                    ? "bg-white/10 text-white border border-violet-500/40 shadow-lg shadow-violet-500/10"
+                                    : "text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
+                                }`}
+                        >
+                            {/* Progress bar inside active tab */}
+                            {activeTab === i && (
+                                <span
+                                    className="absolute bottom-0 left-0 h-[2px] bg-gradient-to-r from-violet-500 to-purple-500 transition-none"
+                                    style={{ width: `${progress}%` }}
+                                />
+                            )}
+                            {t.label}
+                        </button>
+                    ))}
+                </div>
+
+                {/* Browser mockup + Screenshot */}
+                <div
+                    className="landing-browser-frame"
+                    onMouseEnter={() => { isPausedRef.current = true; }}
+                    onMouseLeave={() => { isPausedRef.current = false; }}
+                >
+                    {/* Browser top bar */}
+                    <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5 bg-white/[0.02]">
+                        <div className="flex gap-1.5">
+                            <div className="w-3 h-3 rounded-full bg-red-500/70" />
+                            <div className="w-3 h-3 rounded-full bg-yellow-500/70" />
+                            <div className="w-3 h-3 rounded-full bg-green-500/70" />
+                        </div>
+                        <div className="flex-1 flex justify-center">
+                            <div className="px-4 py-1 rounded-md bg-white/5 text-xs text-gray-500 font-mono">
+                                skillbridge.app
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Screenshot with smooth crossfade */}
+                    <div className="relative aspect-[16/9] overflow-hidden bg-black/40">
+                        {previewTabs.map((t, i) => (
+                            <img
+                                key={t.id}
+                                src={t.image}
+                                alt={t.title}
+                                className={`absolute inset-0 w-full h-full object-cover object-top transition-opacity duration-500 ${activeTab === i ? "opacity-100" : "opacity-0"
+                                    }`}
+                            />
+                        ))}
+
+                        {/* Subtle bottom gradient overlay */}
+                        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#020617] to-transparent pointer-events-none" />
+                    </div>
+                </div>
+
+                {/* Active tab description */}
+                <div className="mt-8 text-center max-w-2xl mx-auto">
+                    <h3
+                        key={tab.id + "-title"}
+                        className="text-xl sm:text-2xl font-semibold text-white mb-3 landing-fade-in"
+                    >
+                        {tab.title}
+                    </h3>
+                    <p
+                        key={tab.id + "-desc"}
+                        className="text-gray-400 leading-relaxed landing-fade-in"
+                    >
+                        {tab.description}
+                    </p>
                 </div>
             </div>
         </section>
@@ -487,6 +668,7 @@ export function LandingPage() {
             <Navbar />
             <HeroSection />
             <FeaturesSection />
+            <AppPreviewSection />
             <HowItWorksSection />
             <TestimonialSection />
             <FAQSection />
