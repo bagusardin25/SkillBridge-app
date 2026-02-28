@@ -39,6 +39,42 @@ function useScrollReveal() {
     }, []);
 }
 
+// ─── Cursor Spotlight Hook ─────────────────────────────────
+function useCursorSpotlight() {
+    const spotlightRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const el = spotlightRef.current;
+        if (!el) return;
+
+        let rafId: number;
+
+        const handleMouseMove = (e: MouseEvent) => {
+            cancelAnimationFrame(rafId);
+            rafId = requestAnimationFrame(() => {
+                el.style.setProperty("--cursor-x", `${e.clientX}px`);
+                el.style.setProperty("--cursor-y", `${e.clientY}px`);
+                el.style.setProperty("--cursor-opacity", "1");
+            });
+        };
+
+        const handleMouseLeave = () => {
+            el.style.setProperty("--cursor-opacity", "0");
+        };
+
+        document.addEventListener("mousemove", handleMouseMove, { passive: true });
+        document.addEventListener("mouseleave", handleMouseLeave);
+
+        return () => {
+            cancelAnimationFrame(rafId);
+            document.removeEventListener("mousemove", handleMouseMove);
+            document.removeEventListener("mouseleave", handleMouseLeave);
+        };
+    }, []);
+
+    return spotlightRef;
+}
+
 // ─── Navbar ────────────────────────────────────────────────
 function Navbar() {
     const [scrolled, setScrolled] = useState(false);
@@ -117,7 +153,7 @@ function HeroSection() {
                 </div>
 
                 {/* Headline */}
-                <h1 className="scroll-reveal scroll-delay-2 text-5xl sm:text-6xl lg:text-7xl font-bold text-white leading-tight tracking-tight">
+                <h1 className="scroll-reveal scroll-delay-2 text-5xl sm:text-6xl lg:text-7xl font-extrabold text-white leading-[1.1] tracking-tight">
                     Build Your Learning{" "}
                     <br className="hidden sm:block" />
                     Path with{" "}
@@ -181,6 +217,8 @@ const features = [
         description:
             "Just describe your learning goal, and AI generates a structured step-by-step roadmap tailored to your needs.",
         color: "violet",
+        className: "md:col-span-2 md:row-span-2 flex flex-col justify-center",
+        titleClass: "text-2xl",
     },
     {
         icon: GitFork,
@@ -188,20 +226,26 @@ const features = [
         description:
             "Interactive node-based canvas powered by React Flow. Drag, connect, and organize your learning path visually.",
         color: "blue",
+        className: "md:col-span-2",
+        titleClass: "text-lg",
     },
     {
         icon: Brain,
         title: "Smart Quiz System",
         description:
-            "Test your knowledge with AI-generated quizzes for each topic node. Track what you've mastered and what needs review.",
+            "Test your knowledge with AI-generated quizzes. Track what you've mastered and what needs review.",
         color: "purple",
+        className: "md:col-span-1",
+        titleClass: "text-lg",
     },
     {
         icon: MessageSquare,
         title: "AI Chat Assistant",
         description:
-            "Click any node to dive deeper. Chat with AI about that specific topic to get detailed explanations and resources.",
+            "Click any node to dive deeper. Chat with AI about that specific topic to get detailed explanations.",
         color: "emerald",
+        className: "md:col-span-1",
+        titleClass: "text-lg",
     },
     {
         icon: BarChart3,
@@ -209,6 +253,8 @@ const features = [
         description:
             "Monitor your learning streak, time spent, and completion rate. Stay motivated with visual progress indicators.",
         color: "amber",
+        className: "md:col-span-2",
+        titleClass: "text-lg",
     },
     {
         icon: Moon,
@@ -216,6 +262,8 @@ const features = [
         description:
             "Easy on the eyes, day or night. A beautifully crafted dark theme for comfortable extended learning sessions.",
         color: "slate",
+        className: "md:col-span-2",
+        titleClass: "text-lg",
     },
 ];
 
@@ -243,7 +291,7 @@ function FeaturesSection() {
                     <p className="text-sm font-semibold tracking-[0.2em] uppercase text-violet-400 mb-4">
                         Everything You Need
                     </p>
-                    <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white">
+                    <h2 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight">
                         Why learners choose SkillBridge?
                     </h2>
                     <p className="mt-4 text-gray-400 text-lg max-w-2xl mx-auto">
@@ -252,21 +300,21 @@ function FeaturesSection() {
                 </div>
 
                 {/* Feature grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 sm:gap-6">
                     {features.map((feature, i) => {
                         const Icon = feature.icon;
                         const colors = colorMap[feature.color] || colorMap.violet;
                         return (
                             <div
                                 key={feature.title}
-                                className={`scroll-reveal scroll-delay-${i + 1} landing-feature-card group`}
+                                className={`scroll-reveal scroll-delay-${i + 1} landing-feature-card group ${feature.className}`}
                             >
                                 <div
                                     className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colors} border flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300`}
                                 >
                                     <Icon className="w-6 h-6" />
                                 </div>
-                                <h3 className="text-lg font-semibold text-white mb-2">
+                                <h3 className={`${feature.titleClass} font-semibold text-white mb-2`}>
                                     {feature.title}
                                 </h3>
                                 <p className="text-gray-400 text-sm leading-relaxed">
@@ -369,7 +417,7 @@ function AppPreviewSection() {
                     <p className="text-sm font-semibold tracking-[0.2em] uppercase text-violet-400 mb-4">
                         See It In Action
                     </p>
-                    <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white">
+                    <h2 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight">
                         A glimpse into SkillBridge
                     </h2>
                     <p className="mt-4 text-gray-400 text-lg max-w-2xl mx-auto">
@@ -497,7 +545,7 @@ function HowItWorksSection() {
                     <p className="text-sm font-semibold tracking-[0.2em] uppercase text-violet-400 mb-4">
                         Simple & Powerful
                     </p>
-                    <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white">
+                    <h2 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight">
                         How it works
                     </h2>
                 </div>
@@ -692,9 +740,13 @@ function Footer() {
 // ─── Landing Page (Main Export) ────────────────────────────
 export function LandingPage() {
     useScrollReveal();
+    const spotlightRef = useCursorSpotlight();
 
     return (
         <div className="landing-page">
+            {/* Cursor-following spotlight */}
+            <div ref={spotlightRef} className="landing-cursor-spotlight" />
+
             <Navbar />
             <HeroSection />
             <FeaturesSection />
