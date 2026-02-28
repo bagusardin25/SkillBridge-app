@@ -15,6 +15,30 @@ import {
 } from "lucide-react";
 import { useState, useEffect, useRef, useCallback } from "react";
 
+// ─── Scroll Reveal Hook ────────────────────────────────────
+function useScrollReveal() {
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add("is-visible");
+                        observer.unobserve(entry.target);
+                    }
+                });
+            },
+            { threshold: 0.1, rootMargin: "0px 0px -40px 0px" }
+        );
+
+        const elements = document.querySelectorAll(
+            ".scroll-reveal, .scroll-reveal-left, .scroll-reveal-right, .scroll-reveal-scale"
+        );
+        elements.forEach((el) => observer.observe(el));
+
+        return () => observer.disconnect();
+    }, []);
+}
+
 // ─── Navbar ────────────────────────────────────────────────
 function Navbar() {
     const [scrolled, setScrolled] = useState(false);
@@ -87,13 +111,13 @@ function HeroSection() {
 
             <div className="relative z-10 text-center px-6 max-w-4xl mx-auto">
                 {/* Badge */}
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm text-sm text-gray-300 mb-8">
+                <div className="scroll-reveal scroll-delay-1 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm text-sm text-gray-300 mb-8">
                     <Sparkles className="w-4 h-4 text-violet-400" />
                     AI-Powered Learning Platform
                 </div>
 
                 {/* Headline */}
-                <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white leading-tight tracking-tight">
+                <h1 className="scroll-reveal scroll-delay-2 text-5xl sm:text-6xl lg:text-7xl font-bold text-white leading-tight tracking-tight">
                     Build Your Learning{" "}
                     <br className="hidden sm:block" />
                     Path with{" "}
@@ -101,13 +125,13 @@ function HeroSection() {
                 </h1>
 
                 {/* Sub-headline */}
-                <p className="mt-6 text-lg sm:text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
+                <p className="scroll-reveal scroll-delay-3 mt-6 text-lg sm:text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
                     Describe your goal, and AI will create a personalized roadmap
                     to guide your learning journey — structured, visual, and interactive.
                 </p>
 
                 {/* CTA Buttons */}
-                <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+                <div className="scroll-reveal scroll-delay-4 mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
                     <Link
                         to="/register"
                         className="group inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white font-semibold text-base transition-all duration-300 hover:shadow-xl hover:shadow-violet-500/30 hover:scale-105"
@@ -125,7 +149,7 @@ function HeroSection() {
                 </div>
 
                 {/* Stats */}
-                <div className="mt-16 flex flex-wrap items-center justify-center gap-8 sm:gap-12 text-center">
+                <div className="scroll-reveal scroll-delay-5 mt-16 flex flex-wrap items-center justify-center gap-8 sm:gap-12 text-center">
                     {[
                         { value: "AI", label: "Powered Roadmaps" },
                         { value: "∞", label: "Topics Available" },
@@ -215,7 +239,7 @@ function FeaturesSection() {
 
             <div className="relative z-10 max-w-7xl mx-auto px-6">
                 {/* Section header */}
-                <div className="text-center mb-16">
+                <div className="scroll-reveal text-center mb-16">
                     <p className="text-sm font-semibold tracking-[0.2em] uppercase text-violet-400 mb-4">
                         Everything You Need
                     </p>
@@ -229,13 +253,13 @@ function FeaturesSection() {
 
                 {/* Feature grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {features.map((feature) => {
+                    {features.map((feature, i) => {
                         const Icon = feature.icon;
                         const colors = colorMap[feature.color] || colorMap.violet;
                         return (
                             <div
                                 key={feature.title}
-                                className="landing-feature-card group"
+                                className={`scroll-reveal scroll-delay-${i + 1} landing-feature-card group`}
                             >
                                 <div
                                     className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colors} border flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300`}
@@ -341,7 +365,7 @@ function AppPreviewSection() {
 
             <div className="relative z-10 max-w-6xl mx-auto px-6">
                 {/* Section header */}
-                <div className="text-center mb-12">
+                <div className="scroll-reveal text-center mb-12">
                     <p className="text-sm font-semibold tracking-[0.2em] uppercase text-violet-400 mb-4">
                         See It In Action
                     </p>
@@ -469,7 +493,7 @@ function HowItWorksSection() {
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-violet-600/10 rounded-full blur-[120px] pointer-events-none" />
 
             <div className="relative z-10 max-w-5xl mx-auto px-6">
-                <div className="text-center mb-16">
+                <div className="scroll-reveal text-center mb-16">
                     <p className="text-sm font-semibold tracking-[0.2em] uppercase text-violet-400 mb-4">
                         Simple & Powerful
                     </p>
@@ -482,7 +506,7 @@ function HowItWorksSection() {
                     {steps.map((s, i) => {
                         const Icon = s.icon;
                         return (
-                            <div key={s.step} className="relative group">
+                            <div key={s.step} className={`scroll-reveal scroll-delay-${i + 1} relative group`}>
                                 {/* Connector line */}
                                 {i < steps.length - 1 && (
                                     <div className="hidden md:block absolute top-12 left-[calc(50%+40px)] w-[calc(100%-80px)] h-px bg-gradient-to-r from-violet-500/40 to-transparent" />
@@ -518,13 +542,13 @@ function TestimonialSection() {
             <div className="landing-grain" />
 
             <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
-                <blockquote className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white leading-tight">
+                <blockquote className="scroll-reveal-scale text-3xl sm:text-4xl lg:text-5xl font-bold text-white leading-tight">
                     "The best way to learn is with a{" "}
                     <span className="landing-gradient-text">clear roadmap</span>,{" "}
                     <br className="hidden sm:block" />
                     and a guide who never sleeps."
                 </blockquote>
-                <div className="mt-8 flex items-center justify-center gap-4">
+                <div className="scroll-reveal scroll-delay-2 mt-8 flex items-center justify-center gap-4">
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg">
                         S
                     </div>
@@ -578,7 +602,7 @@ function FAQSection() {
             <div className="landing-grain" />
 
             <div className="relative z-10 max-w-5xl mx-auto px-6">
-                <div className="text-center mb-16">
+                <div className="scroll-reveal text-center mb-16">
                     <p className="text-sm font-semibold tracking-[0.2em] uppercase text-violet-400 mb-4">
                         All About SkillBridge
                     </p>
@@ -591,8 +615,8 @@ function FAQSection() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {faqs.map((faq) => (
-                        <div key={faq.question} className="space-y-3">
+                    {faqs.map((faq, i) => (
+                        <div key={faq.question} className={`scroll-reveal scroll-delay-${(i % 2) + 1} space-y-3`}>
                             <h3 className="text-white font-semibold text-lg">
                                 {faq.question}
                             </h3>
@@ -617,16 +641,16 @@ function CTASection() {
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-violet-600/15 rounded-full blur-[100px] pointer-events-none" />
 
             <div className="relative z-10 max-w-3xl mx-auto px-6 text-center">
-                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">
+                <h2 className="scroll-reveal text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">
                     Ready to start your{" "}
                     <span className="landing-gradient-text">learning journey</span>?
                 </h2>
-                <p className="text-gray-400 text-lg mb-10 max-w-xl mx-auto">
+                <p className="scroll-reveal scroll-delay-1 text-gray-400 text-lg mb-10 max-w-xl mx-auto">
                     Join SkillBridge today and let AI build your personalized roadmap. It's free to get started.
                 </p>
                 <Link
                     to="/register"
-                    className="group inline-flex items-center gap-2 px-10 py-4 rounded-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white font-semibold text-lg transition-all duration-300 hover:shadow-xl hover:shadow-violet-500/30 hover:scale-105"
+                    className="scroll-reveal scroll-delay-2 group inline-flex items-center gap-2 px-10 py-4 rounded-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white font-semibold text-lg transition-all duration-300 hover:shadow-xl hover:shadow-violet-500/30 hover:scale-105"
                 >
                     Get Started — It's Free
                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -667,6 +691,8 @@ function Footer() {
 
 // ─── Landing Page (Main Export) ────────────────────────────
 export function LandingPage() {
+    useScrollReveal();
+
     return (
         <div className="landing-page">
             <Navbar />
