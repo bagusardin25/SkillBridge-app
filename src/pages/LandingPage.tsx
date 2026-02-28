@@ -127,7 +127,7 @@ function Navbar() {
                     </Link>
                     <Link
                         to="/register"
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium transition-all duration-300 hover:shadow-lg hover:shadow-violet-500/25"
+                        className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white text-black text-sm font-medium transition-all duration-300 hover:bg-gray-200"
                     >
                         Get Started
                         <ArrowRight className="w-3.5 h-3.5" />
@@ -175,7 +175,7 @@ function HeroSection() {
                 <div className="scroll-reveal scroll-delay-4 mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
                     <Link
                         to="/register"
-                        className="group inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white font-semibold text-base transition-all duration-300 hover:shadow-xl hover:shadow-violet-500/30 hover:scale-105"
+                        className="group inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-white text-black font-semibold text-base transition-all duration-300 hover:bg-gray-200 hover:scale-105"
                     >
                         Start Learning
                         <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -197,7 +197,7 @@ function HeroSection() {
                         { value: "100%", label: "Free to Start" },
                     ].map((stat) => (
                         <div key={stat.label} className="group">
-                            <div className="text-2xl sm:text-3xl font-bold text-white group-hover:text-violet-400 transition-colors">
+                            <div className="text-2xl sm:text-3xl font-bold text-white group-hover:text-gray-300 transition-colors">
                                 {stat.value}
                             </div>
                             <div className="text-sm text-gray-500 mt-1">{stat.label}</div>
@@ -287,8 +287,8 @@ function FeaturesSection() {
             <div className="landing-grain" />
 
             {/* Ambient glows for richer background */}
-            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-600/[0.07] rounded-full blur-[130px] pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-violet-600/[0.08] rounded-full blur-[120px] pointer-events-none" />
+            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-white/[0.015] rounded-full blur-[130px] pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-white/[0.01] rounded-full blur-[120px] pointer-events-none" />
 
             <div className="relative z-10 max-w-7xl mx-auto px-6">
                 {/* Section header */}
@@ -376,8 +376,8 @@ function AppPreviewSection() {
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const isPausedRef = useRef(false);
 
-    const AUTO_CYCLE_MS = 6000;
-    const TICK_MS = 50;
+    const AUTO_CYCLE_MS = 4000;
+    const TICK_MS = 40;
 
     const startCycle = useCallback(() => {
         if (intervalRef.current) clearInterval(intervalRef.current);
@@ -401,10 +401,20 @@ function AppPreviewSection() {
         };
     }, [startCycle]);
 
+    const frameRef = useRef<HTMLDivElement>(null);
+
     const handleTabClick = (index: number) => {
         setActiveTab(index);
         setProgress(0);
         startCycle();
+
+        // Trigger scale animation on tab switch
+        const frame = frameRef.current;
+        if (frame) {
+            frame.classList.remove("tab-switching");
+            void frame.offsetWidth; // force reflow
+            frame.classList.add("tab-switching");
+        }
     };
 
     const tab = previewTabs[activeTab];
@@ -414,7 +424,7 @@ function AppPreviewSection() {
             <div className="landing-grain" />
 
             {/* Background glow */}
-            <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-violet-600/8 rounded-full blur-[120px] pointer-events-none" />
+            <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-violet-500/[0.03] rounded-full blur-[120px] pointer-events-none" />
 
             <div className="relative z-10 max-w-6xl mx-auto px-6">
                 {/* Section header */}
@@ -436,17 +446,15 @@ function AppPreviewSection() {
                         <button
                             key={t.id}
                             onClick={() => handleTabClick(i)}
-                            onMouseEnter={() => { isPausedRef.current = true; }}
-                            onMouseLeave={() => { isPausedRef.current = false; }}
                             className={`relative px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 overflow-hidden ${activeTab === i
-                                ? "bg-white/10 text-white border border-violet-500/40 shadow-lg shadow-violet-500/10"
-                                : "text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
+                                ? "bg-white/10 text-white border border-white/20"
+                                : "text-gray-500 hover:text-white hover:bg-white/5 border border-transparent"
                                 }`}
                         >
                             {/* Progress bar inside active tab */}
                             {activeTab === i && (
                                 <span
-                                    className="absolute bottom-0 left-0 h-[2px] bg-gradient-to-r from-violet-500 to-purple-500 transition-none"
+                                    className="absolute bottom-0 left-0 h-[3px] bg-gradient-to-r from-violet-500 to-purple-500 transition-none rounded-full"
                                     style={{ width: `${progress}%` }}
                                 />
                             )}
@@ -455,41 +463,51 @@ function AppPreviewSection() {
                     ))}
                 </div>
 
-                {/* Browser mockup + Screenshot */}
+                {/* 3D Browser mockup wrapper */}
                 <div
-                    className="landing-browser-frame"
-                    onMouseEnter={() => { isPausedRef.current = true; }}
-                    onMouseLeave={() => { isPausedRef.current = false; }}
+                    className="landing-preview-wrapper"
                 >
-                    {/* Browser top bar */}
-                    <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5 bg-white/[0.02]">
-                        <div className="flex gap-1.5">
-                            <div className="w-3 h-3 rounded-full bg-red-500/70" />
-                            <div className="w-3 h-3 rounded-full bg-yellow-500/70" />
-                            <div className="w-3 h-3 rounded-full bg-green-500/70" />
-                        </div>
-                        <div className="flex-1 flex justify-center">
-                            <div className="px-4 py-1 rounded-md bg-white/5 text-xs text-gray-500 font-mono">
-                                skillbridge.app
+                    {/* Floating glow behind the frame */}
+                    <div className="landing-preview-glow" />
+
+                    {/* Browser frame with 3D tilt */}
+                    <div
+                        ref={frameRef}
+                        className="landing-browser-frame"
+                    >
+                        {/* Browser top bar */}
+                        <div className="flex items-center gap-2 px-4 py-3 border-b border-[#262626] bg-[#050505]">
+                            <div className="flex gap-1.5">
+                                <div className="w-3 h-3 rounded-full bg-red-500/70" />
+                                <div className="w-3 h-3 rounded-full bg-yellow-500/70" />
+                                <div className="w-3 h-3 rounded-full bg-green-500/70" />
+                            </div>
+                            <div className="flex-1 flex justify-center">
+                                <div className="px-4 py-1 rounded-md bg-white/5 text-xs text-gray-500 font-mono">
+                                    skillbridge.app
+                                </div>
                             </div>
                         </div>
+
+                        {/* Screenshot with smooth crossfade */}
+                        <div className="relative aspect-[16/9] overflow-hidden bg-black/40">
+                            {previewTabs.map((t, i) => (
+                                <img
+                                    key={t.id}
+                                    src={t.image}
+                                    alt={t.title}
+                                    className={`absolute inset-0 w-full h-full object-cover object-top transition-opacity duration-500 ${activeTab === i ? "opacity-100" : "opacity-0"
+                                        }`}
+                                />
+                            ))}
+
+                            {/* Subtle bottom gradient overlay */}
+                            <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#020202] to-transparent pointer-events-none" />
+                        </div>
                     </div>
 
-                    {/* Screenshot with smooth crossfade */}
-                    <div className="relative aspect-[16/9] overflow-hidden bg-black/40">
-                        {previewTabs.map((t, i) => (
-                            <img
-                                key={t.id}
-                                src={t.image}
-                                alt={t.title}
-                                className={`absolute inset-0 w-full h-full object-cover object-top transition-opacity duration-500 ${activeTab === i ? "opacity-100" : "opacity-0"
-                                    }`}
-                            />
-                        ))}
-
-                        {/* Subtle bottom gradient overlay */}
-                        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#020617] to-transparent pointer-events-none" />
-                    </div>
+                    {/* Reflection / shadow underneath */}
+                    <div className="landing-preview-reflection" />
                 </div>
 
                 {/* Active tab description */}
@@ -543,7 +561,7 @@ function HowItWorksSection() {
             <div className="landing-grain" />
 
             {/* Subtle glow */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-violet-600/10 rounded-full blur-[120px] pointer-events-none" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-white/[0.01] rounded-full blur-[120px] pointer-events-none" />
 
             <div className="relative z-10 max-w-5xl mx-auto px-6">
                 <div className="scroll-reveal text-center mb-16">
@@ -562,13 +580,13 @@ function HowItWorksSection() {
                             <div key={s.step} className={`scroll-reveal scroll-delay-${i + 1} relative group`}>
                                 {/* Connector line */}
                                 {i < steps.length - 1 && (
-                                    <div className="hidden md:block absolute top-12 left-[calc(50%+40px)] w-[calc(100%-80px)] h-px bg-gradient-to-r from-violet-500/40 to-transparent" />
+                                    <div className="hidden md:block absolute top-12 left-[calc(50%+40px)] w-[calc(100%-80px)] h-px bg-gradient-to-r from-white/10 to-transparent" />
                                 )}
 
                                 <div className="text-center">
-                                    <div className="relative inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10 mb-6 group-hover:border-violet-500/40 transition-all duration-300 group-hover:shadow-lg group-hover:shadow-violet-500/10">
+                                    <div className="relative inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-[#080808] border border-[#262626] mb-6 group-hover:border-gray-500/40 transition-all duration-300">
                                         <Icon className="w-10 h-10 text-violet-400" />
-                                        <span className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-violet-600 text-white text-xs font-bold flex items-center justify-center">
+                                        <span className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-white text-black text-xs font-bold flex items-center justify-center">
                                             {s.step}
                                         </span>
                                     </div>
@@ -691,7 +709,7 @@ function CTASection() {
             <div className="landing-grain" />
 
             {/* Glow */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-violet-600/15 rounded-full blur-[100px] pointer-events-none" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-white/[0.015] rounded-full blur-[100px] pointer-events-none" />
 
             <div className="relative z-10 max-w-3xl mx-auto px-6 text-center">
                 <h2 className="scroll-reveal text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">
@@ -703,7 +721,7 @@ function CTASection() {
                 </p>
                 <Link
                     to="/register"
-                    className="scroll-reveal scroll-delay-2 group inline-flex items-center gap-2 px-10 py-4 rounded-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white font-semibold text-lg transition-all duration-300 hover:shadow-xl hover:shadow-violet-500/30 hover:scale-105"
+                    className="scroll-reveal scroll-delay-2 group inline-flex items-center gap-2 px-10 py-4 rounded-full bg-white text-black font-semibold text-lg transition-all duration-300 hover:bg-gray-200 hover:scale-105"
                 >
                     Get Started — It's Free
                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -716,7 +734,7 @@ function CTASection() {
 // ─── Footer ────────────────────────────────────────────────
 function Footer() {
     return (
-        <footer className="relative border-t border-white/10 py-8">
+        <footer className="relative border-t border-[#262626] py-8">
             <div className="landing-grain" />
 
             <div className="relative z-10 max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -754,11 +772,17 @@ export function LandingPage() {
 
             <Navbar />
             <HeroSection />
+            <hr className="landing-section-divider" />
             <FeaturesSection />
+            <hr className="landing-section-divider" />
             <AppPreviewSection />
+            <hr className="landing-section-divider" />
             <HowItWorksSection />
+            <hr className="landing-section-divider" />
             <TestimonialSection />
+            <hr className="landing-section-divider" />
             <FAQSection />
+            <hr className="landing-section-divider" />
             <CTASection />
             <Footer />
         </div>
