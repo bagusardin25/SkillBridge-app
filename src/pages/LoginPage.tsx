@@ -87,7 +87,7 @@ export function LoginPage() {
       const response = await loginUser({ email, password });
       setAuth(response.user, response.token);
       toast.success("Login successful!");
-      navigate("/");
+      navigate("/app");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Login failed");
     } finally {

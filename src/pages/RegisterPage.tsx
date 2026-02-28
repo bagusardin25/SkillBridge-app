@@ -85,7 +85,7 @@ export function RegisterPage() {
       if (response.user && response.token) {
         setAuth(response.user, response.token);
         toast.success("Account created successfully!");
-        navigate("/");
+        navigate("/app");
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Registration failed");

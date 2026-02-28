@@ -1,0 +1,497 @@
+import { Link } from "react-router-dom";
+import { Logo } from "@/components/ui/Logo";
+import {
+    Sparkles,
+    Brain,
+    BarChart3,
+    Moon,
+    GitFork,
+    MessageSquare,
+    ArrowRight,
+    ChevronDown,
+    Zap,
+    Target,
+    BookOpen,
+} from "lucide-react";
+import { useState, useEffect } from "react";
+
+// ─── Navbar ────────────────────────────────────────────────
+function Navbar() {
+    const [scrolled, setScrolled] = useState(false);
+
+    useEffect(() => {
+        const handleScroll = () => setScrolled(window.scrollY > 20);
+        window.addEventListener("scroll", handleScroll);
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
+
+    return (
+        <nav
+            className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
+                    ? "landing-nav-scrolled"
+                    : "bg-transparent"
+                }`}
+        >
+            <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <Logo size={32} />
+                    <span className="text-xl font-bold text-white">SkillBridge</span>
+                </div>
+
+                <div className="hidden md:flex items-center gap-8 text-sm text-gray-300">
+                    <a href="#features" className="hover:text-white transition-colors">
+                        Features
+                    </a>
+                    <a href="#how-it-works" className="hover:text-white transition-colors">
+                        How It Works
+                    </a>
+                    <a href="#faq" className="hover:text-white transition-colors">
+                        FAQ
+                    </a>
+                </div>
+
+                <div className="flex items-center gap-3">
+                    <Link
+                        to="/login"
+                        className="text-sm text-gray-300 hover:text-white transition-colors hidden sm:inline-block"
+                    >
+                        Login
+                    </Link>
+                    <Link
+                        to="/register"
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium transition-all duration-300 hover:shadow-lg hover:shadow-violet-500/25"
+                    >
+                        Get Started
+                        <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                </div>
+            </div>
+        </nav>
+    );
+}
+
+// ─── Hero Section ──────────────────────────────────────────
+function HeroSection() {
+    return (
+        <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
+            {/* Glow blobs */}
+            <div className="landing-glow-blob landing-glow-blob-1" />
+            <div className="landing-glow-blob landing-glow-blob-2" />
+            <div className="landing-glow-blob landing-glow-blob-3" />
+
+            {/* Grain overlay */}
+            <div className="landing-grain" />
+
+            <div className="relative z-10 text-center px-6 max-w-4xl mx-auto">
+                {/* Badge */}
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm text-sm text-gray-300 mb-8">
+                    <Sparkles className="w-4 h-4 text-violet-400" />
+                    AI-Powered Learning Platform
+                </div>
+
+                {/* Headline */}
+                <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white leading-tight tracking-tight">
+                    Build Your Learning{" "}
+                    <br className="hidden sm:block" />
+                    Path with{" "}
+                    <span className="landing-gradient-text">AI.</span>
+                </h1>
+
+                {/* Sub-headline */}
+                <p className="mt-6 text-lg sm:text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
+                    Describe your goal, and AI will create a personalized roadmap
+                    to guide your learning journey — structured, visual, and interactive.
+                </p>
+
+                {/* CTA Buttons */}
+                <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <Link
+                        to="/register"
+                        className="group inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white font-semibold text-base transition-all duration-300 hover:shadow-xl hover:shadow-violet-500/30 hover:scale-105"
+                    >
+                        Start Learning
+                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </Link>
+                    <a
+                        href="#features"
+                        className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full border border-white/20 hover:border-white/40 text-white font-semibold text-base transition-all duration-300 hover:bg-white/5"
+                    >
+                        Learn More
+                        <ChevronDown className="w-4 h-4" />
+                    </a>
+                </div>
+
+                {/* Stats */}
+                <div className="mt-16 flex flex-wrap items-center justify-center gap-8 sm:gap-12 text-center">
+                    {[
+                        { value: "AI", label: "Powered Roadmaps" },
+                        { value: "∞", label: "Topics Available" },
+                        { value: "100%", label: "Free to Start" },
+                    ].map((stat) => (
+                        <div key={stat.label} className="group">
+                            <div className="text-2xl sm:text-3xl font-bold text-white group-hover:text-violet-400 transition-colors">
+                                {stat.value}
+                            </div>
+                            <div className="text-sm text-gray-500 mt-1">{stat.label}</div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* Scroll indicator */}
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+                <ChevronDown className="w-5 h-5 text-gray-500" />
+            </div>
+        </section>
+    );
+}
+
+// ─── Features Section ──────────────────────────────────────
+const features = [
+    {
+        icon: Sparkles,
+        title: "AI-Powered Roadmaps",
+        description:
+            "Just describe your learning goal, and AI generates a structured step-by-step roadmap tailored to your needs.",
+        color: "violet",
+    },
+    {
+        icon: GitFork,
+        title: "Visual Flowchart Editor",
+        description:
+            "Interactive node-based canvas powered by React Flow. Drag, connect, and organize your learning path visually.",
+        color: "blue",
+    },
+    {
+        icon: Brain,
+        title: "Smart Quiz System",
+        description:
+            "Test your knowledge with AI-generated quizzes for each topic node. Track what you've mastered and what needs review.",
+        color: "purple",
+    },
+    {
+        icon: MessageSquare,
+        title: "AI Chat Assistant",
+        description:
+            "Click any node to dive deeper. Chat with AI about that specific topic to get detailed explanations and resources.",
+        color: "emerald",
+    },
+    {
+        icon: BarChart3,
+        title: "Progress Tracking",
+        description:
+            "Monitor your learning streak, time spent, and completion rate. Stay motivated with visual progress indicators.",
+        color: "amber",
+    },
+    {
+        icon: Moon,
+        title: "Dark Mode",
+        description:
+            "Easy on the eyes, day or night. A beautifully crafted dark theme for comfortable extended learning sessions.",
+        color: "slate",
+    },
+];
+
+const colorMap: Record<string, string> = {
+    violet: "from-violet-500/20 to-violet-600/5 border-violet-500/20 text-violet-400",
+    blue: "from-blue-500/20 to-blue-600/5 border-blue-500/20 text-blue-400",
+    purple: "from-purple-500/20 to-purple-600/5 border-purple-500/20 text-purple-400",
+    emerald: "from-emerald-500/20 to-emerald-600/5 border-emerald-500/20 text-emerald-400",
+    amber: "from-amber-500/20 to-amber-600/5 border-amber-500/20 text-amber-400",
+    slate: "from-slate-500/20 to-slate-600/5 border-slate-500/20 text-slate-400",
+};
+
+function FeaturesSection() {
+    return (
+        <section id="features" className="relative py-24 sm:py-32">
+            <div className="landing-grain" />
+
+            <div className="relative z-10 max-w-7xl mx-auto px-6">
+                {/* Section header */}
+                <div className="text-center mb-16">
+                    <p className="text-sm font-semibold tracking-[0.2em] uppercase text-violet-400 mb-4">
+                        Everything You Need
+                    </p>
+                    <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white">
+                        Why learners choose SkillBridge?
+                    </h2>
+                    <p className="mt-4 text-gray-400 text-lg max-w-2xl mx-auto">
+                        All the tools you need to build a clear, AI-generated learning path — in one elegant platform.
+                    </p>
+                </div>
+
+                {/* Feature grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {features.map((feature) => {
+                        const Icon = feature.icon;
+                        const colors = colorMap[feature.color] || colorMap.violet;
+                        return (
+                            <div
+                                key={feature.title}
+                                className="landing-feature-card group"
+                            >
+                                <div
+                                    className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colors} border flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300`}
+                                >
+                                    <Icon className="w-6 h-6" />
+                                </div>
+                                <h3 className="text-lg font-semibold text-white mb-2">
+                                    {feature.title}
+                                </h3>
+                                <p className="text-gray-400 text-sm leading-relaxed">
+                                    {feature.description}
+                                </p>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        </section>
+    );
+}
+
+// ─── How It Works ──────────────────────────────────────────
+const steps = [
+    {
+        icon: Target,
+        step: "01",
+        title: "Describe Your Goal",
+        description:
+            "Type what you want to learn — \"I want to become a backend developer\" or \"Teach me Go from scratch\".",
+    },
+    {
+        icon: Zap,
+        step: "02",
+        title: "Get Your Roadmap",
+        description:
+            "AI instantly generates a visual, structured learning path as an interactive flowchart with clear milestones.",
+    },
+    {
+        icon: BookOpen,
+        step: "03",
+        title: "Start Learning",
+        description:
+            "Follow the roadmap step by step. Click any node for detailed explanations, resources, and AI-powered Q&A.",
+    },
+];
+
+function HowItWorksSection() {
+    return (
+        <section id="how-it-works" className="relative py-24 sm:py-32">
+            <div className="landing-grain" />
+
+            {/* Subtle glow */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-violet-600/10 rounded-full blur-[120px] pointer-events-none" />
+
+            <div className="relative z-10 max-w-5xl mx-auto px-6">
+                <div className="text-center mb-16">
+                    <p className="text-sm font-semibold tracking-[0.2em] uppercase text-violet-400 mb-4">
+                        Simple & Powerful
+                    </p>
+                    <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white">
+                        How it works
+                    </h2>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    {steps.map((s, i) => {
+                        const Icon = s.icon;
+                        return (
+                            <div key={s.step} className="relative group">
+                                {/* Connector line */}
+                                {i < steps.length - 1 && (
+                                    <div className="hidden md:block absolute top-12 left-[calc(50%+40px)] w-[calc(100%-80px)] h-px bg-gradient-to-r from-violet-500/40 to-transparent" />
+                                )}
+
+                                <div className="text-center">
+                                    <div className="relative inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10 mb-6 group-hover:border-violet-500/40 transition-all duration-300 group-hover:shadow-lg group-hover:shadow-violet-500/10">
+                                        <Icon className="w-10 h-10 text-violet-400" />
+                                        <span className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-violet-600 text-white text-xs font-bold flex items-center justify-center">
+                                            {s.step}
+                                        </span>
+                                    </div>
+                                    <h3 className="text-xl font-semibold text-white mb-3">
+                                        {s.title}
+                                    </h3>
+                                    <p className="text-gray-400 text-sm leading-relaxed">
+                                        {s.description}
+                                    </p>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        </section>
+    );
+}
+
+// ─── Testimonial Section ───────────────────────────────────
+function TestimonialSection() {
+    return (
+        <section className="relative py-24 sm:py-32">
+            <div className="landing-grain" />
+
+            <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
+                <blockquote className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white leading-tight">
+                    "The best way to learn is with a{" "}
+                    <span className="landing-gradient-text">clear roadmap</span>,{" "}
+                    <br className="hidden sm:block" />
+                    and a guide who never sleeps."
+                </blockquote>
+                <div className="mt-8 flex items-center justify-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg">
+                        S
+                    </div>
+                    <div className="text-left">
+                        <p className="text-white font-semibold">SkillBridge</p>
+                        <p className="text-gray-400 text-sm">AI Learning Platform</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    );
+}
+
+// ─── FAQ Section ───────────────────────────────────────────
+const faqs = [
+    {
+        question: "Is SkillBridge free?",
+        answer:
+            "Yes! SkillBridge is free to get started. You can generate AI roadmaps, use the visual editor, and track your progress at no cost.",
+    },
+    {
+        question: "What topics can I learn?",
+        answer:
+            "Anything! From programming languages like Python and Go, to broader goals like \"Become a Full-Stack Developer\" or \"Learn System Design\".",
+    },
+    {
+        question: "How does the AI generate roadmaps?",
+        answer:
+            "SkillBridge uses advanced AI (GPT/Gemini) to act as a curriculum architect. It breaks down your goal into structured learning steps with logical ordering.",
+    },
+    {
+        question: "Can I edit the generated roadmap?",
+        answer:
+            "Absolutely! The visual flowchart editor lets you drag, rearrange, add, or remove nodes to customize the roadmap to your preferences.",
+    },
+    {
+        question: "Is my data saved?",
+        answer:
+            "Yes. Your roadmaps and progress are saved securely. You can access them anytime from any device after logging in.",
+    },
+    {
+        question: "Do I need an account?",
+        answer:
+            "Yes, a free account is required to save your roadmaps and track progress. You can sign up with email, Google, or GitHub.",
+    },
+];
+
+function FAQSection() {
+    return (
+        <section id="faq" className="relative py-24 sm:py-32">
+            <div className="landing-grain" />
+
+            <div className="relative z-10 max-w-5xl mx-auto px-6">
+                <div className="text-center mb-16">
+                    <p className="text-sm font-semibold tracking-[0.2em] uppercase text-violet-400 mb-4">
+                        All About SkillBridge
+                    </p>
+                    <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white">
+                        Frequently asked questions
+                    </h2>
+                    <p className="mt-4 text-gray-400 text-lg max-w-2xl mx-auto">
+                        Get quick answers to the most common questions about SkillBridge and how it can help your learning journey.
+                    </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {faqs.map((faq) => (
+                        <div key={faq.question} className="space-y-3">
+                            <h3 className="text-white font-semibold text-lg">
+                                {faq.question}
+                            </h3>
+                            <p className="text-gray-400 text-sm leading-relaxed">
+                                {faq.answer}
+                            </p>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </section>
+    );
+}
+
+// ─── CTA Section ───────────────────────────────────────────
+function CTASection() {
+    return (
+        <section className="relative py-24 sm:py-32">
+            <div className="landing-grain" />
+
+            {/* Glow */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-violet-600/15 rounded-full blur-[100px] pointer-events-none" />
+
+            <div className="relative z-10 max-w-3xl mx-auto px-6 text-center">
+                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">
+                    Ready to start your{" "}
+                    <span className="landing-gradient-text">learning journey</span>?
+                </h2>
+                <p className="text-gray-400 text-lg mb-10 max-w-xl mx-auto">
+                    Join SkillBridge today and let AI build your personalized roadmap. It's free to get started.
+                </p>
+                <Link
+                    to="/register"
+                    className="group inline-flex items-center gap-2 px-10 py-4 rounded-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white font-semibold text-lg transition-all duration-300 hover:shadow-xl hover:shadow-violet-500/30 hover:scale-105"
+                >
+                    Get Started — It's Free
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </Link>
+            </div>
+        </section>
+    );
+}
+
+// ─── Footer ────────────────────────────────────────────────
+function Footer() {
+    return (
+        <footer className="relative border-t border-white/10 py-8">
+            <div className="landing-grain" />
+
+            <div className="relative z-10 max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                    <Logo size={24} />
+                    <span className="text-sm font-semibold text-gray-400">
+                        SkillBridge
+                    </span>
+                </div>
+                <p className="text-sm text-gray-500">
+                    © {new Date().getFullYear()} SkillBridge. Built for Education & Upskilling.
+                </p>
+                <div className="flex items-center gap-6 text-sm text-gray-500">
+                    <Link to="/login" className="hover:text-gray-300 transition-colors">
+                        Login
+                    </Link>
+                    <Link to="/register" className="hover:text-gray-300 transition-colors">
+                        Sign Up
+                    </Link>
+                </div>
+            </div>
+        </footer>
+    );
+}
+
+// ─── Landing Page (Main Export) ────────────────────────────
+export function LandingPage() {
+    return (
+        <div className="landing-page">
+            <Navbar />
+            <HeroSection />
+            <FeaturesSection />
+            <HowItWorksSection />
+            <TestimonialSection />
+            <FAQSection />
+            <CTASection />
+            <Footer />
+        </div>
+    );
+}

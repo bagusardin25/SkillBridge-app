@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useRef } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { FlowCanvas } from "@/components/canvas/FlowCanvas";
+import { LandingPage } from "@/pages/LandingPage";
 import { LoginPage } from "@/pages/LoginPage";
 import { RegisterPage } from "@/pages/RegisterPage";
 import { ForgotPasswordPage } from "@/pages/ForgotPasswordPage";
@@ -45,27 +46,33 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route
+          path="/"
+          element={
+            isAuthenticated ? <Navigate to="/app" replace /> : <LandingPage />
+          }
+        />
+        <Route
           path="/login"
           element={
-            isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />
+            isAuthenticated ? <Navigate to="/app" replace /> : <LoginPage />
           }
         />
         <Route
           path="/register"
           element={
-            isAuthenticated ? <Navigate to="/" replace /> : <RegisterPage />
+            isAuthenticated ? <Navigate to="/app" replace /> : <RegisterPage />
           }
         />
         <Route
           path="/forgot-password"
           element={
-            isAuthenticated ? <Navigate to="/" replace /> : <ForgotPasswordPage />
+            isAuthenticated ? <Navigate to="/app" replace /> : <ForgotPasswordPage />
           }
         />
         <Route
           path="/reset-password/:token"
           element={
-            isAuthenticated ? <Navigate to="/" replace /> : <ResetPasswordPage />
+            isAuthenticated ? <Navigate to="/app" replace /> : <ResetPasswordPage />
           }
         />
         <Route
@@ -81,7 +88,7 @@ function App() {
           element={<SharePage />}
         />
         <Route
-          path="/"
+          path="/app"
           element={
             <ProtectedRoute>
               <AppLayout>

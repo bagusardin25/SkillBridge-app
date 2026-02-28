@@ -96,13 +96,13 @@ export function ProfilePage() {
                 const roadmap = project.roadmaps[0];
                 let nodes = Array.isArray(roadmap.nodes) ? roadmap.nodes : [];
                 const edges = Array.isArray(roadmap.edges) ? roadmap.edges : [];
-                
+
                 // Fetch quiz results and merge with nodes to restore completion status
                 if (user?.id) {
                     const quizResults = await getQuizResultsForRoadmap(roadmap.id, user.id);
                     nodes = mergeNodesWithQuizResults(nodes, quizResults);
                 }
-                
+
                 setNodes(nodes);
                 setEdges(edges);
                 setCurrentRoadmapId(roadmap.id);
@@ -111,7 +111,7 @@ export function ProfilePage() {
             }
 
             setCurrentProject(projectId, projectTitle);
-            navigate("/");
+            navigate("/app");
         } catch (error) {
             console.error("Failed to load project:", error);
         }
@@ -132,7 +132,7 @@ export function ProfilePage() {
                         <h2 className="text-xl font-semibold mb-2">Failed to Load Profile</h2>
                         <p className="text-muted-foreground mb-4">{error || "Something went wrong"}</p>
                     </div>
-                    <Button onClick={() => navigate("/")} variant="outline">
+                    <Button onClick={() => navigate("/app")} variant="outline">
                         Back to Home
                     </Button>
                 </div>
@@ -320,7 +320,7 @@ export function ProfilePage() {
                                     <p className="text-muted-foreground mb-6 max-w-sm">
                                         Start your learning journey by creating a roadmap. We'll track your progress here!
                                     </p>
-                                    <Button onClick={() => navigate("/")} size="lg">
+                                    <Button onClick={() => navigate("/app")} size="lg">
                                         <Sparkles className="w-4 h-4 mr-2" />
                                         Create Your First Roadmap
                                     </Button>

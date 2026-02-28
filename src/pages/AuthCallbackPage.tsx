@@ -31,12 +31,12 @@ export function AuthCallbackPage() {
       try {
         // Fetch user data with token
         const user = await getCurrentUser(token);
-        
+
         // Set auth state (this also stores token in localStorage)
         setAuth(user, token);
-        
+
         toast.success("Successfully logged in!");
-        navigate("/");
+        navigate("/app");
       } catch (err) {
         console.error("Auth callback error:", err);
         setError("Failed to authenticate. Please try again.");

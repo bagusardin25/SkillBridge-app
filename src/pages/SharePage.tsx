@@ -91,7 +91,7 @@ export function SharePage() {
                     <p className="text-muted-foreground">
                         This roadmap is not publicly shared. Ask the owner to make it public.
                     </p>
-                    <Button onClick={() => navigate("/")} variant="outline">
+                    <Button onClick={() => navigate("/app")} variant="outline">
                         <ArrowLeft className="h-4 w-4 mr-2" />
                         Go to SkillBridge
                     </Button>
@@ -112,7 +112,7 @@ export function SharePage() {
                     <p className="text-muted-foreground">
                         {error || "The roadmap you're looking for doesn't exist or has been deleted."}
                     </p>
-                    <Button onClick={() => navigate("/")} variant="outline">
+                    <Button onClick={() => navigate("/app")} variant="outline">
                         <ArrowLeft className="h-4 w-4 mr-2" />
                         Go to SkillBridge
                     </Button>
@@ -139,7 +139,7 @@ export function SharePage() {
             <header className="h-14 border-b bg-background flex items-center justify-between px-4 sticky top-0 z-50">
                 <div className="flex items-center gap-4">
                     <button
-                        onClick={() => navigate("/")}
+                        onClick={() => navigate("/app")}
                         className="flex items-center gap-2 hover:opacity-80 transition-opacity"
                     >
                         <Logo size={28} />
