@@ -31,7 +31,6 @@
     "@radix-ui/react-switch": "^1.2.6",
     "@radix-ui/react-tabs": "^1.1.13",
     "@radix-ui/react-tooltip": "^1.2.8",
-    "@types/dagre": "^0.7.53",
     "@types/react-syntax-highlighter": "^15.5.13",
     "@xyflow/react": "^12.10.0",
     "class-variance-authority": "^0.7.1",
@@ -52,6 +51,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@types/dagre": "^0.7.54",
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",

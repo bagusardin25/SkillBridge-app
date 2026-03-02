@@ -117,7 +117,7 @@ function CustomNodeComponent({ id, data, type, selected }: CustomNodeProps) {
         ${categoryClass}
         ${completedClass}
         ${selected ? "ring-2 ring-primary" : ""}
-        min-w-[400px] min-h-[120px] max-h-[120px]
+        min-w-[320px] min-h-[120px] max-h-[120px]
         transition-all duration-200
         relative group
         hover:shadow-lg hover:z-10

@@ -22,6 +22,7 @@ function LabeledEdgeComponent({
     data,
     markerEnd,
     style,
+    animated,
 }: EdgeProps) {
     const edgeData = data as LabeledEdgeData | undefined;
     const label = edgeData?.label;
@@ -58,7 +59,21 @@ function LabeledEdgeComponent({
     };
 
     const currentStyle = edgeStyles[edgeType] || edgeStyles.main;
-    const { className: edgeClassName, ...styleProps } = currentStyle as typeof currentStyle & { className?: string };
+    // Base styles
+    const resolvedStyle: React.CSSProperties = {
+        ...style,
+        stroke: currentStyle.stroke,
+        strokeWidth: currentStyle.strokeWidth,
+        ...('strokeDasharray' in currentStyle ? { strokeDasharray: currentStyle.strokeDasharray as string } : {}),
+        ...('filter' in currentStyle ? { filter: currentStyle.filter as string } : {}),
+    };
+
+    let edgeClass = ('className' in currentStyle ? currentStyle.className : "") as string;
+    if (animated) {
+        edgeClass += " react-flow__edge-path animate-pulse glow-edge";
+        resolvedStyle.strokeWidth = 3;
+        resolvedStyle.filter = "drop-shadow(0 0 6px hsl(var(--primary))) drop-shadow(0 0 12px hsl(var(--primary)))";
+    }
 
     return (
         <>
@@ -66,8 +81,8 @@ function LabeledEdgeComponent({
                 id={id}
                 path={edgePath}
                 markerEnd={markerEnd}
-                style={{ ...style, ...styleProps }}
-                className={edgeClassName}
+                style={resolvedStyle}
+                className={edgeClass.trim()}
             />
             {label && (
                 <EdgeLabelRenderer>
@@ -77,7 +92,7 @@ function LabeledEdgeComponent({
                             transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
                             pointerEvents: "all",
                         }}
-                        className="px-2 py-0.5 rounded text-xs font-medium bg-background border border-border shadow-sm text-muted-foreground"
+                        className="px-2 py-0.5 rounded text-xs font-medium bg-background border border-border shadow-sm text-primary animate-pulse"
                     >
                         {label}
                     </div>

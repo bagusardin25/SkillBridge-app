@@ -103,6 +103,37 @@ export function FlowCanvas() {
         };
     }, [nodes, edges, currentRoadmapId]);
 
+    // Animate edges connecting completed nodes to in-progress nodes
+    useEffect(() => {
+        if (!nodes.length || !edges.length) return;
+
+        let hasChanges = false;
+        const newEdges = edges.map((edge) => {
+            const sourceNode = nodes.find((n) => n.id === edge.source);
+            const targetNode = nodes.find((n) => n.id === edge.target);
+
+            if (sourceNode && targetNode) {
+                const sourceCompleted = sourceNode.data.isCompleted || sourceNode.data.quizPassed;
+                const targetCompleted = targetNode.data.isCompleted || targetNode.data.quizPassed;
+
+                // Animate if source is completed but target is not, 
+                // OR if it's the start node and it hasn't been completed yet.
+                const isStartNotCompleted = sourceNode.data.isStartNode && !sourceCompleted;
+                const shouldAnimate = !!((sourceCompleted && !targetCompleted) || isStartNotCompleted);
+
+                if (edge.animated !== shouldAnimate) {
+                    hasChanges = true;
+                    return { ...edge, animated: shouldAnimate };
+                }
+            }
+            return edge;
+        });
+
+        if (hasChanges) {
+            setStoreEdges(newEdges);
+        }
+    }, [nodes, edges, setStoreEdges]);
+
     const defaultEdgeOptions = useMemo(() => ({
         type: 'labeled',
         markerEnd: {
@@ -175,7 +206,7 @@ export function FlowCanvas() {
 
     // Default sizes for different node types
     const defaultNodeSizes = useMemo(() => ({
-        default: { width: 400, height: 120 },
+        default: { width: 320, height: 120 },
         decision: { width: 110, height: 110 },
         "start-end": { width: 90, height: 90 },
         image: { width: 150, height: 150 },

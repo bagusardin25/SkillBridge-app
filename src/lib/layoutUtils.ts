@@ -1,11 +1,12 @@
+import dagre from 'dagre';
 import type { RoadmapNode, RoadmapEdge } from "@/types/roadmap";
 import type { GeneratedRoadmap, RoadmapNode as ApiNode } from "@/lib/api";
+import { Position } from '@xyflow/react';
 
-const NODE_WIDTH = 400;
+const NODE_WIDTH = 320;
 const NODE_HEIGHT = 120;
-const NODES_PER_ROW = 4;
-const H_GAP = 40;   // horizontal gap between nodes
-const V_GAP = 60;   // vertical gap between rows
+const V_GAP = 80;   // vertical gap between nodes
+const H_GAP = 60;   // horizontal gap between nodes
 
 // Simple sequential step numbering for linear roadmap
 function calculateStepNumbers(
@@ -18,90 +19,46 @@ function calculateStepNumbers(
   return result;
 }
 
-/**
- * Snake/Zig-Zag layout algorithm
- *
- * Row 0 (L→R): [1] → [2] → [3] → [4]
- *                                     │
- * Row 1 (R→L): [8] ← [7] ← [6] ← [5]
- *               │
- * Row 2 (L→R): [9] → [10] → [11] → [12]
- */
-function getSnakePosition(index: number): { x: number; y: number } {
-  const row = Math.floor(index / NODES_PER_ROW);
-  const colInRow = index % NODES_PER_ROW;
-  const isReversedRow = row % 2 === 1; // odd rows go right-to-left
-
-  const col = isReversedRow ? (NODES_PER_ROW - 1 - colInRow) : colInRow;
-
-  return {
-    x: col * (NODE_WIDTH + H_GAP),
-    y: row * (NODE_HEIGHT + V_GAP),
-  };
-}
-
-/**
- * Determine source and target handle positions for an edge
- * based on the snake layout direction
- */
-/**
- * Determine source and target handle IDs for an edge
- * based on the snake layout direction.
- * Handle IDs must match the `id` props on Handle components in CustomNode.
- */
-function getEdgeHandleIds(
-  sourceIndex: number,
-  targetIndex: number
-): { sourceHandleId: string; targetHandleId: string } {
-  const sourceRow = Math.floor(sourceIndex / NODES_PER_ROW);
-  const targetRow = Math.floor(targetIndex / NODES_PER_ROW);
-
-  // If on different rows → vertical connector
-  if (sourceRow !== targetRow) {
-    return {
-      sourceHandleId: "source-bottom",
-      targetHandleId: "target-top",
-    };
-  }
-
-  // Same row: determine direction
-  const isReversedRow = sourceRow % 2 === 1;
-  if (isReversedRow) {
-    // R→L row: source exits Left, target enters Right
-    return {
-      sourceHandleId: "source-left",
-      targetHandleId: "target-right",
-    };
-  } else {
-    // L→R row: source exits Right, target enters Left
-    return {
-      sourceHandleId: "source-right",
-      targetHandleId: "target-left",
-    };
-  }
-}
-
 export function convertToReactFlowNodes(
   roadmap: GeneratedRoadmap
 ): { nodes: RoadmapNode[]; edges: RoadmapEdge[] } {
-  // Calculate step numbers
   const stepNumbers = calculateStepNumbers(roadmap.nodes);
 
-  // Build a map from node ID to its sequential index
-  const nodeIdToIndex = new Map<string, number>();
-  roadmap.nodes.forEach((node, index) => {
-    nodeIdToIndex.set(node.id, index);
+  const dagreGraph = new dagre.graphlib.Graph();
+  dagreGraph.setDefaultEdgeLabel(() => ({}));
+  // Using Top-to-Bottom (TB) orientation for a vertical skill tree feel
+  dagreGraph.setGraph({ rankdir: 'TB', ranksep: V_GAP, nodesep: H_GAP });
+
+  // Map nodes into dagre graph
+  roadmap.nodes.forEach((node) => {
+    dagreGraph.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
   });
 
-  // Convert to React Flow nodes with snake positions
-  const nodes: RoadmapNode[] = roadmap.nodes.map((node: ApiNode, index: number) => {
-    const position = getSnakePosition(index);
+  // Map edges
+  roadmap.edges.forEach((edge) => {
+    dagreGraph.setEdge(edge.source, edge.target);
+  });
+
+  // Calculate the layout
+  dagre.layout(dagreGraph);
+
+  // Convert to React Flow nodes with newly calculated positions
+  const nodes: RoadmapNode[] = roadmap.nodes.map((node: ApiNode) => {
+    const nodeWithPosition = dagreGraph.node(node.id);
     const stepInfo = stepNumbers.get(node.id);
+
+    // dagre returns center coordinates, we need top-left for React Flow
+    const position = {
+      x: nodeWithPosition.x - (NODE_WIDTH / 2),
+      y: nodeWithPosition.y - (NODE_HEIGHT / 2),
+    };
 
     return {
       id: node.id,
       type: node.type,
       position,
+      targetPosition: Position.Top,
+      sourcePosition: Position.Bottom,
       data: {
         label: node.label,
         description: node.data.description,
@@ -115,18 +72,15 @@ export function convertToReactFlowNodes(
     };
   });
 
-  // Convert edges with correct handle IDs for snake routing
+  // Convert edges referencing top and bottom handles
   const edges: RoadmapEdge[] = roadmap.edges.map((edge) => {
-    const sourceIdx = nodeIdToIndex.get(edge.source) ?? 0;
-    const targetIdx = nodeIdToIndex.get(edge.target) ?? 0;
-    const { sourceHandleId, targetHandleId } = getEdgeHandleIds(sourceIdx, targetIdx);
-
     return {
       id: edge.id,
       source: edge.source,
       target: edge.target,
-      sourceHandle: sourceHandleId,
-      targetHandle: targetHandleId,
+      sourceHandle: "source-bottom",
+      targetHandle: "target-top",
+      type: 'labeled',
       animated: false,
     };
   });
