@@ -13,7 +13,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Progress } from "@/components/ui/progress";
+
 import { SaveProjectDialog } from "@/components/ui/SaveProjectDialog";
 import { CertificateModal } from "@/components/ui/CertificateModal";
 import { ProgressDashboard } from "@/components/ui/ProgressDashboard";
@@ -266,20 +266,7 @@ export function Header() {
                     <span className="font-bold text-foreground truncate max-w-[120px] sm:max-w-none">{currentProjectTitle}</span>
                 </div>
 
-                {/* Progress Stats - Hide when 100% complete */}
-                {totalNodes > 0 && progressPercentage < 100 && (
-                    <div className="hidden md:flex items-center gap-3 ml-4 pl-4 border-l">
-                        <div className="flex items-center gap-2">
-                            <Progress value={progressPercentage} className="w-24 h-2" />
-                            <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">
-                                {completedNodes}/{totalNodes}
-                            </span>
-                        </div>
-                        <span className="text-xs font-bold text-primary">
-                            {progressPercentage}%
-                        </span>
-                    </div>
-                )}
+
 
                 {/* Certificate Button - Show separately when 100% complete */}
                 {progressPercentage === 100 && (
