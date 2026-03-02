@@ -1,187 +1,101 @@
-import dagre from "dagre";
 import type { RoadmapNode, RoadmapEdge } from "@/types/roadmap";
 import type { GeneratedRoadmap, RoadmapNode as ApiNode } from "@/lib/api";
 
-const NODE_WIDTH = 200;
-const NODE_HEIGHT = 80;
-const BRANCH_OFFSET_X = 280; // Horizontal offset for branch nodes
+const NODE_WIDTH = 400;
+const NODE_HEIGHT = 120;
+const NODES_PER_ROW = 4;
+const H_GAP = 40;   // horizontal gap between nodes
+const V_GAP = 60;   // vertical gap between rows
 
-// Topological sort to calculate step numbers
+// Simple sequential step numbering for linear roadmap
 function calculateStepNumbers(
-  nodes: ApiNode[],
-  edges: { source: string; target: string }[]
+  nodes: ApiNode[]
 ): Map<string, { stepNumber: number; isStartNode: boolean }> {
   const result = new Map<string, { stepNumber: number; isStartNode: boolean }>();
-  
-  // Build adjacency list and in-degree count
-  const inDegree = new Map<string, number>();
-  const adjList = new Map<string, string[]>();
-  
-  // Initialize
-  nodes.forEach(node => {
-    inDegree.set(node.id, 0);
-    adjList.set(node.id, []);
+  nodes.forEach((node, index) => {
+    result.set(node.id, { stepNumber: index + 1, isStartNode: index === 0 });
   });
-  
-  // Count incoming edges
-  edges.forEach(edge => {
-    const currentInDegree = inDegree.get(edge.target) || 0;
-    inDegree.set(edge.target, currentInDegree + 1);
-    
-    const neighbors = adjList.get(edge.source) || [];
-    neighbors.push(edge.target);
-    adjList.set(edge.source, neighbors);
-  });
-  
-  // Find start nodes (nodes with no incoming edges) - only for core nodes
-  const coreNodes = nodes.filter(n => !n.category || n.category === "core");
-  const startNodes = coreNodes.filter(node => (inDegree.get(node.id) || 0) === 0);
-  
-  // BFS to assign step numbers
-  const queue: { id: string; step: number }[] = startNodes.map(node => ({ id: node.id, step: 1 }));
-  const visited = new Set<string>();
-  
-  // Mark start nodes
-  startNodes.forEach(node => {
-    result.set(node.id, { stepNumber: 1, isStartNode: true });
-    visited.add(node.id);
-  });
-  
-  let currentStep = 1;
-  while (queue.length > 0) {
-    const levelSize = queue.length;
-    
-    for (let i = 0; i < levelSize; i++) {
-      const current = queue.shift()!;
-      const neighbors = adjList.get(current.id) || [];
-      
-      neighbors.forEach(neighborId => {
-        if (!visited.has(neighborId)) {
-          // Check if all predecessors have been visited
-          const node = nodes.find(n => n.id === neighborId);
-          const isCore = !node?.category || node?.category === "core";
-          
-          if (isCore) {
-            visited.add(neighborId);
-            const nextStep = current.step + 1;
-            result.set(neighborId, { stepNumber: nextStep, isStartNode: false });
-            queue.push({ id: neighborId, step: nextStep });
-          }
-        }
-      });
-    }
-    currentStep++;
-  }
-  
-  // Handle branch/optional nodes - they share step number with parent
-  nodes.forEach(node => {
-    if (node.category && node.category !== "core" && !result.has(node.id)) {
-      // Find parent edge
-      const parentEdge = edges.find(e => e.target === node.id);
-      if (parentEdge) {
-        const parentStep = result.get(parentEdge.source);
-        if (parentStep) {
-          result.set(node.id, { stepNumber: parentStep.stepNumber, isStartNode: false });
-        }
-      }
-    }
-  });
-  
   return result;
+}
+
+/**
+ * Snake/Zig-Zag layout algorithm
+ *
+ * Row 0 (L→R): [1] → [2] → [3] → [4]
+ *                                     │
+ * Row 1 (R→L): [8] ← [7] ← [6] ← [5]
+ *               │
+ * Row 2 (L→R): [9] → [10] → [11] → [12]
+ */
+function getSnakePosition(index: number): { x: number; y: number } {
+  const row = Math.floor(index / NODES_PER_ROW);
+  const colInRow = index % NODES_PER_ROW;
+  const isReversedRow = row % 2 === 1; // odd rows go right-to-left
+
+  const col = isReversedRow ? (NODES_PER_ROW - 1 - colInRow) : colInRow;
+
+  return {
+    x: col * (NODE_WIDTH + H_GAP),
+    y: row * (NODE_HEIGHT + V_GAP),
+  };
+}
+
+/**
+ * Determine source and target handle positions for an edge
+ * based on the snake layout direction
+ */
+/**
+ * Determine source and target handle IDs for an edge
+ * based on the snake layout direction.
+ * Handle IDs must match the `id` props on Handle components in CustomNode.
+ */
+function getEdgeHandleIds(
+  sourceIndex: number,
+  targetIndex: number
+): { sourceHandleId: string; targetHandleId: string } {
+  const sourceRow = Math.floor(sourceIndex / NODES_PER_ROW);
+  const targetRow = Math.floor(targetIndex / NODES_PER_ROW);
+
+  // If on different rows → vertical connector
+  if (sourceRow !== targetRow) {
+    return {
+      sourceHandleId: "source-bottom",
+      targetHandleId: "target-top",
+    };
+  }
+
+  // Same row: determine direction
+  const isReversedRow = sourceRow % 2 === 1;
+  if (isReversedRow) {
+    // R→L row: source exits Left, target enters Right
+    return {
+      sourceHandleId: "source-left",
+      targetHandleId: "target-right",
+    };
+  } else {
+    // L→R row: source exits Right, target enters Left
+    return {
+      sourceHandleId: "source-right",
+      targetHandleId: "target-left",
+    };
+  }
 }
 
 export function convertToReactFlowNodes(
   roadmap: GeneratedRoadmap
 ): { nodes: RoadmapNode[]; edges: RoadmapEdge[] } {
-  const dagreGraph = new dagre.graphlib.Graph();
-  dagreGraph.setDefaultEdgeLabel(() => ({}));
-  dagreGraph.setGraph({ rankdir: "TB", nodesep: 100, ranksep: 120 });
+  // Calculate step numbers
+  const stepNumbers = calculateStepNumbers(roadmap.nodes);
 
-  // Separate core and branch nodes
-  const coreNodes = roadmap.nodes.filter(
-    (n) => !n.category || n.category === "core"
-  );
-  const branchNodes = roadmap.nodes.filter(
-    (n) => n.category && n.category !== "core"
-  );
-
-  // Add only core nodes to dagre for main path layout
-  coreNodes.forEach((node) => {
-    dagreGraph.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
+  // Build a map from node ID to its sequential index
+  const nodeIdToIndex = new Map<string, number>();
+  roadmap.nodes.forEach((node, index) => {
+    nodeIdToIndex.set(node.id, index);
   });
 
-  // Add only main edges (between core nodes) to dagre
-  const mainEdges = roadmap.edges.filter(
-    (edge) => edge.edgeType === "main" || !edge.edgeType
-  );
-  mainEdges.forEach((edge) => {
-    // Only add edge if both source and target are core nodes
-    const sourceIsCore = coreNodes.some((n) => n.id === edge.source);
-    const targetIsCore = coreNodes.some((n) => n.id === edge.target);
-    if (sourceIsCore && targetIsCore) {
-      dagreGraph.setEdge(edge.source, edge.target);
-    }
-  });
-
-  // Calculate layout for core nodes
-  dagre.layout(dagreGraph);
-
-  // Track branch positions (alternate left/right)
-  const branchPositions: Map<string, { x: number; y: number }> = new Map();
-  let leftBranchCount = 0;
-  let rightBranchCount = 0;
-
-  // Position branch nodes relative to their parent core node
-  branchNodes.forEach((branchNode) => {
-    // Find the parent core node (source of edge to this branch)
-    const parentEdge = roadmap.edges.find((e) => e.target === branchNode.id);
-    if (parentEdge) {
-      const parentNode = dagreGraph.node(parentEdge.source);
-      if (parentNode) {
-        // Alternate between left and right
-        const isLeft = leftBranchCount <= rightBranchCount;
-        const offsetX = isLeft ? -BRANCH_OFFSET_X : BRANCH_OFFSET_X;
-        
-        branchPositions.set(branchNode.id, {
-          x: parentNode.x + offsetX,
-          y: parentNode.y,
-        });
-
-        if (isLeft) leftBranchCount++;
-        else rightBranchCount++;
-      }
-    }
-  });
-
-  // Calculate step numbers for all nodes
-  const stepNumbers = calculateStepNumbers(roadmap.nodes, roadmap.edges);
-
-  // Convert to React Flow nodes with positions
-  const nodes: RoadmapNode[] = roadmap.nodes.map((node: ApiNode) => {
-    let position: { x: number; y: number };
-
-    if (!node.category || node.category === "core") {
-      // Core node - use dagre position
-      const nodeWithPosition = dagreGraph.node(node.id);
-      position = {
-        x: nodeWithPosition.x - NODE_WIDTH / 2,
-        y: nodeWithPosition.y - NODE_HEIGHT / 2,
-      };
-    } else {
-      // Branch node - use calculated position
-      const branchPos = branchPositions.get(node.id);
-      if (branchPos) {
-        position = {
-          x: branchPos.x - NODE_WIDTH / 2,
-          y: branchPos.y - NODE_HEIGHT / 2,
-        };
-      } else {
-        // Fallback position if no parent found
-        position = { x: 0, y: 0 };
-      }
-    }
-
-    // Get step number info
+  // Convert to React Flow nodes with snake positions
+  const nodes: RoadmapNode[] = roadmap.nodes.map((node: ApiNode, index: number) => {
+    const position = getSnakePosition(index);
     const stepInfo = stepNumbers.get(node.id);
 
     return {
@@ -192,23 +106,30 @@ export function convertToReactFlowNodes(
         label: node.label,
         description: node.data.description,
         resources: node.data.resources,
-        category: node.category || "core",
+        category: "core" as const,
+        phase: (node.data as any).phase || undefined,
+        estimatedTime: (node.data as any).estimatedTime || undefined,
         stepNumber: stepInfo?.stepNumber,
         isStartNode: stepInfo?.isStartNode || false,
       },
     };
   });
 
-  // Convert edges with edge type info
-  const edges: RoadmapEdge[] = roadmap.edges.map((edge) => ({
-    id: edge.id,
-    source: edge.source,
-    target: edge.target,
-    animated: edge.edgeType === "branch",
-    style: edge.edgeType === "branch" 
-      ? { strokeDasharray: "5,5", stroke: "hsl(var(--muted-foreground))" }
-      : undefined,
-  }));
+  // Convert edges with correct handle IDs for snake routing
+  const edges: RoadmapEdge[] = roadmap.edges.map((edge) => {
+    const sourceIdx = nodeIdToIndex.get(edge.source) ?? 0;
+    const targetIdx = nodeIdToIndex.get(edge.target) ?? 0;
+    const { sourceHandleId, targetHandleId } = getEdgeHandleIds(sourceIdx, targetIdx);
+
+    return {
+      id: edge.id,
+      source: edge.source,
+      target: edge.target,
+      sourceHandle: sourceHandleId,
+      targetHandle: targetHandleId,
+      animated: false,
+    };
+  });
 
   return { nodes, edges };
 }
@@ -216,11 +137,11 @@ export function convertToReactFlowNodes(
 // Helper to check if message is a roadmap generation request
 export function isRoadmapRequest(message: string): boolean {
   const lowerMsg = message.toLowerCase();
-  
+
   // Exclude question patterns - these are asking ABOUT roadmap, not requesting to CREATE one
   const questionPatterns = [
     "apa ini",
-    "ini apa", 
+    "ini apa",
     "ini roadmap",
     "roadmap ini",
     "roadmap apa",
@@ -230,13 +151,13 @@ export function isRoadmapRequest(message: string): boolean {
     "what roadmap",
     "this roadmap",
   ];
-  
+
   if (questionPatterns.some((pattern) => lowerMsg.includes(pattern))) {
     return false;
   }
-  
+
   // Check for CREATION intent (flexible matching)
-  const hasCreateIntent = 
+  const hasCreateIntent =
     lowerMsg.includes("buat") ||      // buat, buatkan, buatin
     lowerMsg.includes("bikin") ||     // bikin, bikinin
     lowerMsg.includes("create") ||
@@ -250,11 +171,11 @@ export function isRoadmapRequest(message: string): boolean {
     lowerMsg.includes("ajari") ||
     lowerMsg.includes("ajarkan") ||
     lowerMsg.includes("teach me");
-  
+
   // Must also mention roadmap or learning topic
-  const hasRoadmapOrLearning = 
+  const hasRoadmapOrLearning =
     lowerMsg.includes("roadmap") ||
     lowerMsg.includes("belajar");
-  
+
   return hasCreateIntent && hasRoadmapOrLearning;
 }

@@ -175,7 +175,7 @@ export function FlowCanvas() {
 
     // Default sizes for different node types
     const defaultNodeSizes = useMemo(() => ({
-        default: { width: 200, height: 70 },
+        default: { width: 400, height: 120 },
         decision: { width: 110, height: 110 },
         "start-end": { width: 90, height: 90 },
         image: { width: 150, height: 150 },
@@ -297,7 +297,7 @@ export function FlowCanvas() {
                     </div>
                 </div>
             )}
-            
+
             <ReactFlow
                 nodes={nodes}
                 edges={edges}
@@ -340,9 +340,9 @@ export function FlowCanvas() {
                         nodeColor={(node) => {
                             const data = node.data as { isCompleted?: boolean; quizPassed?: boolean } | undefined;
                             const isCompleted = data?.isCompleted || data?.quizPassed;
-                            
+
                             if (isCompleted) return "#10b981"; // emerald-500 for completed
-                            
+
                             switch (node.type) {
                                 case "decision": return "#f59e0b"; // amber-500
                                 case "start-end": return "#6366f1"; // indigo-500

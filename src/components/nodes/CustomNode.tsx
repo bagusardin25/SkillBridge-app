@@ -2,7 +2,7 @@ import { memo, useState, useRef, useEffect } from "react";
 import { Handle, Position, type NodeProps, type Node, NodeResizer, useReactFlow } from "@xyflow/react";
 import type { RoadmapNodeData } from "@/types/roadmap";
 import { Input } from "@/components/ui/input";
-import { CheckCircle2, Play } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 
 type CustomNodeProps = NodeProps<Node<RoadmapNodeData>>;
 
@@ -16,13 +16,15 @@ const shapeStyles = {
     roadmapCard: "rounded-lg border shadow-md",
 };
 
-// Category-based styling for roadmap.sh style
+// Category-based styling for Railway-inspired look
 const categoryStyles = {
-    core: "border-l-4 border-l-primary bg-card",
-    optional: "border-l-4 border-l-slate-400 bg-slate-50 dark:bg-slate-900/50",
-    advanced: "border-l-4 border-l-violet-500 bg-violet-50 dark:bg-violet-900/20",
-    project: "border-l-4 border-l-emerald-500 bg-emerald-50 dark:bg-emerald-900/20",
+    core: "border-l-[5px] border-l-primary bg-card",
+    optional: "border-l-[5px] border-l-slate-400 bg-slate-50/80 dark:bg-slate-800/40",
+    advanced: "border-l-[5px] border-l-violet-500 bg-violet-50/80 dark:bg-violet-900/30",
+    project: "border-l-[5px] border-l-emerald-500 bg-emerald-50/80 dark:bg-emerald-900/30",
 };
+
+
 
 function CustomNodeComponent({ id, data, type, selected }: CustomNodeProps) {
     const { updateNodeData, setNodes, getNode } = useReactFlow();
@@ -31,11 +33,11 @@ function CustomNodeComponent({ id, data, type, selected }: CustomNodeProps) {
     const inputRef = useRef<HTMLInputElement>(null);
     const isDecision = type === "decision";
     const shapeClass = shapeStyles[type as keyof typeof shapeStyles] || shapeStyles.default;
-    const categoryClass = data.category 
+    const categoryClass = data.category
         ? categoryStyles[data.category as keyof typeof categoryStyles] || ""
         : "";
     const completedClass = (data.isCompleted || data.quizPassed)
-        ? "!border-l-emerald-500 !bg-emerald-50 dark:!bg-emerald-900/30 ring-1 ring-emerald-500/30" 
+        ? "!border-l-emerald-500 !bg-emerald-50 dark:!bg-emerald-900/30 ring-1 ring-emerald-500/30"
         : "";
 
     useEffect(() => {
@@ -51,14 +53,14 @@ function CustomNodeComponent({ id, data, type, selected }: CustomNodeProps) {
         const handleResizeKeyDown = (e: KeyboardEvent) => {
             if (e.ctrlKey && e.shiftKey && ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
                 e.preventDefault();
-                
+
                 const currentNode = getNode(id);
                 if (!currentNode) return;
 
                 // Default dimensions if not set
                 const currentWidth = currentNode.width ?? (currentNode.measured?.width || 150);
                 const currentHeight = currentNode.height ?? (currentNode.measured?.height || 50);
-                
+
                 const STEP = 10;
                 let newWidth = currentWidth;
                 let newHeight = currentHeight;
@@ -70,10 +72,10 @@ function CustomNodeComponent({ id, data, type, selected }: CustomNodeProps) {
                     case "ArrowUp": newHeight = Math.max(50, newHeight - STEP); break;
                 }
 
-                setNodes((nds) => 
-                    nds.map((n) => 
-                        n.id === id 
-                            ? { ...n, width: newWidth, height: newHeight, style: { ...n.style, width: newWidth, height: newHeight } } 
+                setNodes((nds) =>
+                    nds.map((n) =>
+                        n.id === id
+                            ? { ...n, width: newWidth, height: newHeight, style: { ...n.style, width: newWidth, height: newHeight } }
                             : n
                     )
                 );
@@ -110,48 +112,19 @@ function CustomNodeComponent({ id, data, type, selected }: CustomNodeProps) {
     return (
         <div
             className={`
-        px-4 py-3 text-card-foreground border-border
+        px-6 py-4 text-card-foreground border-border
         ${shapeClass}
         ${categoryClass}
         ${completedClass}
         ${selected ? "ring-2 ring-primary" : ""}
-        h-full w-full
+        min-w-[400px] min-h-[120px] max-h-[120px]
         transition-all duration-200
         relative group
         hover:shadow-lg hover:z-10
+        animate-node-appear
       `}
             onDoubleClick={handleDoubleClick}
         >
-            {/* Step Number Badge */}
-            {data.stepNumber && (
-                <div
-                    className={`absolute -top-3 -left-3 z-10 min-w-[24px] h-6 px-1.5 rounded-full flex items-center justify-center text-xs font-bold shadow-md ${
-                        data.isCompleted || data.quizPassed
-                            ? "bg-emerald-500 text-white"
-                            : data.isStartNode
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted-foreground/80 text-white"
-                    }`}
-                    title={`Step ${data.stepNumber}`}
-                >
-                    {data.isCompleted || data.quizPassed ? (
-                        <CheckCircle2 className="h-3.5 w-3.5" />
-                    ) : (
-                        data.stepNumber
-                    )}
-                </div>
-            )}
-
-            {/* START Badge for first node */}
-            {data.isStartNode && !(data.isCompleted || data.quizPassed) && (
-                <div
-                    className="absolute -top-6 left-1/2 -translate-x-1/2 z-10 px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 shadow-md whitespace-nowrap"
-                >
-                    <Play className="h-2.5 w-2.5 fill-current" />
-                    Mulai di sini
-                </div>
-            )}
-
             {/* Completed Badge (shown when quiz passed) */}
             {(data.isCompleted || data.quizPassed) && (
                 <div
@@ -168,60 +141,80 @@ function CustomNodeComponent({ id, data, type, selected }: CustomNodeProps) {
                 lineClassName="border-primary"
                 handleClassName="h-3 w-3 bg-primary border-2 border-background rounded shadow-sm"
             />
-            <Handle
-                type="target"
-                position={Position.Top}
-                className={`!bg-primary !border-primary-foreground !w-3 !h-3 ${isDecision ? "-rotate-45 !-top-3" : ""}`}
-            />
 
-            {/* Content rotation for decision nodes to keep text straight */}
-            <div className={`flex flex-col items-center justify-center h-full w-full ${isDecision ? "-rotate-45" : ""}`}>
+            {/* Handles for snake layout — each position needs source+target variants */}
+            {/* Top: target (vertical connector enters from above) */}
+            <Handle type="target" position={Position.Top} id="target-top"
+                className="!bg-primary !border-primary-foreground !w-3 !h-3" />
+            {/* Bottom: source (vertical connector exits downward) */}
+            <Handle type="source" position={Position.Bottom} id="source-bottom"
+                className="!bg-primary !border-primary-foreground !w-3 !h-3" />
+            {/* Right: source (L→R row exit) + target (R→L row enter) */}
+            <Handle type="source" position={Position.Right} id="source-right"
+                className="!bg-primary !border-primary-foreground !w-3 !h-3" />
+            <Handle type="target" position={Position.Right} id="target-right"
+                className="!bg-primary !border-primary-foreground !w-3 !h-3" />
+            {/* Left: target (L→R row enter) + source (R→L row exit) */}
+            <Handle type="target" position={Position.Left} id="target-left"
+                className="!bg-primary !border-primary-foreground !w-3 !h-3" />
+            <Handle type="source" position={Position.Left} id="source-left"
+                className="!bg-primary !border-primary-foreground !w-3 !h-3" />
+
+            {/* Content — horizontal left-aligned layout */}
+            <div className={`flex flex-col justify-center h-full w-full ${isDecision ? "-rotate-45" : ""}`}>
                 {isEditing ? (
-                     <Input
+                    <Input
                         ref={inputRef}
                         value={editValue}
                         onChange={(e) => setEditValue(e.target.value)}
                         onBlur={handleBlur}
                         onKeyDown={handleKeyDown}
-                        className="h-8 text-xs text-center min-w-[100px]"
-                     />
+                        className="h-8 text-sm min-w-[100px]"
+                    />
                 ) : (
                     <>
-                        <div className="font-semibold text-base text-center select-none w-full break-words whitespace-pre-wrap drop-shadow-sm">
-                            {data.label}
+                        {/* Row 1: Step number + Title + Time */}
+                        <div className="flex items-center justify-between gap-3 w-full">
+                            <div className="font-semibold text-base select-none truncate flex items-center gap-2 min-w-0">
+                                {data.stepNumber && (
+                                    <span className={`inline-flex items-center justify-center min-w-[24px] h-6 px-1.5 rounded text-xs font-bold shrink-0 ${data.isCompleted || data.quizPassed
+                                        ? "bg-emerald-500 text-white"
+                                        : data.isStartNode
+                                            ? "bg-primary text-primary-foreground"
+                                            : "bg-muted-foreground/20 text-muted-foreground"
+                                        }`}>
+                                        {data.isCompleted || data.quizPassed ? (
+                                            <CheckCircle2 className="h-3.5 w-3.5" />
+                                        ) : (
+                                            data.stepNumber
+                                        )}
+                                    </span>
+                                )}
+                                <span className="truncate">{data.label}</span>
+                            </div>
+                            {data.estimatedTime && !isDecision && type !== "start-end" && (
+                                <span className="text-[11px] text-muted-foreground/60 whitespace-nowrap shrink-0">
+                                    ⏱ {data.estimatedTime as string}
+                                </span>
+                            )}
                         </div>
+                        {/* Row 2: Short description */}
                         {data.description && !isDecision && type !== "start-end" && (
-                            <div className="text-sm text-muted-foreground/90 mt-1 line-clamp-2 select-none pointer-events-none text-center">
+                            <div className="text-sm text-muted-foreground/80 mt-1 line-clamp-1 select-none pointer-events-none">
                                 {data.description}
+                            </div>
+                        )}
+                        {/* Row 3: Phase badge */}
+                        {data.phase && !isDecision && type !== "start-end" && (
+                            <div className="mt-2">
+                                <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 bg-muted/40 px-2 py-0.5 rounded">
+                                    {data.phase as string}
+                                </span>
                             </div>
                         )}
                     </>
                 )}
             </div>
-
-            <Handle
-                type="source"
-                position={Position.Bottom}
-                className={`!bg-primary !border-primary-foreground !w-3 !h-3 ${isDecision ? "-rotate-45 !-bottom-3" : ""}`}
-            />
-
-            {/* Add handles for decision nodes (Left/Right) */}
-            {isDecision && (
-                <>
-                    <Handle
-                        type="source"
-                        position={Position.Left}
-                        id="left"
-                        className="!bg-primary !border-primary-foreground !w-3 !h-3 -rotate-45 !-left-3"
-                    />
-                    <Handle
-                        type="source"
-                        position={Position.Right}
-                        id="right"
-                        className="!bg-primary !border-primary-foreground !w-3 !h-3 -rotate-45 !-right-3"
-                    />
-                </>
-            )}
         </div>
     );
 }

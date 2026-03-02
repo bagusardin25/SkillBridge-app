@@ -18,6 +18,8 @@ export interface RoadmapNodeData extends Record<string, unknown> {
     description: string;
     resources: string[];
     videos?: string[]; // Video tutorial URLs (YouTube, etc.)
+    phase?: string; // Phase/section grouping (e.g., "Fundamentals", "Core Skills")
+    estimatedTime?: string; // Estimated time to complete (e.g., "~2-4 jam")
     category?: NodeCategory;
     isCompleted?: boolean;
     status?: NodeStatus;

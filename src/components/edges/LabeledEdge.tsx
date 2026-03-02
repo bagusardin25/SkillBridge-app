@@ -34,23 +34,25 @@ function LabeledEdgeComponent({
         targetX,
         targetY,
         targetPosition,
+        borderRadius: 16,
     });
 
     const edgeStyles = {
         main: {
             stroke: "hsl(var(--primary))",
-            strokeWidth: 2,
+            strokeWidth: 2.5,
+            filter: "drop-shadow(0 1px 2px rgba(99, 102, 241, 0.15))",
         },
         branch: {
             stroke: "hsl(var(--muted-foreground))",
             strokeWidth: 1.5,
-            strokeDasharray: "5,5",
+            strokeDasharray: "6,4",
             className: "edge-animated",
         },
         optional: {
             stroke: "#94a3b8",
             strokeWidth: 1.5,
-            strokeDasharray: "3,3",
+            strokeDasharray: "4,3",
             className: "edge-animated",
         },
     };

@@ -16,10 +16,10 @@ const USE_MOCK = process.env.USE_MOCK === "true";
 
 // Helper to check if error is rate limit
 function isRateLimitError(error: any): boolean {
-  return error?.status === 429 || 
-         error?.message?.includes("rate_limit") || 
-         error?.message?.includes("Rate limit") ||
-         error?.message?.includes("429");
+  return error?.status === 429 ||
+    error?.message?.includes("rate_limit") ||
+    error?.message?.includes("Rate limit") ||
+    error?.message?.includes("429");
 }
 
 // Helper to sleep for retry
@@ -47,6 +47,7 @@ export interface RoadmapResponse {
       description: string;
       resources: string[];
       estimatedTime?: string;
+      phase?: string;
     };
   }[];
   edges: {
@@ -106,7 +107,7 @@ TOPIC RESTRICTION (CRITICAL):
 - If user asks for non-tech topics, return this JSON:
   {"error": "SkillBridge khusus untuk topik teknologi & programming. Coba topik seperti: Web Development, Python, Data Science, Mobile Development, UI/UX Design, atau topik tech lainnya!"}
 ${prefSection}
-Generate a BRANCHING learning roadmap in this EXACT JSON format:
+Generate a LINEAR learning roadmap as a single vertical flow in this EXACT JSON format:
 {
   "title": "Descriptive Roadmap Title",
   "totalEstimatedTime": "~X weeks/months (total time to complete entire roadmap)",
@@ -115,45 +116,59 @@ Generate a BRANCHING learning roadmap in this EXACT JSON format:
       "id": "1",
       "label": "Topic Name",
       "type": "input|default|output",
-      "category": "core|optional|advanced|project",
+      "category": "core",
       "data": {
-        "description": "What this topic covers and WHY it matters in the learning journey",
+        "description": "Brief summary, MAX 8 WORDS (e.g., 'Dasar HTML, CSS, dan JavaScript untuk web')",
         "resources": ["https://verified-resource.com"],
-        "estimatedTime": "~X hours/days"
+        "estimatedTime": "~X hours/days",
+        "phase": "Fundamentals|Core Skills|Intermediate|Advanced|Project|Career Preparation"
       }
     }
   ],
   "edges": [
-    { "id": "e1-2", "source": "1", "target": "2", "edgeType": "main|branch" }
+    { "id": "e1-2", "source": "1", "target": "2", "edgeType": "main" }
   ]
 }
 
+LAYOUT STRUCTURE (CRITICAL - STRICT SINGLE VERTICAL LINE):
+- ALL nodes flow TOP → BOTTOM in ONE SINGLE VERTICAL LINE
+- NO branching, NO left/right side nodes, NO forks
+- Every node connects to the next in a straight line: 1→2→3→4→...→N
+- This creates a clean, Railway-style sequential flow
+
+PHASE ORDERING (MUST follow this exact order):
+1. "Fundamentals" - Basics, setup, introduction (2-3 nodes)
+2. "Core Skills" - Main concepts of the topic (2-3 nodes)
+3. "Intermediate" - Deeper topics, frameworks, tools (2-3 nodes)
+4. "Mini Project" - Small hands-on project to practice (1 node)
+5. "Advanced" - Advanced concepts, optimization, best practices (1-2 nodes)
+6. "Final Project" - Complete project applying all skills (1 node)
+7. "Career Preparation" - Portfolio, interview prep, job readiness (1 node, ALWAYS the LAST node)
+
 STRUCTURE RULES:
-- MAIN PATH: 8-12 "core" nodes forming the essential learning sequence (vertical)
-- BRANCH NODES: 6-10 "optional/advanced/project" nodes branching from core topics
-- Total: 15-22 nodes for comprehensive coverage
-- EVERY 2-3 core nodes MUST have at least 1 branch node
+- Total: 10-14 nodes, ALL with category "core"
+- ALL nodes connected sequentially: 1→2→3→4→...→N
+- Node IDs MUST be strictly sequential: "1", "2", "3", ...
+- EXACTLY (N-1) edges for N nodes
+- ALL edges have edgeType "main"
+- Mini Project MUST come BEFORE Final Project
+- Career Preparation MUST be the ABSOLUTE LAST node
+- NO BRANCHING. NO SIDE NODES. ONLY ONE STRAIGHT PATH.
 
 NODE TYPES:
-- "input": Starting point (ONLY first node)
-- "default": Middle nodes
-- "output": Goal/completion node (ONLY last core node)
+- "input": ONLY the first node (id="1")
+- "default": All middle nodes
+- "output": ONLY the last node
 
-CATEGORIES:
-- "core": Essential topics (main vertical path) - REQUIRED learning
-- "optional": Nice-to-have alternatives or supplementary topics
-- "advanced": Deep-dive topics for those who want more
-- "project": Hands-on project suggestions to practice skills
+CATEGORY:
+- ALL nodes MUST have category: "core"
+- Do NOT use "optional", "advanced", or "project" categories
 
-BRANCHING PATTERN (like roadmap.sh):
-- Core nodes form vertical main path
-- Branch nodes appear on left/right sides of core nodes
-- Example: Core "CSS Basics" → Branch "CSS Frameworks" (optional), "Animations" (advanced)
-- Each branch represents alternative paths or deep-dive topics
-
-EDGE TYPES:
-- "main": Connects core nodes vertically (1→2→3→4... prerequisite chain)
-- "branch": Connects core node to its branch (core→optional, core→advanced, core→project)
+EDGE RULES:
+- ALL edges have edgeType: "main"
+- Edges connect nodes sequentially: e1-2 (1→2), e2-3 (2→3), etc.
+- EXACTLY (N-1) edges for N nodes
+- NO branch edges
 
 QUALITY REQUIREMENTS:
 1. RESOURCES MUST INCLUDE (in this priority order):
@@ -175,7 +190,7 @@ QUALITY REQUIREMENTS:
    - All resources must be FREE and publicly accessible
    - NO Udemy, Coursera paid courses
 
-3. Each description MUST explain WHY this topic is important
+3. Each description MUST be MAX 8 WORDS - a short summary, NOT a paragraph. Example: "Belajar dasar sintaks dan struktur Go"
 4. Include REALISTIC estimatedTime for each node based on complexity:
    - Basic concept/intro: "~2-4 jam"
    - Intermediate topic: "~1-2 hari"
@@ -277,19 +292,18 @@ function validateRoadmap(data: RoadmapResponse): ValidationResult {
     return { isValid: false, errors };
   }
 
-  // Validate node count
+  // Validate node count (10-14 for linear flow)
   if (data.nodes.length < 8) {
     errors.push(`Too few nodes (${data.nodes.length}). Need at least 8.`);
   }
-  if (data.nodes.length > 25) {
-    errors.push(`Too many nodes (${data.nodes.length}). Max 25.`);
+  if (data.nodes.length > 20) {
+    errors.push(`Too many nodes (${data.nodes.length}). Max 20.`);
   }
 
   // Validate each node
   const nodeIds = new Set<string>();
   let hasInputNode = false;
   let hasOutputNode = false;
-  let coreCount = 0;
 
   for (const node of data.nodes) {
     if (!node.id) {
@@ -316,7 +330,12 @@ function validateRoadmap(data: RoadmapResponse): ValidationResult {
 
     if (node.type === "input") hasInputNode = true;
     if (node.type === "output") hasOutputNode = true;
-    if (node.category === "core") coreCount++;
+
+    // All nodes should be core (no branches)
+    if (node.category && node.category !== "core") {
+      // Auto-fix: treat as core instead of error
+      node.category = "core";
+    }
   }
 
   if (!hasInputNode) {
@@ -327,8 +346,10 @@ function validateRoadmap(data: RoadmapResponse): ValidationResult {
     errors.push("Missing output (goal) node");
   }
 
-  if (coreCount < 3) {
-    errors.push(`Too few core nodes (${coreCount}). Need at least 3.`);
+  // Validate edges: should be N-1 for N nodes, all sequential
+  const expectedEdgeCount = data.nodes.length - 1;
+  if (data.edges.length < expectedEdgeCount) {
+    errors.push(`Too few edges (${data.edges.length}). Expected ${expectedEdgeCount} for ${data.nodes.length} nodes.`);
   }
 
   // Validate edges reference valid nodes
@@ -338,6 +359,10 @@ function validateRoadmap(data: RoadmapResponse): ValidationResult {
     }
     if (!edge.target || !nodeIds.has(edge.target)) {
       errors.push(`Edge ${edge.id} has invalid target: ${edge.target}`);
+    }
+    // Force all edges to main type
+    if (edge.edgeType && edge.edgeType !== "main") {
+      edge.edgeType = "main";
     }
   }
 
@@ -366,8 +391,8 @@ async function generateRoadmapWithGemini(
   userPrompt: string
 ): Promise<RoadmapResponse> {
   console.log("Using Gemini as fallback for roadmap generation...");
-  
-  const model = gemini.getGenerativeModel({ 
+
+  const model = gemini.getGenerativeModel({
     model: GEMINI_MODEL,
     generationConfig: {
       temperature: 0.4,
@@ -394,8 +419,8 @@ async function chatWithGemini(
   context?: { role: string; content: string }[]
 ): Promise<string> {
   console.log("Using Gemini as fallback for chat...");
-  
-  const model = gemini.getGenerativeModel({ 
+
+  const model = gemini.getGenerativeModel({
     model: GEMINI_MODEL,
     generationConfig: {
       temperature: 0.7,
@@ -404,14 +429,14 @@ async function chatWithGemini(
 
   // Build conversation history for Gemini
   let fullPrompt = CHAT_PROMPT + "\n\n---\n\nConversation:\n";
-  
+
   if (context) {
     for (const msg of context) {
       const role = msg.role === "user" ? "User" : "Assistant";
       fullPrompt += `${role}: ${msg.content}\n\n`;
     }
   }
-  
+
   fullPrompt += `User: ${message}\n\nAssistant:`;
 
   const result = await model.generateContent(fullPrompt);
@@ -496,23 +521,23 @@ export async function generateRoadmap(
       if (error.status === 401) {
         throw new Error("API key is invalid. Please check your OpenAI API key.");
       }
-      
+
       // Rate limit - try Gemini fallback
       if (isRateLimitError(error)) {
         console.log("OpenAI rate limited, trying Gemini fallback...");
-        
+
         // Wait a bit before trying Gemini
         await sleep(1000);
-        
+
         try {
           const geminiResult = await generateRoadmapWithGemini(systemPrompt, userPrompt);
           const validation = validateRoadmap(geminiResult);
-          
+
           if (validation.isValid) {
             console.log("Roadmap generated successfully with Gemini fallback");
             return geminiResult;
           }
-          
+
           // Return anyway if validation has minor issues
           console.warn("Gemini result has validation warnings:", validation.errors);
           return geminiResult;
@@ -574,7 +599,7 @@ export async function chatWithAI(
     // Rate limit - try Gemini fallback
     if (isRateLimitError(error)) {
       console.log("OpenAI rate limited for chat, trying Gemini fallback...");
-      
+
       try {
         await sleep(500);
         return await chatWithGemini(message, context);

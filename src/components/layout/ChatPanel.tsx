@@ -378,19 +378,23 @@ export function ChatPanel() {
                     setNodes([]);
                     setEdges([]);
 
-                    // Progressive rendering - add nodes one by one
+                    // Progressive rendering — nodes AND edges appear together
                     const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
                     const displayedNodes: typeof nodes = [];
+                    const displayedEdges: typeof edges = [];
 
                     for (let i = 0; i < nodes.length; i++) {
-                        await delay(120); // 120ms delay between each node
+                        await delay(150); // 150ms delay for premium live-generation feel
                         displayedNodes.push(nodes[i]);
-                        setNodes([...displayedNodes]);
-                    }
 
-                    // Add edges after all nodes are rendered
-                    await delay(200);
-                    setEdges(edges);
+                        // Add the edge connecting to this node (edge i-1 connects node i-1 → node i)
+                        if (i > 0 && edges[i - 1]) {
+                            displayedEdges.push(edges[i - 1]);
+                        }
+
+                        setNodes([...displayedNodes]);
+                        setEdges([...displayedEdges]);
+                    }
 
                     // Show success message with streaming effect
                     const messageId = (Date.now() + 1).toString();
