@@ -9,6 +9,7 @@ import {
 interface LabeledEdgeData {
     label?: string;
     edgeType?: "main" | "branch" | "optional";
+    pathStatus?: "completed" | "active" | "locked";
 }
 
 function LabeledEdgeComponent({
@@ -22,11 +23,10 @@ function LabeledEdgeComponent({
     data,
     markerEnd,
     style,
-    animated,
 }: EdgeProps) {
     const edgeData = data as LabeledEdgeData | undefined;
     const label = edgeData?.label;
-    const edgeType = edgeData?.edgeType || "main";
+    const pathStatus = edgeData?.pathStatus || "completed"; // Default to completed if unspecified
 
     const [edgePath, labelX, labelY] = getBezierPath({
         sourceX,
@@ -37,41 +37,24 @@ function LabeledEdgeComponent({
         targetPosition,
     });
 
-    const edgeStyles = {
-        main: {
-            stroke: "hsl(var(--primary))",
-            strokeWidth: 2.5,
-            filter: "drop-shadow(0 1px 2px rgba(99, 102, 241, 0.15))",
-        },
-        branch: {
-            stroke: "hsl(var(--muted-foreground))",
-            strokeWidth: 1.5,
-            strokeDasharray: "6,4",
-            className: "edge-animated",
-        },
-        optional: {
-            stroke: "#94a3b8",
-            strokeWidth: 1.5,
-            strokeDasharray: "4,3",
-            className: "edge-animated",
-        },
-    };
+    const resolvedStyle: React.CSSProperties = { ...style, transition: "all 0.5s ease" };
+    let edgeClass = "transition-all duration-500 ease-in-out ";
 
-    const currentStyle = edgeStyles[edgeType] || edgeStyles.main;
-    // Base styles
-    const resolvedStyle: React.CSSProperties = {
-        ...style,
-        stroke: currentStyle.stroke,
-        strokeWidth: currentStyle.strokeWidth,
-        ...('strokeDasharray' in currentStyle ? { strokeDasharray: currentStyle.strokeDasharray as string } : {}),
-        ...('filter' in currentStyle ? { filter: currentStyle.filter as string } : {}),
-    };
-
-    let edgeClass = ('className' in currentStyle ? currentStyle.className : "") as string;
-    if (animated) {
-        edgeClass += " react-flow__edge-path animate-pulse glow-edge";
+    if (pathStatus === "completed") {
+        resolvedStyle.stroke = "hsl(var(--primary))";
+        resolvedStyle.strokeWidth = 3.5;
+        // Subtle drop shadow matching primary color
+        resolvedStyle.filter = "drop-shadow(0 0 2px rgba(99, 102, 241, 0.4))";
+    } else if (pathStatus === "active") {
+        resolvedStyle.stroke = "hsl(var(--primary))";
         resolvedStyle.strokeWidth = 3;
-        resolvedStyle.filter = "drop-shadow(0 0 6px hsl(var(--primary))) drop-shadow(0 0 12px hsl(var(--primary)))";
+        edgeClass += " react-flow__edge-path active-path glow-edge-subtle";
+    } else if (pathStatus === "locked") {
+        resolvedStyle.stroke = "hsl(var(--muted-foreground))";
+        resolvedStyle.strokeWidth = 1.5;
+        resolvedStyle.opacity = 0.4;
+        resolvedStyle.strokeDasharray = "5,5";
+        edgeClass += " react-flow__edge-path";
     }
 
     return (

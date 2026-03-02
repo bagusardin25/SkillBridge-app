@@ -338,6 +338,35 @@ export function FlowCanvas() {
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [placingNodeType, setPlacingNodeType]);
+    // Calculate global progress
+    const learningNodes = nodes.filter(n => n.type !== "start-end" && n.type !== "decision" && !n.data.isStartNode);
+    const completedNodesCount = learningNodes.filter(n => n.data.isCompleted || n.data.quizPassed).length;
+    const totalNodesCount = learningNodes.length;
+    const progressPercentage = totalNodesCount > 0 ? Math.round((completedNodesCount / totalNodesCount) * 100) : 0;
+
+    // Calculate dynamic edge statuses
+    const dynamicEdges = edges.map(edge => {
+        const sourceNode = nodes.find(n => n.id === edge.source);
+        const targetNode = nodes.find(n => n.id === edge.target);
+
+        const isSourceCompleted = sourceNode?.data.isCompleted || sourceNode?.data.quizPassed || sourceNode?.type === "start-end" || sourceNode?.data.isStartNode;
+        const isTargetCompleted = targetNode?.data.isCompleted || targetNode?.data.quizPassed;
+
+        let status = "locked";
+        if (isSourceCompleted && isTargetCompleted) {
+            status = "completed";
+        } else if (isSourceCompleted && !isTargetCompleted) {
+            status = "active";
+        }
+
+        return {
+            ...edge,
+            data: {
+                ...edge.data,
+                pathStatus: status
+            }
+        };
+    });
 
     return (
         <div className="w-full h-full relative">
@@ -355,7 +384,7 @@ export function FlowCanvas() {
 
             <ReactFlow
                 nodes={nodes}
-                edges={edges}
+                edges={dynamicEdges}
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onConnect={isEditMode ? onConnect : undefined}
@@ -385,7 +414,23 @@ export function FlowCanvas() {
             >
                 <Background variant={BackgroundVariant.Dots} gap={20} size={1} />
                 <Controls className="bg-background border-border" />
-                <Panel position="top-center" className="mt-4">
+                <Panel position="top-center" className="mt-4 flex flex-col items-center gap-3">
+                    {totalNodesCount > 0 && (
+                        <div className="bg-card/90 backdrop-blur border border-border rounded-full shadow-md px-4 py-2 flex items-center gap-4 cursor-default animate-node-appear">
+                            <span className="text-xs font-semibold whitespace-nowrap">
+                                🚀 {completedNodesCount} / {totalNodesCount} Topik
+                            </span>
+                            <div className="w-32 h-2.5 bg-muted rounded-full overflow-hidden shadow-inner hidden sm:block">
+                                <div
+                                    className="h-full bg-emerald-500 rounded-full transition-all duration-1000 ease-out"
+                                    style={{ width: `${progressPercentage}%` }}
+                                />
+                            </div>
+                            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 min-w-[32px] text-right">
+                                {progressPercentage}%
+                            </span>
+                        </div>
+                    )}
                     <button
                         onClick={handleFocusCurrentStep}
                         className="px-4 py-2 bg-primary text-primary-foreground font-medium rounded-full shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all text-sm flex items-center gap-2 group"

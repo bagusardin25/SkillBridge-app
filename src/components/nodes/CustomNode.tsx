@@ -2,7 +2,7 @@ import { memo, useState, useRef, useEffect } from "react";
 import { Handle, Position, type NodeProps, type Node, NodeResizer, useReactFlow, NodeToolbar, useStore } from "@xyflow/react";
 import type { RoadmapNodeData } from "@/types/roadmap";
 import { Input } from "@/components/ui/input";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Lock } from "lucide-react";
 
 type CustomNodeProps = NodeProps<Node<RoadmapNodeData>>;
 
@@ -151,6 +151,16 @@ function CustomNodeComponent({ id, data, type, selected }: CustomNodeProps) {
                     <CheckCircle2 className="h-5 w-5" />
                 </div>
             )}
+
+            {/* Locked Badge (shown when node is a future dependent step) */}
+            {isFuture && (
+                <div
+                    className="absolute -top-2 -right-2 z-10 p-1.5 rounded-full text-muted-foreground bg-muted shadow-sm ring-1 ring-border tooltip-trigger"
+                    title="Selesaikan tahap sebelumnya terlebih dahulu"
+                >
+                    <Lock className="h-3.5 w-3.5" />
+                </div>
+            )}
             <NodeResizer
                 isVisible={selected}
                 minWidth={50}
@@ -198,10 +208,10 @@ function CustomNodeComponent({ id, data, type, selected }: CustomNodeProps) {
                 ) : (
                     <>
                         {/* Row 1: Step number + Title + Time */}
-                        <div className="flex items-start justify-between gap-3 w-full">
-                            <div className="font-semibold select-none flex items-start gap-2 w-full">
+                        <div className={`flex items-start justify-between gap-3 w-full transition-all duration-500 ease-[cubic-bezier(0.25,0.1,0.25,1)] origin-top ${!showDetails ? "scale-[1.15] translate-y-[18px]" : "scale-100 translate-y-0"}`}>
+                            <div className={`font-semibold select-none flex items-start gap-2 w-full transition-all duration-500 ${!showDetails ? "justify-center" : "justify-start"}`}>
                                 {data.stepNumber && (
-                                    <span className={`inline-flex items-center justify-center min-w-[24px] h-6 px-1.5 rounded text-xs font-bold shrink-0 mt-0.5 transition-all duration-300 ${!showDetails ? "scale-125 origin-top-left" : ""} ${data.isCompleted || data.quizPassed
+                                    <span className={`inline-flex items-center justify-center min-w-[24px] h-6 px-1.5 rounded text-xs font-bold shrink-0 mt-0.5 transition-colors ${data.isCompleted || data.quizPassed
                                         ? "bg-emerald-500 text-white"
                                         : data.isStartNode
                                             ? "bg-primary text-primary-foreground"
@@ -214,7 +224,7 @@ function CustomNodeComponent({ id, data, type, selected }: CustomNodeProps) {
                                         )}
                                     </span>
                                 )}
-                                <span className={`transition-all duration-300 break-words leading-tight ${showDetails ? "text-base" : "text-xl font-extrabold max-w-[90%]"} `}>{data.label}</span>
+                                <span className={`text-base break-words leading-tight transition-all duration-500 ${!showDetails ? "text-center" : "text-left"}`}>{data.label}</span>
                             </div>
                             {data.estimatedTime && !isDecision && type !== "start-end" && (
                                 <span className={`text-[11px] text-muted-foreground/60 whitespace-nowrap shrink-0 mt-1 transition-opacity duration-300 ${showDetails ? "opacity-100" : "opacity-0 invisible"}`}>
