@@ -342,6 +342,17 @@ export function ChatPanel() {
                     saveChatMessage(projectId, "user", userMessage);
                 }
 
+                // Show Skeleton Graph in Canvas while AI is generating
+                setNodes([
+                    { id: 'skel-1', type: 'default', position: { x: 0, y: 0 }, data: { label: 'Analyzing Topic...', description: '', resources: [] }, className: 'animate-pulse opacity-70 border-primary/50 pointer-events-none' },
+                    { id: 'skel-2', type: 'default', position: { x: 0, y: 200 }, data: { label: 'Gathering Resources...', description: '', resources: [] }, className: 'animate-pulse opacity-40 border-primary/30 pointer-events-none' },
+                    { id: 'skel-3', type: 'default', position: { x: 0, y: 400 }, data: { label: 'Structuring Path...', description: '', resources: [] }, className: 'animate-pulse opacity-20 border-primary/10 pointer-events-none' },
+                ]);
+                setEdges([
+                    { id: 'skel-e1', source: 'skel-1', target: 'skel-2', animated: true, style: { strokeOpacity: 0.5 } },
+                    { id: 'skel-e2', source: 'skel-2', target: 'skel-3', animated: true, style: { strokeOpacity: 0.2 } },
+                ]);
+
                 // Generate roadmap using AI (pass projectId and preferences to save to DB)
                 const roadmap = await generateRoadmap(userMessage, projectId || undefined, preferences);
 

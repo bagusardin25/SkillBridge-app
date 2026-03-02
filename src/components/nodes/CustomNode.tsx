@@ -1,5 +1,5 @@
 import { memo, useState, useRef, useEffect } from "react";
-import { Handle, Position, type NodeProps, type Node, NodeResizer, useReactFlow } from "@xyflow/react";
+import { Handle, Position, type NodeProps, type Node, NodeResizer, useReactFlow, NodeToolbar } from "@xyflow/react";
 import type { RoadmapNodeData } from "@/types/roadmap";
 import { Input } from "@/components/ui/input";
 import { CheckCircle2 } from "lucide-react";
@@ -141,6 +141,23 @@ function CustomNodeComponent({ id, data, type, selected }: CustomNodeProps) {
                 lineClassName="border-primary"
                 handleClassName="h-3 w-3 bg-primary border-2 border-background rounded shadow-sm"
             />
+
+            <NodeToolbar isVisible={selected} position={Position.Top} className="flex gap-1 p-1 bg-background border border-border shadow-md rounded-lg mb-2">
+                <button
+                    onClick={(e) => { e.stopPropagation(); setIsEditing(true); }}
+                    className="p-1.5 hover:bg-muted text-muted-foreground hover:text-foreground rounded flex items-center justify-center transition-colors tooltip-trigger"
+                    title="Edit Label"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" /></svg>
+                </button>
+                <button
+                    onClick={(e) => { e.stopPropagation(); setNodes((nodes) => nodes.filter(n => n.id !== id)); }}
+                    className="p-1.5 hover:bg-destructive/10 text-muted-foreground hover:text-destructive rounded flex items-center justify-center transition-colors"
+                    title="Delete Node"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /><line x1="10" x2="10" y1="11" y2="17" /><line x1="14" x2="14" y1="11" y2="17" /></svg>
+                </button>
+            </NodeToolbar>
 
             {/* Handles for snake layout — each position needs source+target variants */}
             {/* Top: target (vertical connector enters from above) */}

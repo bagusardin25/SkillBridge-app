@@ -9,6 +9,7 @@ import {
     type OnSelectionChangeParams,
     BackgroundVariant,
     MarkerType,
+    Panel,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -63,11 +64,34 @@ export function FlowCanvas() {
         setPlacingNodeType,
         setNodes,
         setEdges: setStoreEdges,
+        isDarkMode,
     } = useRoadmapStore();
 
+    const [showMiniMap, setShowMiniMap] = useState(false);
     const { undo, redo } = useTemporalStore();
-    const { screenToFlowPosition } = useReactFlow();
+    const { screenToFlowPosition, setCenter, fitView } = useReactFlow();
     const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const handleFocusCurrentStep = useCallback(() => {
+        if (!nodes.length) return;
+
+        // Try to find the first non-completed core step
+        const currentNodes = nodes.filter(n => !(n.data.isCompleted || n.data.quizPassed));
+
+        // Prioritize by stepNumber if available, otherwise just use the first available node
+        const targetNode = [...currentNodes].sort((a, b) =>
+            ((a.data.stepNumber as number) || 999) - ((b.data.stepNumber as number) || 999)
+        )[0];
+
+        if (targetNode) {
+            const x = targetNode.position.x + (targetNode.width || 320) / 2;
+            const y = targetNode.position.y + (targetNode.height || 120) / 2;
+            setCenter(x, y, { zoom: 1.2, duration: 800 });
+        } else {
+            fitView({ duration: 800 });
+        }
+    }, [nodes, setCenter, fitView]);
+
     const isInitialMount = useRef(true);
     const [hideTemplateSelector, setHideTemplateSelector] = useState(false);
 
@@ -360,11 +384,33 @@ export function FlowCanvas() {
             >
                 <Background variant={BackgroundVariant.Dots} gap={20} size={1} />
                 <Controls className="bg-background border-border" />
-                {nodes.length > 0 && (
+                <Panel position="top-center" className="mt-4">
+                    <button
+                        onClick={handleFocusCurrentStep}
+                        className="px-4 py-2 bg-primary text-primary-foreground font-medium rounded-full shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all text-sm flex items-center gap-2 group"
+                        title="Locate Current Step"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:animate-pulse">
+                            <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="2" />
+                        </svg>
+                        Focus Current Step
+                    </button>
+                </Panel>
+                <Panel position="bottom-right" className="mb-4 mr-4 hidden sm:block">
+                    <button
+                        onClick={() => setShowMiniMap(!showMiniMap)}
+                        className="px-3 py-1.5 bg-card/80 backdrop-blur border border-border text-foreground font-medium rounded-full shadow-sm hover:bg-muted transition-all text-xs flex items-center gap-2"
+                        title="Toggle Minimap"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z" /><path d="M15 5.764v15" /><path d="M9 3.236v15" /></svg>
+                        {showMiniMap ? "Hide Map" : "Map"}
+                    </button>
+                </Panel>
+                {nodes.length > 0 && showMiniMap && (
                     <MiniMap
                         position="bottom-right"
-                        className="!bg-card !border !border-border rounded-lg shadow-lg m-4 hidden sm:block"
-                        maskColor="rgba(0, 0, 0, 0.3)"
+                        className="!bg-card !border !border-border rounded-lg shadow-lg !m-4 !mb-16 hidden sm:block"
+                        maskColor={isDarkMode ? "rgba(0, 0, 0, 0.7)" : "rgba(255, 255, 255, 0.5)"}
                         zoomable
                         pannable
                         nodeStrokeWidth={3}
@@ -375,11 +421,11 @@ export function FlowCanvas() {
                             if (isCompleted) return "#10b981"; // emerald-500 for completed
 
                             switch (node.type) {
-                                case "decision": return "#f59e0b"; // amber-500
-                                case "start-end": return "#6366f1"; // indigo-500
-                                case "project": return "#8b5cf6"; // violet-500
-                                case "image": return "#06b6d4"; // cyan-500
-                                default: return "#6366f1"; // indigo-500
+                                case "decision": return isDarkMode ? "#d97706" : "#f59e0b"; // amber
+                                case "start-end": return isDarkMode ? "#4f46e5" : "#6366f1"; // indigo
+                                case "project": return isDarkMode ? "#7c3aed" : "#8b5cf6"; // violet
+                                case "image": return isDarkMode ? "#0891b2" : "#06b6d4"; // cyan
+                                default: return isDarkMode ? "#4f46e5" : "#6366f1"; // indigo
                             }
                         }}
                     />
