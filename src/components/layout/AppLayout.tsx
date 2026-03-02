@@ -3,27 +3,8 @@ import { Sidebar } from "./Sidebar";
 import { ChatPanel } from "./ChatPanel";
 import { NodeDetailPanel } from "./NodeDetailPanel";
 import { Header } from "./Header";
-import { BottomToolbar } from "@/components/BottomToolbar";
 import { ReactFlowProvider } from "@xyflow/react";
 import { useRoadmapStore } from "@/store/useRoadmapStore";
-import { useLocation } from "react-router-dom";
-
-// Helper component to conditionally render toolbar
-function BottomToolbarWrapper() {
-    const location = useLocation();
-    const { isAiPanelOpen, isDetailPanelOpen } = useRoadmapStore();
-
-    if (location.pathname === "/profile") return null;
-
-    // Hide on mobile when panel is open (using CSS for SSR compatibility)
-    const hideOnMobile = isAiPanelOpen || isDetailPanelOpen;
-
-    return (
-        <div className={hideOnMobile ? "hidden md:block" : ""}>
-            <BottomToolbar />
-        </div>
-    );
-}
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
     const { isAiPanelOpen, isDetailPanelOpen, isDarkMode, selectedNodeIds, isSidebarOpen, toggleSidebar } = useRoadmapStore();
@@ -63,14 +44,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     </div>
                 )}
 
-                {/* Main Content Area */}
                 <div className="flex-1 flex flex-col overflow-hidden relative">
                     <Header />
                     <main className="flex-1 overflow-hidden relative bg-muted/10">
                         {children}
                     </main>
-                    {/* Floating Bottom Toolbar - Hide on Profile Page based on path */}
-                    <BottomToolbarWrapper />
                 </div>
 
                 {/* Right Panel - Chat or Detail */}

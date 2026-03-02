@@ -19,7 +19,13 @@ import { CertificateModal } from "@/components/ui/CertificateModal";
 import { ProgressDashboard } from "@/components/ui/ProgressDashboard";
 import { ShareModal } from "@/components/ui/ShareModal";
 import { createProject, createRoadmap, updateRoadmap, getProjects, toggleRoadmapPublic } from "@/lib/api";
-import { Award, BarChart3, Share2 } from "lucide-react";
+import { Award, BarChart3, Share2, MoreVertical, Trash2 } from "lucide-react";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export function Header() {
     const {
@@ -172,6 +178,14 @@ export function Header() {
 
     const { getNodes } = useReactFlow();
     const [isExporting, setIsExporting] = useState(false);
+
+    const handleClearCanvas = () => {
+        if (confirm("Are you sure you want to clear the canvas? This action cannot be undone.")) {
+            // Need to get access to these functions via the store
+            useRoadmapStore.getState().setNodes([]);
+            useRoadmapStore.getState().setEdges([]);
+        }
+    };
 
     const handleExport = useCallback(async () => {
         const allNodes = getNodes();
@@ -349,6 +363,21 @@ export function Header() {
                         <TooltipContent>Share Roadmap</TooltipContent>
                     </Tooltip>
                 </TooltipProvider>
+
+                {/* More Options Dropdown */}
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="hidden sm:flex h-9 w-9">
+                            <MoreVertical className="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem onClick={handleClearCanvas} className="text-destructive focus:text-destructive group">
+                            <Trash2 className="h-4 w-4 mr-2 group-hover:animate-pulse" />
+                            Clear Canvas
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
 
                 {/* Save Button - Icon only on mobile */}
                 <TooltipProvider delayDuration={300}>
