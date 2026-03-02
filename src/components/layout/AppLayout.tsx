@@ -76,10 +76,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <div
                     className={cn(
                         "hidden md:block h-full bg-background relative transition-[width,border-color] duration-300 ease-in-out",
-                        (isAiPanelOpen || showDetailPanel) ? "w-96 border-l" : "w-0 border-transparent"
+                        (isAiPanelOpen || showDetailPanel) ? "w-80 border-l" : "w-0 border-transparent"
                     )}
                 >
-                    <div className="w-96 h-full overflow-hidden absolute top-0 left-0 bg-background">
+                    <div className="w-80 h-full overflow-hidden absolute top-0 left-0 bg-background">
                         {/* Swapping content gently if both open */}
                         {showDetailPanel ? (
                             <div className="h-full w-full animate-in fade-in zoom-in-95 duration-200">
