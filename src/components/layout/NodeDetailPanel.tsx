@@ -130,7 +130,7 @@ export function NodeDetailPanel() {
     const isCompleted = data.quizPassed || data.isCompleted;
 
     return (
-        <div className="flex flex-col h-full border-l bg-background w-full md:w-96 shadow-xl">
+        <div className="flex flex-col h-full bg-background w-full">
             {/* Panel Header - Similar to ChatPanel */}
             <div className="p-3 border-b bg-muted/10 flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -166,8 +166,8 @@ export function NodeDetailPanel() {
 
                         {/* Status Badge (read-only) */}
                         <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${isCompleted
-                                ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400"
-                                : "bg-muted text-muted-foreground"
+                            ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400"
+                            : "bg-muted text-muted-foreground"
                             }`}>
                             {isCompleted ? (
                                 <CheckCircle2 className="h-3.5 w-3.5" />
@@ -220,9 +220,16 @@ export function NodeDetailPanel() {
                                             const isVisited = data.visitedResources?.includes(resource);
 
                                             return (
-                                                <div key={index} className="flex items-start gap-2">
+                                                <div
+                                                    key={index}
+                                                    className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-3 rounded-xl bg-card border border-border/50 hover:border-primary/30 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 group relative overflow-hidden cursor-pointer"
+                                                    onClick={isUrl ? () => { handleResourceClick(resource); window.open(resource, "_blank"); } : undefined}
+                                                >
+                                                    {isUrl && (
+                                                        <span className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                                                    )}
                                                     {resourceInfo && (
-                                                        <span className={`text-xs px-2 py-0.5 rounded font-medium flex-shrink-0 ${resourceInfo.color}`}>
+                                                        <span className={`text-[10px] uppercase tracking-wider px-2 py-1 rounded font-bold flex-shrink-0 ${resourceInfo.color} shadow-sm group-hover:shadow transition-shadow`}>
                                                             {resourceInfo.type}
                                                         </span>
                                                     )}
@@ -231,20 +238,20 @@ export function NodeDetailPanel() {
                                                             href={resource}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
-                                                            onClick={() => handleResourceClick(resource)}
-                                                            className={`text-sm hover:underline flex items-center gap-1 ${isVisited ? "text-muted-foreground" : "text-primary"
+                                                            onClick={(e) => { e.stopPropagation(); handleResourceClick(resource); }}
+                                                            className={`text-sm font-medium flex-1 flex items-center justify-between gap-2 transition-colors ${isVisited ? "text-muted-foreground" : "text-foreground group-hover:text-primary"
                                                                 }`}
                                                         >
-                                                            {displayName}
+                                                            <span className="line-clamp-1">{displayName}</span>
                                                             {isVisited ? (
-                                                                <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                                                                <CheckCircle2 className="h-4 w-4 text-emerald-500 flex-shrink-0" />
                                                             ) : (
-                                                                <ExternalLink className="h-3 w-3 opacity-50" />
+                                                                <ExternalLink className="h-4 w-4 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all text-primary flex-shrink-0" />
                                                             )}
                                                         </a>
                                                     ) : (
-                                                        <span className="text-sm flex items-center gap-1">
-                                                            <ResourceIcon className="h-3.5 w-3.5" />
+                                                        <span className="text-sm flex items-center gap-2">
+                                                            <ResourceIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                                                             {resource}
                                                         </span>
                                                     )}
@@ -270,23 +277,28 @@ export function NodeDetailPanel() {
                                             const videoName = getResourceName(video);
 
                                             return (
-                                                <div key={index} className="flex items-start gap-2">
-                                                    <span className="text-xs px-2 py-0.5 rounded font-medium flex-shrink-0 bg-red-500 text-white">
+                                                <div
+                                                    key={index}
+                                                    className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-3 rounded-xl bg-card border border-border/50 hover:border-red-500/30 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 group relative overflow-hidden cursor-pointer"
+                                                    onClick={() => { handleResourceClick(video); window.open(video, "_blank"); }}
+                                                >
+                                                    <span className="absolute inset-0 bg-gradient-to-r from-red-500/0 via-red-500/5 to-red-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                                                    <span className="text-[10px] uppercase tracking-wider px-2 py-1 rounded font-bold flex-shrink-0 bg-red-500 text-white shadow-sm group-hover:shadow transition-shadow">
                                                         Video
                                                     </span>
                                                     <a
                                                         href={video}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        onClick={() => handleResourceClick(video)}
-                                                        className={`text-sm hover:underline flex items-center gap-1 ${isVisited ? "text-muted-foreground" : "text-primary"
+                                                        onClick={(e) => { e.stopPropagation(); handleResourceClick(video); }}
+                                                        className={`text-sm font-medium flex-1 flex items-center justify-between gap-2 transition-colors ${isVisited ? "text-muted-foreground" : "text-foreground group-hover:text-red-500"
                                                             }`}
                                                     >
-                                                        {videoName}
+                                                        <span className="line-clamp-1">{videoName}</span>
                                                         {isVisited ? (
-                                                            <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                                                            <CheckCircle2 className="h-4 w-4 text-emerald-500 flex-shrink-0" />
                                                         ) : (
-                                                            <ExternalLink className="h-3 w-3 opacity-50" />
+                                                            <ExternalLink className="h-4 w-4 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all text-red-500 flex-shrink-0" />
                                                         )}
                                                     </a>
                                                 </div>

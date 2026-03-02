@@ -5,6 +5,7 @@ import { NodeDetailPanel } from "./NodeDetailPanel";
 import { Header } from "./Header";
 import { ReactFlowProvider } from "@xyflow/react";
 import { useRoadmapStore } from "@/store/useRoadmapStore";
+import { cn } from "@/lib/utils";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
     const { isAiPanelOpen, isDetailPanelOpen, isDarkMode, selectedNodeIds, isSidebarOpen, toggleSidebar } = useRoadmapStore();
@@ -71,23 +72,25 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     </div>
                 )}
 
-                {/* Desktop: Side panels - Both can potentially be visible */}
-                <div className="hidden md:flex h-full">
-                    {/* Chat Panel - Always exists when open */}
-                    {isAiPanelOpen && (
-                        <div
-                            className={`border-l bg-background h-full transition-all duration-300 ease-in-out w-80 animate-in slide-in-from-right ${showDetailPanel ? 'hidden' : ''}`}
-                        >
-                            <ChatPanel />
-                        </div>
+                {/* Desktop: Side panels - Unified container with width transition */}
+                <div
+                    className={cn(
+                        "hidden md:block h-full bg-background relative transition-[width,border-color] duration-300 ease-in-out",
+                        (isAiPanelOpen || showDetailPanel) ? "w-96 border-l" : "w-0 border-transparent"
                     )}
-
-                    {/* Detail Panel - Shown on top of chat when node selected */}
-                    {showDetailPanel && (
-                        <div className="h-full transition-all duration-300 ease-in-out animate-in slide-in-from-right">
-                            <NodeDetailPanel />
-                        </div>
-                    )}
+                >
+                    <div className="w-96 h-full overflow-hidden absolute top-0 left-0 bg-background">
+                        {/* Swapping content gently if both open */}
+                        {showDetailPanel ? (
+                            <div className="h-full w-full animate-in fade-in zoom-in-95 duration-200">
+                                <NodeDetailPanel />
+                            </div>
+                        ) : isAiPanelOpen ? (
+                            <div className="h-full w-full animate-in fade-in zoom-in-95 duration-200">
+                                <ChatPanel />
+                            </div>
+                        ) : null}
+                    </div>
                 </div>
             </div>
         </ReactFlowProvider>

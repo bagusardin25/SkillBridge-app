@@ -431,10 +431,15 @@ export function Sidebar({ className }: { className?: string }) {
                                     >
                                         <Button
                                             variant={currentProjectId === project.id ? "secondary" : "ghost"}
-                                            className="w-full justify-start font-normal pr-8 transition-transform duration-200 hover:translate-x-1"
+                                            className={cn(
+                                                "w-full justify-start font-normal pr-8 transition-all duration-300",
+                                                currentProjectId === project.id
+                                                    ? "bg-primary/10 text-primary font-medium border-l-4 border-l-primary rounded-none rounded-r-md shadow-sm"
+                                                    : "hover:bg-muted/80 hover:translate-x-1"
+                                            )}
                                             onClick={() => handleSelectProject(project)}
                                         >
-                                            <Folder className="mr-2 h-4 w-4" />
+                                            <Folder className={cn("mr-2 h-4 w-4 transition-transform group-hover:scale-110", currentProjectId === project.id && "fill-primary/20")} />
                                             <span className="truncate">{project.title}</span>
                                         </Button>
                                         <DropdownMenu>
