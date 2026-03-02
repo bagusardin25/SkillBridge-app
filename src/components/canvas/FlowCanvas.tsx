@@ -380,6 +380,7 @@ export function FlowCanvas() {
                 snapToGrid={isEditMode}
                 snapGrid={[20, 20]}
                 fitView
+                translateExtent={[[-2000, -1000], [3000, 10000]]}
                 className={`bg-background ${placingNodeType ? "cursor-crosshair" : interactionMode === "pan" ? "cursor-grab active:cursor-grabbing" : "cursor-default"}`}
             >
                 <Background variant={BackgroundVariant.Dots} gap={20} size={1} />

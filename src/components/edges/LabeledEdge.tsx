@@ -2,7 +2,7 @@ import { memo } from "react";
 import {
     BaseEdge,
     EdgeLabelRenderer,
-    getSmoothStepPath,
+    getBezierPath,
     type EdgeProps,
 } from "@xyflow/react";
 
@@ -28,14 +28,13 @@ function LabeledEdgeComponent({
     const label = edgeData?.label;
     const edgeType = edgeData?.edgeType || "main";
 
-    const [edgePath, labelX, labelY] = getSmoothStepPath({
+    const [edgePath, labelX, labelY] = getBezierPath({
         sourceX,
         sourceY,
         sourcePosition,
         targetX,
         targetY,
         targetPosition,
-        borderRadius: 16,
     });
 
     const edgeStyles = {
@@ -90,9 +89,9 @@ function LabeledEdgeComponent({
                         style={{
                             position: "absolute",
                             transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
-                            pointerEvents: "all",
+                            pointerEvents: "none", // Allow clicking through label
                         }}
-                        className="px-2 py-0.5 rounded text-xs font-medium bg-background border border-border shadow-sm text-primary animate-pulse"
+                        className="px-2 py-0.5 text-[11px] font-bold tracking-wide text-primary/80 uppercase drop-shadow-sm select-none"
                     >
                         {label}
                     </div>

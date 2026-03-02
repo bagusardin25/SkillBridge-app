@@ -1,17 +1,17 @@
 import { memo, useState, useRef, useEffect } from "react";
-import { Handle, Position, type NodeProps, type Node, NodeResizer, useReactFlow, NodeToolbar } from "@xyflow/react";
+import { Handle, Position, type NodeProps, type Node, NodeResizer, useReactFlow, NodeToolbar, useStore } from "@xyflow/react";
 import type { RoadmapNodeData } from "@/types/roadmap";
 import { Input } from "@/components/ui/input";
 import { CheckCircle2 } from "lucide-react";
 
 type CustomNodeProps = NodeProps<Node<RoadmapNodeData>>;
 
-const shapeStyles = {
+const shapeStyles: Record<string, string> = {
     default: "rounded-lg border shadow-md",
     input: "rounded-lg border shadow-md",
     output: "rounded-lg border shadow-md",
-    "start-end": "rounded-full border-2 shadow-md aspect-square flex items-center justify-center text-center",
-    decision: "rotate-45 border-2 shadow-md flex items-center justify-center aspect-square",
+    "start-end": "rounded-full border-2 shadow-md aspect-square flex items-center justify-center text-center bg-indigo-50 border-indigo-200 dark:bg-indigo-950/50 dark:border-indigo-800",
+    decision: "rotate-45 border-2 shadow-md flex items-center justify-center aspect-square bg-amber-50 border-amber-200 dark:bg-amber-950/50 dark:border-amber-800",
     project: "rounded-sm border-2 shadow-lg border-l-8",
     roadmapCard: "rounded-lg border shadow-md",
 };
@@ -27,18 +27,33 @@ const categoryStyles = {
 
 
 function CustomNodeComponent({ id, data, type, selected }: CustomNodeProps) {
-    const { updateNodeData, setNodes, getNode } = useReactFlow();
+    const { updateNodeData, setNodes, getNode, getNodes } = useReactFlow();
     const [isEditing, setIsEditing] = useState(false);
     const [editValue, setEditValue] = useState(data.label);
     const inputRef = useRef<HTMLInputElement>(null);
+    const zoom = useStore((s) => s.transform[2]);
+    const showDetails = zoom >= 0.55;
+
     const isDecision = type === "decision";
-    const shapeClass = shapeStyles[type as keyof typeof shapeStyles] || shapeStyles.default;
-    const categoryClass = data.category
+    const shapeClass = shapeStyles[type as string] || shapeStyles.default;
+    const categoryClass = data.category && type !== "start-end" && type !== "decision"
         ? categoryStyles[data.category as keyof typeof categoryStyles] || ""
         : "";
-    const completedClass = (data.isCompleted || data.quizPassed)
+
+    // Calculate node state bounds
+    const isCompleted = data.isCompleted || data.quizPassed;
+    const allNodes = getNodes();
+    const activeNode = allNodes
+        .sort((a, b) => (a.data.stepNumber as number || 999) - (b.data.stepNumber as number || 999))
+        .find(n => !n.data.isCompleted && !n.data.quizPassed && n.type !== "start-end" && n.type !== "decision");
+    const isActive = activeNode?.id === id;
+    const isFuture = !isCompleted && !isActive && !data.isStartNode && type !== "start-end" && type !== "decision";
+
+    const completedClass = isCompleted
         ? "!border-l-emerald-500 !bg-emerald-50 dark:!bg-emerald-900/30 ring-1 ring-emerald-500/30"
         : "";
+    const activeClass = isActive ? "ring-[3px] ring-primary ring-offset-2 shadow-xl !border-primary" : "";
+    const futureClass = isFuture ? "opacity-[0.6] grayscale-[50%] hover:opacity-100 hover:grayscale-0" : "";
 
     useEffect(() => {
         if (isEditing) {
@@ -116,9 +131,11 @@ function CustomNodeComponent({ id, data, type, selected }: CustomNodeProps) {
         ${shapeClass}
         ${categoryClass}
         ${completedClass}
-        ${selected ? "ring-2 ring-primary" : ""}
-        min-w-[320px] min-h-[120px] max-h-[120px]
-        transition-all duration-200
+        ${activeClass}
+        ${futureClass}
+        ${selected && !isActive ? "ring-2 ring-primary" : ""}
+        min-w-[320px] min-h-[120px] h-auto
+        transition-all duration-300
         relative group
         hover:shadow-lg hover:z-10
         animate-node-appear
@@ -181,10 +198,10 @@ function CustomNodeComponent({ id, data, type, selected }: CustomNodeProps) {
                 ) : (
                     <>
                         {/* Row 1: Step number + Title + Time */}
-                        <div className="flex items-center justify-between gap-3 w-full">
-                            <div className="font-semibold text-base select-none truncate flex items-center gap-2 min-w-0">
+                        <div className="flex items-start justify-between gap-3 w-full">
+                            <div className="font-semibold select-none flex items-start gap-2 w-full">
                                 {data.stepNumber && (
-                                    <span className={`inline-flex items-center justify-center min-w-[24px] h-6 px-1.5 rounded text-xs font-bold shrink-0 ${data.isCompleted || data.quizPassed
+                                    <span className={`inline-flex items-center justify-center min-w-[24px] h-6 px-1.5 rounded text-xs font-bold shrink-0 mt-0.5 transition-all duration-300 ${!showDetails ? "scale-125 origin-top-left" : ""} ${data.isCompleted || data.quizPassed
                                         ? "bg-emerald-500 text-white"
                                         : data.isStartNode
                                             ? "bg-primary text-primary-foreground"
@@ -197,23 +214,23 @@ function CustomNodeComponent({ id, data, type, selected }: CustomNodeProps) {
                                         )}
                                     </span>
                                 )}
-                                <span className="truncate">{data.label}</span>
+                                <span className={`transition-all duration-300 break-words leading-tight ${showDetails ? "text-base" : "text-xl font-extrabold max-w-[90%]"} `}>{data.label}</span>
                             </div>
                             {data.estimatedTime && !isDecision && type !== "start-end" && (
-                                <span className="text-[11px] text-muted-foreground/60 whitespace-nowrap shrink-0">
+                                <span className={`text-[11px] text-muted-foreground/60 whitespace-nowrap shrink-0 mt-1 transition-opacity duration-300 ${showDetails ? "opacity-100" : "opacity-0 invisible"}`}>
                                     ⏱ {data.estimatedTime as string}
                                 </span>
                             )}
                         </div>
                         {/* Row 2: Short description */}
                         {data.description && !isDecision && type !== "start-end" && (
-                            <div className="text-sm text-muted-foreground/80 mt-1 line-clamp-1 select-none pointer-events-none">
+                            <div className={`text-sm text-muted-foreground/80 mt-1 line-clamp-1 select-none pointer-events-none transition-opacity duration-300 ${showDetails ? "opacity-100" : "opacity-0 invisible"}`}>
                                 {data.description}
                             </div>
                         )}
                         {/* Row 3: Phase badge */}
                         {data.phase && !isDecision && type !== "start-end" && (
-                            <div className="mt-2">
+                            <div className={`mt-2 transition-opacity duration-300 ${showDetails ? "opacity-100" : "opacity-0 invisible"}`}>
                                 <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 bg-muted/40 px-2 py-0.5 rounded">
                                     {data.phase as string}
                                 </span>
