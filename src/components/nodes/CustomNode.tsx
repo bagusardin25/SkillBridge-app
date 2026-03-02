@@ -159,22 +159,12 @@ function CustomNodeComponent({ id, data, type, selected }: CustomNodeProps) {
                 </button>
             </NodeToolbar>
 
-            {/* Handles for snake layout — each position needs source+target variants */}
-            {/* Top: target (vertical connector enters from above) */}
+            {/* Target (vertical connector enters from above) */}
             <Handle type="target" position={Position.Top} id="target-top"
                 className="!bg-primary !border-primary-foreground !w-3 !h-3" />
-            {/* Bottom: source (vertical connector exits downward) */}
+
+            {/* Source (vertical connector exits downward) */}
             <Handle type="source" position={Position.Bottom} id="source-bottom"
-                className="!bg-primary !border-primary-foreground !w-3 !h-3" />
-            {/* Right: source (L→R row exit) + target (R→L row enter) */}
-            <Handle type="source" position={Position.Right} id="source-right"
-                className="!bg-primary !border-primary-foreground !w-3 !h-3" />
-            <Handle type="target" position={Position.Right} id="target-right"
-                className="!bg-primary !border-primary-foreground !w-3 !h-3" />
-            {/* Left: target (L→R row enter) + source (R→L row exit) */}
-            <Handle type="target" position={Position.Left} id="target-left"
-                className="!bg-primary !border-primary-foreground !w-3 !h-3" />
-            <Handle type="source" position={Position.Left} id="source-left"
                 className="!bg-primary !border-primary-foreground !w-3 !h-3" />
 
             {/* Content — horizontal left-aligned layout */}
