@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -15,7 +15,9 @@ import {
     Video,
     Rss,
     GraduationCap,
-    Lock
+    Lock,
+    Clock,
+    ArrowRight
 } from "lucide-react";
 import { useReactFlow } from "@xyflow/react";
 import type { RoadmapNodeData } from "@/types/roadmap";
@@ -62,7 +64,13 @@ function getResourceName(url: string): string {
 export function NodeDetailPanel() {
     const { nodes, edges, selectedNodeIds, closeDetailPanel, currentRoadmapId } = useRoadmapStore();
     const { updateNodeData } = useReactFlow();
+    const [activeTab, setActiveTab] = useState("resources");
     const [showQuiz, setShowQuiz] = useState(false);
+
+    // Reset tab to resources when node changes
+    useEffect(() => {
+        setActiveTab("resources");
+    }, [selectedNodeIds]);
 
     const selectedNode = nodes.find((n) => selectedNodeIds.includes(n.id));
     const data = selectedNode?.data as RoadmapNodeData | undefined;
@@ -129,6 +137,10 @@ export function NodeDetailPanel() {
     const category = categoryLabels[data.category || ""] || null;
     const isCompleted = data.quizPassed || data.isCompleted;
 
+    // Kalkulasi progress dihapus sesuai instruksi
+    // Dummy estimated time based on category if not provided
+    const estimatedTime = data.estimatedTime || (data.category === 'project' ? '4-8 Jam' : data.category === 'core' ? '2-3 Jam' : '1 Jam');
+
     return (
         <div className="flex flex-col h-full bg-background w-full">
             {/* Panel Header - Similar to ChatPanel */}
@@ -149,7 +161,7 @@ export function NodeDetailPanel() {
                 </Button>
             </div>
 
-            <Tabs defaultValue="resources" className="flex-1 flex flex-col overflow-hidden">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
                 {/* Tabs Header */}
                 <div className="px-3 pt-2 pb-0">
                     <div className="flex items-center justify-between gap-2">
@@ -183,24 +195,51 @@ export function NodeDetailPanel() {
                 <TabsContent value="resources" className="flex-1 overflow-hidden m-0">
                     <ScrollArea className="h-full">
                         <div className="p-4 space-y-4">
-                            {/* Title & Category */}
-                            <div className="space-y-2">
+                            {/* Title & Category & Estimated Time */}
+                            <div className="space-y-3">
                                 <div className="flex items-start justify-between gap-2">
                                     <h3 className="text-xl font-bold leading-tight">{data.label}</h3>
-                                    {category && (
-                                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${category.color}`}>
-                                            {category.label}
-                                        </span>
-                                    )}
+                                    <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                                        {category && (
+                                            <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full font-bold ${category.color} shadow-sm`}>
+                                                {category.label}
+                                            </span>
+                                        )}
+                                        <div className="flex items-center gap-1 text-[10px] sm:text-xs font-medium text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-full border">
+                                            <Clock className="h-3 w-3" />
+                                            <span>{estimatedTime}</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
                             {/* Description */}
                             {data.description && (
-                                <p className="text-sm text-muted-foreground leading-relaxed">
-                                    {data.description}
-                                </p>
+                                <div className="space-y-3">
+                                    <p className="text-sm text-muted-foreground leading-relaxed">
+                                        {data.description}
+                                    </p>
+
+                                    {/* AI Tutor Shortcut */}
+                                    <button
+                                        onClick={() => setActiveTab("ai-tutor")}
+                                        className="w-full flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-violet-500/10 via-violet-500/5 to-transparent border border-violet-200/50 hover:border-violet-300 dark:border-violet-800/50 dark:hover:border-violet-700 hover:shadow-sm group transition-all duration-300"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="h-8 w-8 rounded-lg bg-violet-100 dark:bg-violet-900/40 flex items-center justify-center text-violet-600 dark:text-violet-400 group-hover:scale-110 transition-transform duration-300">
+                                                <Sparkles className="h-4 w-4" />
+                                            </div>
+                                            <div className="text-left">
+                                                <p className="text-sm font-semibold text-violet-700 dark:text-violet-400">Bingung dengan materi ini?</p>
+                                                <p className="text-[10px] text-violet-600/70 dark:text-violet-400/70">Tanya AI Tutor sekarang</p>
+                                            </div>
+                                        </div>
+                                        <ArrowRight className="h-4 w-4 text-violet-500 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
+                                    </button>
+                                </div>
                             )}
+
+
 
                             {/* Resources */}
                             {data.resources && data.resources.length > 0 && (
@@ -246,7 +285,7 @@ export function NodeDetailPanel() {
                                                             {isVisited ? (
                                                                 <CheckCircle2 className="h-4 w-4 text-emerald-500 flex-shrink-0" />
                                                             ) : (
-                                                                <ExternalLink className="h-4 w-4 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all text-primary flex-shrink-0" />
+                                                                <ExternalLink className="h-4 w-4 opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all text-primary flex-shrink-0" />
                                                             )}
                                                         </a>
                                                     ) : (
@@ -330,31 +369,38 @@ export function NodeDetailPanel() {
                                             </div>
                                         </div>
                                     ) : !allPrerequisitesPassed ? (
-                                        <div className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
-                                            <div className="flex items-center gap-2 mb-3">
-                                                <Lock className="h-5 w-5 text-amber-600" />
-                                                <p className="font-medium text-amber-700 dark:text-amber-400">Quiz Locked</p>
+                                        <div className="p-5 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 rounded-xl border border-amber-200/60 dark:border-amber-800/60 relative overflow-hidden group">
+                                            <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl -mr-10 -mt-10" />
+                                            <div className="flex items-start gap-3 relative z-10 mb-4">
+                                                <div className="p-2 bg-amber-100 dark:bg-amber-900/50 rounded-lg group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-300 shadow-sm border border-amber-200 dark:border-amber-800">
+                                                    <Lock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                                                </div>
+                                                <div>
+                                                    <p className="font-bold text-amber-800 dark:text-amber-300">Quiz Terkunci</p>
+                                                    <p className="text-xs text-amber-600/80 dark:text-amber-500/80 mt-0.5">Selesaikan prasyarat berikut untuk membuka Quiz</p>
+                                                </div>
                                             </div>
-                                            <p className="text-sm text-amber-600 dark:text-amber-500 mb-3">
-                                                Complete these topics first:
-                                            </p>
-                                            <ul className="space-y-1">
-                                                {incompletePrerequisites.map(node => (
-                                                    <li key={node.id} className="text-sm text-amber-700 dark:text-amber-400 flex items-center gap-2">
-                                                        <Circle className="h-3 w-3" />
-                                                        {(node.data as RoadmapNodeData).label}
-                                                    </li>
+
+                                            <div className="space-y-2 relative z-10 bg-white/50 dark:bg-black/20 rounded-lg p-3 border border-amber-100/50 dark:border-amber-900/50">
+                                                {incompletePrerequisites.map((node, i) => (
+                                                    <div key={node.id} className="flex items-start gap-2.5">
+                                                        <div className="h-5 w-5 rounded-full bg-amber-200/50 dark:bg-amber-900/50 border border-amber-300 dark:border-amber-700 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                                            <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400">{i + 1}</span>
+                                                        </div>
+                                                        <span className="text-sm font-medium text-amber-800 dark:text-amber-400">
+                                                            {(node.data as RoadmapNodeData).label}
+                                                        </span>
+                                                    </div>
                                                 ))}
-                                            </ul>
+                                            </div>
                                         </div>
                                     ) : (
                                         <Button
                                             onClick={() => setShowQuiz(true)}
-                                            className="w-full h-14 text-base bg-primary hover:bg-primary/90"
-                                            size="lg"
+                                            className="w-full h-10 py-2 px-4 text-sm bg-primary hover:bg-primary/90 flex items-center justify-center"
                                         >
-                                            <GraduationCap className="h-5 w-5 mr-2" />
-                                            Take Quiz to Complete This Topic
+                                            <GraduationCap className="h-4 w-4 mr-2 flex-shrink-0" />
+                                            <span>Take Quiz to Complete This Topic</span>
                                         </Button>
                                     )}
                                 </div>
@@ -414,22 +460,30 @@ export function NodeDetailPanel() {
                                             </div>
                                         </div>
                                     ) : !allPrerequisitesPassed ? (
-                                        <div className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
-                                            <div className="flex items-center gap-2 mb-3">
-                                                <Lock className="h-5 w-5 text-amber-600" />
-                                                <p className="font-medium text-amber-700 dark:text-amber-400">Project Terkunci</p>
+                                        <div className="p-5 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 rounded-xl border border-amber-200/60 dark:border-amber-800/60 relative overflow-hidden group">
+                                            <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl -mr-10 -mt-10" />
+                                            <div className="flex items-start gap-3 relative z-10 mb-4">
+                                                <div className="p-2 bg-amber-100 dark:bg-amber-900/50 rounded-lg group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-300 shadow-sm border border-amber-200 dark:border-amber-800">
+                                                    <Lock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                                                </div>
+                                                <div>
+                                                    <p className="font-bold text-amber-800 dark:text-amber-300">Project Terkunci</p>
+                                                    <p className="text-xs text-amber-600/80 dark:text-amber-500/80 mt-0.5">Selesaikan prasyarat berikut untuk membuka Project</p>
+                                                </div>
                                             </div>
-                                            <p className="text-sm text-amber-600 dark:text-amber-500 mb-3">
-                                                Selesaikan topik berikut terlebih dahulu:
-                                            </p>
-                                            <ul className="space-y-1">
-                                                {incompletePrerequisites.map(node => (
-                                                    <li key={node.id} className="text-sm text-amber-700 dark:text-amber-400 flex items-center gap-2">
-                                                        <Circle className="h-3 w-3" />
-                                                        {(node.data as RoadmapNodeData).label}
-                                                    </li>
+
+                                            <div className="space-y-2 relative z-10 bg-white/50 dark:bg-black/20 rounded-lg p-3 border border-amber-100/50 dark:border-amber-900/50">
+                                                {incompletePrerequisites.map((node, i) => (
+                                                    <div key={node.id} className="flex items-start gap-2.5">
+                                                        <div className="h-5 w-5 rounded-full bg-amber-200/50 dark:bg-amber-900/50 border border-amber-300 dark:border-amber-700 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                                            <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400">{i + 1}</span>
+                                                        </div>
+                                                        <span className="text-sm font-medium text-amber-800 dark:text-amber-400">
+                                                            {(node.data as RoadmapNodeData).label}
+                                                        </span>
+                                                    </div>
                                                 ))}
-                                            </ul>
+                                            </div>
                                         </div>
                                     ) : (
                                         <>
@@ -458,11 +512,10 @@ export function NodeDetailPanel() {
                                                         });
                                                     }
                                                 }}
-                                                className="w-full h-12 bg-emerald-600 hover:bg-emerald-700"
-                                                size="lg"
+                                                className="w-full h-auto min-h-12 py-3 px-4 bg-emerald-600 hover:bg-emerald-700 whitespace-normal leading-snug flex items-center justify-center text-center"
                                             >
-                                                <CheckCircle2 className="h-5 w-5 mr-2" />
-                                                Saya Sudah Menyelesaikan Project Ini
+                                                <CheckCircle2 className="h-5 w-5 mr-2 flex-shrink-0" />
+                                                <span>Saya Sudah Menyelesaikan Project Ini</span>
                                             </Button>
                                         </>
                                     )}

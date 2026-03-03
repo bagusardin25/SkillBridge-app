@@ -107,10 +107,10 @@ export function NodeChatPanel({ nodeId, topic }: NodeChatPanelProps) {
     }, [streamingMessageId]);
 
     const suggestedQuestions = [
-        `What is ${topic} and why is it important?`,
-        `How do I get started with ${topic}?`,
-        `What are common mistakes when learning ${topic}?`,
-        `What should I learn after ${topic}?`
+        `Apa itu ${topic}?`,
+        `Gimana cara mulai belajar ${topic}?`,
+        `Kesalahan pemula saat belajar ${topic}?`,
+        `Topik selanjutnya setelah ${topic}?`
     ];
 
     // Load chat history when component mounts or nodeId changes
@@ -227,30 +227,39 @@ export function NodeChatPanel({ nodeId, topic }: NodeChatPanelProps) {
                         </div>
                     ) : messages.length === 0 ? (
                         // Empty state with suggested questions
-                        <div className="space-y-4">
-                            <div className="text-center py-4">
-                                <Sparkles className="h-8 w-8 text-primary mx-auto mb-2" />
-                                <h4 className="font-medium break-words">Ask AI about {topic}</h4>
-                                <p className="text-xs text-muted-foreground mt-1">
-                                    Get personalized explanations and guidance.
+                        <div className="flex flex-col h-full justify-center space-y-6 pb-8">
+                            <div className="text-center">
+                                <div className="h-12 w-12 bg-violet-100 dark:bg-violet-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-violet-200 dark:border-violet-800 shadow-sm rotate-3">
+                                    <Sparkles className="h-6 w-6 text-violet-600 dark:text-violet-400" />
+                                </div>
+                                <h4 className="font-semibold text-lg px-2 break-words">Tanya AI tentang<br /> <span className="text-violet-600 dark:text-violet-400">{topic}</span></h4>
+                                <p className="text-xs text-muted-foreground mt-2 max-w-[250px] mx-auto">
+                                    Dapatkan penjelasan terpersonalisasi, contoh kode, dan panduan spesifik.
                                 </p>
                             </div>
 
-                            <div className="space-y-2">
-                                <p className="text-xs font-medium text-muted-foreground">Suggested questions:</p>
-                                {suggestedQuestions.map((question, i) => (
-                                    <Button
-                                        key={i}
-                                        variant="outline"
-                                        size="sm"
-                                        className="w-full justify-start text-left h-auto py-2 text-xs whitespace-normal"
-                                        onClick={() => handleSend(question)}
-                                        disabled={isSending}
-                                    >
-                                        <MessageSquare className="h-3.5 w-3.5 mr-2 flex-shrink-0" />
-                                        <span className="break-words">{question}</span>
-                                    </Button>
-                                ))}
+                            <div className="w-full">
+                                <div className="flex items-center gap-1.5 px-1 mb-3 justify-center">
+                                    <span className="text-xs">💡</span>
+                                    <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">Coba tanyakan:</span>
+                                </div>
+                                <div className="flex flex-col gap-2 w-full max-w-sm mx-auto">
+                                    {suggestedQuestions.map((question, i) => (
+                                        <button
+                                            key={i}
+                                            className="flex items-center gap-3 text-xs text-left p-3 rounded-xl border bg-card hover:bg-violet-50 dark:hover:bg-violet-900/20 hover:border-violet-300 dark:hover:border-violet-800 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden group active:scale-[0.98]"
+                                            onClick={() => handleSend(question)}
+                                            disabled={isSending}
+                                        >
+                                            <div className="h-7 w-7 rounded-lg bg-violet-100/50 dark:bg-violet-900/30 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                                                <MessageSquare className="h-3.5 w-3.5 text-violet-600 dark:text-violet-400" />
+                                            </div>
+                                            <span className="font-medium text-foreground/80 group-hover:text-violet-700 dark:group-hover:text-violet-300 transition-colors line-clamp-2">
+                                                {question}
+                                            </span>
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     ) : (
@@ -264,9 +273,9 @@ export function NodeChatPanel({ nodeId, topic }: NodeChatPanelProps) {
                                     className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
                                 >
                                     <div
-                                        className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${message.role === "user"
-                                            ? "bg-primary text-primary-foreground"
-                                            : "bg-muted"
+                                        className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm shadow-sm border ${message.role === "user"
+                                            ? "bg-primary text-primary-foreground border-primary rounded-tr-sm"
+                                            : "bg-violet-50/50 dark:bg-violet-950/20 text-foreground border-violet-100 dark:border-violet-900/50 rounded-tl-sm"
                                             }`}
                                     >
                                         {message.role === "user" ? (
