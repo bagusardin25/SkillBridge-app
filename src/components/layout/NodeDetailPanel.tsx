@@ -144,7 +144,7 @@ export function NodeDetailPanel() {
     return (
         <div className="flex flex-col h-full bg-background w-full">
             {/* Panel Header - Similar to ChatPanel */}
-            <div className="p-3 border-b bg-muted/10 flex items-center justify-between">
+            <div className="h-14 px-4 border-b bg-muted/10 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <div className="relative">
                         <div className="h-8 w-8 rounded-full bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center border border-violet-200 dark:border-violet-800">

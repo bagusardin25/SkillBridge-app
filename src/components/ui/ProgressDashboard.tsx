@@ -2,11 +2,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Progress } from "@/components/ui/progress";
 import { BadgesSection } from "@/components/ui/BadgesSection";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-    BarChart3, 
-    CheckCircle2, 
-    Clock, 
-    Folder, 
+import { useState, useEffect, useCallback } from "react";
+import { getProjects } from "@/lib/api";
+import { useAuthStore } from "@/store/useAuthStore";
+import {
+    BarChart3,
+    CheckCircle2,
+    Clock,
+    Folder,
     Target,
     TrendingUp,
     Award,
@@ -26,7 +29,7 @@ interface ProjectStats {
 interface ProgressDashboardProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    projects: ProjectStats[];
+    // projects prop removed, fetching inside here now
     currentProjectStats: {
         totalNodes: number;
         completedNodes: number;
@@ -48,20 +51,50 @@ interface ProgressDashboardProps {
 export function ProgressDashboard({
     open,
     onOpenChange,
-    projects,
     currentProjectStats,
-    streakData = { currentStreak: 0, bestStreak: 0, lastActiveDate: null, weeklyActivity: [0,0,0,0,0,0,0] },
+    streakData = { currentStreak: 0, bestStreak: 0, lastActiveDate: null, weeklyActivity: [0, 0, 0, 0, 0, 0, 0] },
     userProfile = { quizzesPassed: 0, xp: 0, level: 1 },
 }: ProgressDashboardProps) {
+    const { user } = useAuthStore();
+    const [projects, setProjects] = useState<ProjectStats[]>([]);
+
+    const fetchProjectStats = useCallback(async () => {
+        if (!user?.id) return;
+        try {
+            const fetchedProjects = await getProjects(user.id);
+            const stats = fetchedProjects.map(p => {
+                const roadmap = p.roadmaps?.[0];
+                const roadmapNodes = Array.isArray(roadmap?.nodes) ? roadmap.nodes : [];
+                return {
+                    id: p.id,
+                    title: p.title,
+                    totalNodes: roadmapNodes.length,
+                    completedNodes: roadmapNodes.filter((n: { data?: { isCompleted?: boolean; quizPassed?: boolean } }) =>
+                        n.data?.isCompleted || n.data?.quizPassed
+                    ).length,
+                };
+            });
+            setProjects(stats);
+        } catch (error) {
+            console.error("Failed to fetch project stats:", error);
+        }
+    }, [user?.id]);
+
+    useEffect(() => {
+        if (open) {
+            fetchProjectStats();
+        }
+    }, [open, fetchProjectStats]);
+
     // Calculate overall stats
     const totalProjects = projects.length;
-    const completedProjects = projects.filter(p => 
+    const completedProjects = projects.filter(p =>
         p.totalNodes > 0 && p.completedNodes === p.totalNodes
     ).length;
-    const inProgressProjects = projects.filter(p => 
+    const inProgressProjects = projects.filter(p =>
         p.totalNodes > 0 && p.completedNodes > 0 && p.completedNodes < p.totalNodes
     ).length;
-    
+
     const totalTopics = projects.reduce((sum, p) => sum + p.totalNodes, 0);
     const completedTopics = projects.reduce((sum, p) => sum + p.completedNodes, 0);
     const overallProgress = totalTopics > 0 ? Math.round((completedTopics / totalTopics) * 100) : 0;
@@ -163,9 +196,9 @@ export function ProgressDashboard({
                                 <div className="flex items-end gap-1 h-16">
                                     {streakData.weeklyActivity.map((count, i) => (
                                         <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                                            <div 
+                                            <div
                                                 className="w-full bg-primary/20 rounded-t transition-all"
-                                                style={{ 
+                                                style={{
                                                     height: `${(count / maxDailyActivity) * 100}%`,
                                                     minHeight: count > 0 ? '4px' : '0px',
                                                     backgroundColor: count > 0 ? 'hsl(var(--primary))' : undefined,
@@ -287,17 +320,17 @@ export function ProgressDashboard({
     );
 }
 
-function StatCard({ 
-    icon, 
-    label, 
-    value, 
-    color, 
-    bgColor 
-}: { 
-    icon: React.ReactNode; 
-    label: string; 
-    value: number; 
-    color: string; 
+function StatCard({
+    icon,
+    label,
+    value,
+    color,
+    bgColor
+}: {
+    icon: React.ReactNode;
+    label: string;
+    value: number;
+    color: string;
     bgColor: string;
 }) {
     return (

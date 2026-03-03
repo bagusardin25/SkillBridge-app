@@ -431,16 +431,20 @@ export function FlowCanvas() {
                             </span>
                         </div>
                     )}
-                    <button
-                        onClick={handleFocusCurrentStep}
-                        className="px-4 py-2 bg-primary text-primary-foreground font-medium rounded-full shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all text-sm flex items-center gap-2 group"
-                        title="Locate Current Step"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:animate-pulse">
-                            <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="2" />
-                        </svg>
-                        Focus Current Step
-                    </button>
+                </Panel>
+                <Panel position="bottom-center" className="mb-4 flex flex-col items-center gap-3">
+                    {nodes.length > 0 && (
+                        <button
+                            onClick={handleFocusCurrentStep}
+                            className="px-4 py-2 bg-primary text-primary-foreground font-medium rounded-full shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all text-sm flex items-center gap-2 group"
+                            title="Locate Current Step"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:animate-pulse">
+                                <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="2" />
+                            </svg>
+                            Focus Current Step
+                        </button>
+                    )}
                 </Panel>
                 <Panel position="bottom-right" className="mb-4 mr-4 hidden sm:block">
                     <button

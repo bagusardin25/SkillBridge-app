@@ -18,7 +18,7 @@ import { SaveProjectDialog } from "@/components/ui/SaveProjectDialog";
 import { CertificateModal } from "@/components/ui/CertificateModal";
 import { ProgressDashboard } from "@/components/ui/ProgressDashboard";
 import { ShareModal } from "@/components/ui/ShareModal";
-import { createProject, createRoadmap, updateRoadmap, getProjects, toggleRoadmapPublic } from "@/lib/api";
+import { createProject, createRoadmap, updateRoadmap, toggleRoadmapPublic } from "@/lib/api";
 import { Award, BarChart3, Share2, MoreVertical, Trash2 } from "lucide-react";
 import {
     DropdownMenu,
@@ -53,42 +53,16 @@ export function Header() {
     const [showShare, setShowShare] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [isRoadmapPublic, setIsRoadmapPublic] = useState(false);
-    const [projectStats, setProjectStats] = useState<Array<{
-        id: string;
-        title: string;
-        totalNodes: number;
-        completedNodes: number;
-    }>>([]);
 
-    // Fetch projects for dashboard
-    const fetchProjectStats = useCallback(async () => {
-        if (!user?.id) return;
-        try {
-            const projects = await getProjects(user.id);
-            const stats = projects.map(p => {
-                const roadmap = p.roadmaps?.[0];
-                const roadmapNodes = Array.isArray(roadmap?.nodes) ? roadmap.nodes : [];
-                return {
-                    id: p.id,
-                    title: p.title,
-                    totalNodes: roadmapNodes.length,
-                    completedNodes: roadmapNodes.filter((n: { data?: { isCompleted?: boolean; quizPassed?: boolean } }) =>
-                        n.data?.isCompleted || n.data?.quizPassed
-                    ).length,
-                };
-            });
-            setProjectStats(stats);
-        } catch (error) {
-            console.error("Failed to fetch project stats:", error);
-        }
-    }, [user?.id]);
+    // For Inline Editing Title
+    const [isEditingTitle, setIsEditingTitle] = useState(false);
+    const [editTitleValue, setEditTitleValue] = useState("");
 
-    // Fetch stats when dashboard opens
     useEffect(() => {
-        if (showDashboard) {
-            fetchProjectStats();
-        }
-    }, [showDashboard, fetchProjectStats]);
+        setEditTitleValue(currentProjectTitle || "");
+    }, [currentProjectTitle]);
+
+    // Removed fetchProjectStats from here, it is now in ProgressDashboard.tsx
 
     // Calculate progress - count both isCompleted and quizPassed nodes
     const totalNodes = nodes.length;
@@ -244,6 +218,25 @@ export function Header() {
         setIsRoadmapPublic(isPublic);
     }, [currentRoadmapId]);
 
+    const handleTitleSubmit = async () => {
+        if (editTitleValue.trim() !== "" && editTitleValue !== currentProjectTitle && currentProjectId) {
+            // Update Title (Simulated for UI, implement API update if backend supports)
+            setCurrentProject(currentProjectId, editTitleValue.trim());
+        } else {
+            setEditTitleValue(currentProjectTitle || "");
+        }
+        setIsEditingTitle(false);
+    };
+
+    const handleTitleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter") {
+            handleTitleSubmit();
+        } else if (e.key === "Escape") {
+            setEditTitleValue(currentProjectTitle || "");
+            setIsEditingTitle(false);
+        }
+    };
+
     return (
         <header className="h-14 border-b border-b-muted/40 bg-background/80 backdrop-blur-xl flex items-center justify-between px-4 sticky top-0 z-50">
             <div className="flex items-center gap-3">
@@ -263,7 +256,25 @@ export function Header() {
                 <div className="flex items-center gap-2 text-sm">
                     <span className="font-semibold text-muted-foreground hidden sm:inline-block">SkillBridge</span>
                     <span className="text-muted-foreground hidden sm:inline-block">/</span>
-                    <span className="font-bold text-foreground truncate max-w-[120px] sm:max-w-none">{currentProjectTitle}</span>
+                    {isEditingTitle ? (
+                        <input
+                            type="text"
+                            value={editTitleValue}
+                            onChange={(e) => setEditTitleValue(e.target.value)}
+                            onBlur={handleTitleSubmit}
+                            onKeyDown={handleTitleKeyDown}
+                            className="h-7 px-2 py-1 text-sm font-bold bg-muted border border-primary/50 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30 w-32 sm:w-auto"
+                            autoFocus
+                        />
+                    ) : (
+                        <span
+                            className="font-bold text-foreground truncate max-w-[120px] sm:max-w-none cursor-pointer hover:underline decoration-primary/50"
+                            onClick={() => setIsEditingTitle(true)}
+                            title="Click to edit project name"
+                        >
+                            {currentProjectTitle}
+                        </span>
+                    )}
                 </div>
 
 
@@ -283,15 +294,27 @@ export function Header() {
             </div>
 
             <div className="flex items-center gap-2 sm:gap-3">
-                {/* Dashboard Button - Hidden on mobile */}
+
+                {/* Save Button (Consolidated) */}
                 <TooltipProvider delayDuration={300}>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Button variant="ghost" size="icon" onClick={() => setShowDashboard(true)} className="hidden sm:flex">
-                                <BarChart3 className="h-5 w-5" />
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={handleSave}
+                                disabled={isSaving || nodes.length === 0}
+                                className="flex"
+                            >
+                                {isSaving ? (
+                                    <Loader2 className="h-4 w-4 sm:mr-2 animate-spin" />
+                                ) : (
+                                    <Save className="h-4 w-4 sm:mr-2" />
+                                )}
+                                <span className="hidden sm:inline">{isSaving ? "Saving..." : "Save"}</span>
                             </Button>
                         </TooltipTrigger>
-                        <TooltipContent>Progress Dashboard</TooltipContent>
+                        <TooltipContent>Save Project (Ctrl+S)</TooltipContent>
                     </Tooltip>
                 </TooltipProvider>
 
@@ -299,7 +322,7 @@ export function Header() {
                 <TooltipProvider delayDuration={300}>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme" className="hidden sm:flex">
+                            <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme" className="hidden sm:flex h-9 w-9">
                                 {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                             </Button>
                         </TooltipTrigger>
@@ -309,49 +332,7 @@ export function Header() {
 
                 <Separator orientation="vertical" className="hidden sm:block h-6 mx-1" />
 
-                {/* Export Button */}
-                <TooltipProvider delayDuration={300}>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={handleExport}
-                                disabled={isExporting || nodes.length === 0}
-                                className="hidden sm:flex"
-                            >
-                                {isExporting ? (
-                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                ) : (
-                                    <Download className="h-4 w-4 mr-2" />
-                                )}
-                                Export
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Export as PNG</TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
-
-                {/* Share Button */}
-                <TooltipProvider delayDuration={300}>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setShowShare(true)}
-                                disabled={nodes.length === 0}
-                                className="hidden sm:flex"
-                            >
-                                <Share2 className="h-4 w-4 mr-2" />
-                                Share
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Share Roadmap</TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
-
-                {/* More Options Dropdown */}
+                {/* More Options Dropdown (Consolidated Export, Share, Clear Canvas) */}
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" className="hidden sm:flex h-9 w-9">
@@ -359,57 +340,21 @@ export function Header() {
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem onClick={() => setShowShare(true)} disabled={nodes.length === 0}>
+                            <Share2 className="h-4 w-4 mr-2" />
+                            Share Roadmap
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleExport} disabled={isExporting || nodes.length === 0}>
+                            {isExporting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
+                            Export to PNG
+                        </DropdownMenuItem>
+                        <Separator className="my-1" />
                         <DropdownMenuItem onClick={handleClearCanvas} className="text-destructive focus:text-destructive group">
                             <Trash2 className="h-4 w-4 mr-2 group-hover:animate-pulse" />
                             Clear Canvas
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
-
-                {/* Save Button - Icon only on mobile */}
-                <TooltipProvider delayDuration={300}>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            {/* Mobile: Icon only */}
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={handleSave}
-                                disabled={isSaving || nodes.length === 0}
-                                className="sm:hidden h-9 w-9"
-                            >
-                                {isSaving ? (
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                    <Save className="h-4 w-4" />
-                                )}
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Save Project (Ctrl+S)</TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
-                <TooltipProvider delayDuration={300}>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            {/* Desktop: With text */}
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={handleSave}
-                                disabled={isSaving || nodes.length === 0}
-                                className="hidden sm:flex"
-                            >
-                                {isSaving ? (
-                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                ) : (
-                                    <Save className="h-4 w-4 mr-2" />
-                                )}
-                                {isSaving ? "Saving..." : "Save"}
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Save Project (Ctrl+S)</TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
 
                 {/* Mobile: Certificate Button - Show when 100% complete */}
                 {progressPercentage === 100 && (
@@ -448,6 +393,42 @@ export function Header() {
                     )}
                     AI
                 </Button>
+
+                {/* User Avatar Menu */}
+                {user && (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="md:hidden h-9 w-9 rounded-full ml-1 overflow-hidden border">
+                                {user.avatarUrl ? (
+                                    <img src={user.avatarUrl} alt={user.name || "User avatar"} className="h-full w-full object-cover" />
+                                ) : (
+                                    <div className="h-full w-full bg-primary/10 text-primary flex items-center justify-center font-semibold text-xs">
+                                        {(user.name || user.email || 'U').substring(0, 2).toUpperCase()}
+                                    </div>
+                                )}
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-56">
+                            <div className="px-2 py-1.5 text-sm">
+                                <div className="font-semibold">{user.name || "Learner"}</div>
+                                <div className="text-xs text-muted-foreground truncate">{user.email}</div>
+                            </div>
+                            <Separator className="my-1" />
+                            <DropdownMenuItem onClick={() => setShowDashboard(true)}>
+                                <BarChart3 className="h-4 w-4 mr-2" />
+                                Progress Dashboard
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => toast.info("Settings are coming soon!")}>
+                                <Save className="h-4 w-4 mr-2" />
+                                My Settings
+                            </DropdownMenuItem>
+                            <Separator className="my-1" />
+                            <DropdownMenuItem onClick={() => useAuthStore.getState().logout()} className="text-destructive focus:text-destructive">
+                                Log Out
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                )}
             </div>
 
             {/* Save Project Dialog */}
@@ -473,7 +454,6 @@ export function Header() {
             <ProgressDashboard
                 open={showDashboard}
                 onOpenChange={setShowDashboard}
-                projects={projectStats}
                 currentProjectStats={currentProjectId ? {
                     title: currentProjectTitle || "Current Roadmap",
                     totalNodes,
