@@ -208,45 +208,55 @@ function CustomNodeComponent({ id, data, type, selected }: CustomNodeProps) {
                     />
                 ) : (
                     <>
-                        {/* Row 1: Step number + Title + Time */}
-                        <div className={`flex items-start justify-between gap-3 w-full transition-all duration-500 ease-[cubic-bezier(0.25,0.1,0.25,1)] origin-top ${!showDetails ? "scale-[1.15] translate-y-[18px]" : "scale-100 translate-y-0"}`}>
-                            <div className={`font-semibold select-none flex items-start gap-2 w-full transition-all duration-500 ${!showDetails ? "justify-center" : "justify-start"}`}>
-                                {data.stepNumber && (
-                                    <span className={`inline-flex items-center justify-center min-w-[24px] h-6 px-1.5 rounded text-xs font-bold shrink-0 mt-0.5 transition-colors ${data.isCompleted || data.quizPassed
-                                        ? "bg-emerald-500 text-white"
-                                        : data.isStartNode
-                                            ? "bg-primary text-primary-foreground"
-                                            : "bg-muted-foreground/20 text-muted-foreground"
-                                        }`}>
-                                        {data.isCompleted || data.quizPassed ? (
-                                            <CheckCircle2 className="h-3.5 w-3.5" />
-                                        ) : (
-                                            data.stepNumber
-                                        )}
+                        {/* Static stylized step number */}
+                        {data.stepNumber && (
+                            <div className="absolute left-4 top-4 z-20">
+                                <span className={`inline-flex items-center justify-center font-bold px-2.5 py-1 min-w-[28px] h-7 rounded-sm shadow-sm border ${data.isCompleted || data.quizPassed
+                                    ? "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800"
+                                    : data.isStartNode
+                                        ? "bg-primary/10 text-primary border-primary/20 dark:bg-primary/20"
+                                        : "bg-muted/60 text-muted-foreground border-border/50 backdrop-blur-sm"
+                                    }`}>
+                                    {data.isCompleted || data.quizPassed ? (
+                                        <CheckCircle2 className="h-4 w-4" />
+                                    ) : (
+                                        <span className="text-sm font-sans tracking-tight">{data.stepNumber}</span>
+                                    )}
+                                </span>
+                            </div>
+                        )}
+
+                        {/* Centered Content Container */}
+                        <div className={`flex flex-col items-center justify-center h-full w-full transition-all duration-500 ease-[cubic-bezier(0.25,0.1,0.25,1)] ${!showDetails ? "scale-[1.1] absolute inset-0" : "scale-100 relative mt-2"}`}>
+                            {/* Title */}
+                            <span className={`text-base font-bold break-words leading-tight text-center px-12 transition-all duration-500 ${!showDetails ? "text-[1.3rem] w-full flex items-center justify-center" : "w-full"}`}>{data.label}</span>
+
+                            {/* Collapsible Details Container */}
+                            <div className={`flex flex-col items-center transition-all duration-300 ${!showDetails ? "h-0 opacity-0 overflow-hidden" : "h-auto opacity-100 mt-1.5"}`}>
+                                {/* Time */}
+                                {data.estimatedTime && !isDecision && type !== "start-end" && (
+                                    <span className="text-[11px] font-medium text-muted-foreground/60">
+                                        ⏱ {data.estimatedTime as string}
                                     </span>
                                 )}
-                                <span className={`text-base break-words leading-tight transition-all duration-500 ${!showDetails ? "text-center" : "text-left"}`}>{data.label}</span>
+
+                                {/* Description */}
+                                {data.description && !isDecision && type !== "start-end" && (
+                                    <div className="text-sm text-muted-foreground/80 mt-1 line-clamp-2 px-2 text-center pointer-events-none">
+                                        {data.description}
+                                    </div>
+                                )}
+
+                                {/* Phase Badge */}
+                                {data.phase && !isDecision && type !== "start-end" && (
+                                    <div className="mt-2">
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 bg-muted/60 px-2.5 py-1 rounded-md">
+                                            {data.phase as string}
+                                        </span>
+                                    </div>
+                                )}
                             </div>
-                            {data.estimatedTime && !isDecision && type !== "start-end" && (
-                                <span className={`text-[11px] text-muted-foreground/60 whitespace-nowrap shrink-0 mt-1 transition-opacity duration-300 ${showDetails ? "opacity-100" : "opacity-0 invisible"}`}>
-                                    ⏱ {data.estimatedTime as string}
-                                </span>
-                            )}
                         </div>
-                        {/* Row 2: Short description */}
-                        {data.description && !isDecision && type !== "start-end" && (
-                            <div className={`text-sm text-muted-foreground/80 mt-1 line-clamp-1 select-none pointer-events-none transition-opacity duration-300 ${showDetails ? "opacity-100" : "opacity-0 invisible"}`}>
-                                {data.description}
-                            </div>
-                        )}
-                        {/* Row 3: Phase badge */}
-                        {data.phase && !isDecision && type !== "start-end" && (
-                            <div className={`mt-2 transition-opacity duration-300 ${showDetails ? "opacity-100" : "opacity-0 invisible"}`}>
-                                <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 bg-muted/40 px-2 py-0.5 rounded">
-                                    {data.phase as string}
-                                </span>
-                            </div>
-                        )}
                     </>
                 )}
             </div>
