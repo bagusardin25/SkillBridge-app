@@ -24,7 +24,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
     return (
         <ReactFlowProvider>
-            <div className="flex h-screen overflow-hidden bg-background text-foreground">
+            <div className="flex h-[100dvh] w-full overflow-hidden bg-background text-foreground">
                 {/* Left Sidebar - Desktop: Always visible */}
                 <div className="hidden md:flex h-full">
                     <Sidebar />
@@ -45,7 +45,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     </div>
                 )}
 
-                <div className="flex-1 flex flex-col overflow-hidden relative">
+                <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative transition-all duration-300">
                     <Header />
                     <main className="flex-1 overflow-hidden relative bg-muted/10">
                         {children}
@@ -75,8 +75,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 {/* Desktop: Side panels - Unified container with width transition */}
                 <div
                     className={cn(
-                        "hidden md:block h-full bg-background relative transition-[width,border-color] duration-300 ease-in-out",
-                        (isAiPanelOpen || showDetailPanel) ? "w-80 border-l" : "w-0 border-transparent"
+                        "hidden md:block h-full bg-background relative transition-[width,min-width,border-color] duration-300 ease-in-out flex-shrink-0",
+                        (isAiPanelOpen || showDetailPanel) ? "w-80 min-w-80 border-l" : "w-0 min-w-0 border-transparent"
                     )}
                 >
                     <div className="w-80 h-full overflow-hidden absolute top-0 left-0 bg-background">

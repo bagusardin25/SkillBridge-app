@@ -434,12 +434,12 @@ export function Sidebar({ className }: { className?: string }) {
                                             className={cn(
                                                 "w-full justify-start font-normal pr-8 transition-all duration-300",
                                                 currentProjectId === project.id
-                                                    ? "bg-primary/10 text-primary font-medium border-l-4 border-l-primary rounded-none rounded-r-md shadow-sm"
+                                                    ? "bg-primary/10 text-primary font-medium border-l-[3px] border-l-primary rounded-none rounded-r-md shadow-[inset_2px_0_10px_-4px_rgba(139,92,246,0.3)] dark:bg-primary/20"
                                                     : "hover:bg-muted/80 hover:translate-x-1"
                                             )}
                                             onClick={() => handleSelectProject(project)}
                                         >
-                                            <Folder className={cn("mr-2 h-4 w-4 transition-transform group-hover:scale-110", currentProjectId === project.id && "fill-primary/20")} />
+                                            <Folder className={cn("mr-2 h-4 w-4 transition-transform group-hover:scale-110", currentProjectId === project.id && "fill-primary/20 text-primary")} />
                                             <span className="truncate">{project.title}</span>
                                         </Button>
                                         <DropdownMenu>

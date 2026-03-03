@@ -18,10 +18,10 @@ const shapeStyles: Record<string, string> = {
 
 // Category-based styling for Railway-inspired look
 const categoryStyles = {
-    core: "border-l-[5px] border-l-primary bg-card",
-    optional: "border-l-[5px] border-l-slate-400 bg-slate-50/80 dark:bg-slate-800/40",
-    advanced: "border-l-[5px] border-l-violet-500 bg-violet-50/80 dark:bg-violet-900/30",
-    project: "border-l-[5px] border-l-emerald-500 bg-emerald-50/80 dark:bg-emerald-900/30",
+    core: "border-l-[5px] border-l-primary bg-card/90 backdrop-blur dark:bg-card/70",
+    optional: "border-l-[5px] border-l-slate-400 bg-slate-50/80 backdrop-blur dark:bg-slate-800/40",
+    advanced: "border-l-[5px] border-l-violet-500 bg-violet-50/80 backdrop-blur dark:bg-violet-900/40",
+    project: "border-l-[5px] border-l-emerald-500 bg-emerald-50/80 backdrop-blur dark:bg-emerald-900/40",
 };
 
 
@@ -50,10 +50,11 @@ function CustomNodeComponent({ id, data, type, selected }: CustomNodeProps) {
     const isFuture = !isCompleted && !isActive && !data.isStartNode && type !== "start-end" && type !== "decision";
 
     const completedClass = isCompleted
-        ? "!border-l-emerald-500 !bg-emerald-50 dark:!bg-emerald-900/30 ring-1 ring-emerald-500/30"
+        ? "!border-l-emerald-500 !bg-emerald-50/90 dark:!bg-emerald-900/50 backdrop-blur ring-1 ring-emerald-500/30"
         : "";
-    const activeClass = isActive ? "ring-[3px] ring-primary ring-offset-2 shadow-xl !border-primary" : "";
-    const futureClass = isFuture ? "opacity-[0.6] grayscale-[50%] hover:opacity-100 hover:grayscale-0" : "";
+    // Replaced flat rings with glow effect
+    const activeClass = isActive ? "ring-[3px] ring-primary ring-offset-2 ring-offset-background/50 shadow-[0_0_20px_rgba(139,92,246,0.5)] !border-primary scale-[1.02] z-10" : "";
+    const futureClass = isFuture ? "opacity-60 grayscale-[40%] hover:opacity-100 hover:grayscale-0" : "";
 
     useEffect(() => {
         if (isEditing) {

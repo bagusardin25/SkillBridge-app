@@ -368,8 +368,8 @@ export function Header() {
                     </Button>
                 )}
 
-                {/* AI Panel Toggle - Mobile: Only show when panel is closed */}
-                {!isAiPanelOpen && (
+                {/* AI Panel Toggle - Mobile: Only show when panel is closed and detail isn't open */}
+                {!isAiPanelOpen && !isDetailPanelOpen && (
                     <Button
                         variant="default"
                         size="icon"
@@ -381,17 +381,28 @@ export function Header() {
                 )}
                 {/* Desktop: With text */}
                 <Button
-                    variant={isAiPanelOpen ? "secondary" : "default"}
+                    variant={(isAiPanelOpen || isDetailPanelOpen) ? "secondary" : "default"}
                     size="sm"
-                    onClick={toggleAiPanel}
-                    className={`hidden sm:flex ${!isAiPanelOpen ? "shadow-sm" : ""}`}
+                    onClick={() => {
+                        if (isDetailPanelOpen && !isAiPanelOpen) {
+                            // If detail is open but AI is not, close detail
+                            // or could switch to AI, but user requested close sync
+                            useRoadmapStore.getState().closeDetailPanel();
+                        } else {
+                            toggleAiPanel();
+                            if (isAiPanelOpen) {
+                                useRoadmapStore.getState().closeDetailPanel();
+                            }
+                        }
+                    }}
+                    className={`hidden sm:flex ${!(isAiPanelOpen || isDetailPanelOpen) ? "shadow-sm" : ""}`}
                 >
-                    {isAiPanelOpen ? (
+                    {(isAiPanelOpen || isDetailPanelOpen) ? (
                         <PanelRightClose className="h-4 w-4 mr-2" />
                     ) : (
                         <MessageSquare className="h-4 w-4 mr-2" />
                     )}
-                    AI
+                    {(isAiPanelOpen || isDetailPanelOpen) ? "Close" : "AI"}
                 </Button>
 
                 {/* User Avatar Menu */}
