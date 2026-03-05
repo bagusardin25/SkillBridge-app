@@ -23,6 +23,7 @@ import { useReactFlow } from "@xyflow/react";
 import type { RoadmapNodeData } from "@/types/roadmap";
 import { QuizFullScreen } from "@/components/quiz/QuizFullScreen";
 import { NodeChatPanel } from "@/components/chat/NodeChatPanel";
+import { FullScreenChat } from "@/components/chat/FullScreenChat";
 
 const categoryLabels: Record<string, { label: string; color: string }> = {
     core: { label: "Core", color: "bg-primary text-primary-foreground" },
@@ -66,6 +67,7 @@ export function NodeDetailPanel() {
     const { updateNodeData } = useReactFlow();
     const [activeTab, setActiveTab] = useState("resources");
     const [showQuiz, setShowQuiz] = useState(false);
+    const [showFullScreenChat, setShowFullScreenChat] = useState(false);
 
     // Reset tab to resources when node changes
     useEffect(() => {
@@ -527,7 +529,11 @@ export function NodeDetailPanel() {
 
                 {/* AI Tutor Tab */}
                 <TabsContent value="ai-tutor" className="flex-1 overflow-hidden m-0">
-                    <NodeChatPanel nodeId={selectedNode.id} topic={data.label} />
+                    <NodeChatPanel
+                        nodeId={selectedNode.id}
+                        topic={data.label}
+                        onExpand={() => setShowFullScreenChat(true)}
+                    />
                 </TabsContent>
             </Tabs>
 
@@ -539,6 +545,20 @@ export function NodeDetailPanel() {
                     nodeId={selectedNode.id}
                     onComplete={handleQuizComplete}
                     onClose={() => setShowQuiz(false)}
+                />
+            )}
+
+            {/* Full Screen AI Tutor Overlay */}
+            {showFullScreenChat && selectedNode && (
+                <FullScreenChat
+                    nodeId={selectedNode.id}
+                    topic={data.label}
+                    description={data.description}
+                    resources={data.resources}
+                    videos={data.videos}
+                    category={data.category}
+                    isCompleted={data.quizPassed || data.isCompleted}
+                    onClose={() => setShowFullScreenChat(false)}
                 />
             )}
         </div>

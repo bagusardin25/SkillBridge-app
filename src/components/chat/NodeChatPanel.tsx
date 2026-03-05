@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useRoadmapStore } from "@/store/useRoadmapStore";
 import { getNodeChatHistory, sendNodeChatMessage, clearNodeChatHistory, type ChatMessage } from "@/lib/api";
-import { Sparkles, Send, Loader2, MessageSquare, AlertCircle, Trash2 } from "lucide-react";
+import { Sparkles, Send, Loader2, MessageSquare, AlertCircle, Trash2, Maximize2 } from "lucide-react";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -95,9 +95,10 @@ function TypewriterText({ text, onComplete }: { text: string; onComplete?: () =>
 interface NodeChatPanelProps {
     nodeId: string;
     topic: string;
+    onExpand?: () => void;
 }
 
-export function NodeChatPanel({ nodeId, topic }: NodeChatPanelProps) {
+export function NodeChatPanel({ nodeId, topic, onExpand }: NodeChatPanelProps) {
     const { currentProjectId } = useRoadmapStore();
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [input, setInput] = useState("");
@@ -247,19 +248,32 @@ export function NodeChatPanel({ nodeId, topic }: NodeChatPanelProps) {
                     <Sparkles className="h-3.5 w-3.5 text-violet-500 flex-shrink-0" />
                     <span className="text-xs font-medium text-muted-foreground truncate">{topic}</span>
                 </div>
-                {messages.length > 0 && (
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleClearChat}
-                        className="h-7 text-xs text-muted-foreground hover:text-destructive flex-shrink-0"
-                        disabled={isSending}
-                        title="Clear conversation"
-                    >
-                        <Trash2 className="h-3.5 w-3.5 mr-1" />
-                        Clear
-                    </Button>
-                )}
+                <div className="flex items-center gap-1 flex-shrink-0">
+                    {messages.length > 0 && (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleClearChat}
+                            className="h-7 text-xs text-muted-foreground hover:text-destructive"
+                            disabled={isSending}
+                            title="Clear conversation"
+                        >
+                            <Trash2 className="h-3.5 w-3.5 mr-1" />
+                            Clear
+                        </Button>
+                    )}
+                    {onExpand && (
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={onExpand}
+                            className="h-7 w-7 text-muted-foreground hover:text-violet-600"
+                            title="Expand to full screen"
+                        >
+                            <Maximize2 className="h-3.5 w-3.5" />
+                        </Button>
+                    )}
+                </div>
             </div>
 
             {/* Chat Messages */}
