@@ -554,8 +554,8 @@ export function ChatPanel() {
             <div className="h-14 px-4 border-b flex items-center justify-between bg-muted/10">
                 <div className="flex items-center gap-3">
                     <div className="relative">
-                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
-                            <Bot className="h-5 w-5 text-primary" />
+                        <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                            <Bot className="h-5 w-5 text-white" />
                         </div>
                         <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-green-500 border-2 border-background"></span>
                     </div>
@@ -757,21 +757,18 @@ export function ChatPanel() {
                                         msg.role === "user" ? "ml-auto flex-row-reverse" : ""
                                     )}
                                 >
-                                    <Avatar className="h-8 w-8 border flex-shrink-0">
-                                        {msg.role === "assistant" ? (
-                                            <>
-                                                <AvatarImage src="/bot-avatar.png" />
-                                                <AvatarFallback className="bg-primary/10 text-primary">AI</AvatarFallback>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <AvatarImage src={user?.avatarUrl || ""} />
-                                                <AvatarFallback className="bg-secondary text-secondary-foreground">
-                                                    {user?.name?.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) || user?.email?.slice(0, 2).toUpperCase() || "ME"}
-                                                </AvatarFallback>
-                                            </>
-                                        )}
-                                    </Avatar>
+                                    {msg.role === "assistant" ? (
+                                        <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center flex-shrink-0 shadow-sm">
+                                            <Bot className="h-4 w-4 text-white" />
+                                        </div>
+                                    ) : (
+                                        <Avatar className="h-8 w-8 border flex-shrink-0">
+                                            <AvatarImage src={user?.avatarUrl || ""} />
+                                            <AvatarFallback className="bg-secondary text-secondary-foreground">
+                                                {user?.name?.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) || user?.email?.slice(0, 2).toUpperCase() || "ME"}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                    )}
                                     <div className="flex flex-col gap-1 min-w-0">
                                         {/* Timestamp */}
                                         {msg.timestamp && (
