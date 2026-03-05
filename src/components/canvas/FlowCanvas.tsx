@@ -338,8 +338,8 @@ export function FlowCanvas() {
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [placingNodeType, setPlacingNodeType]);
-    // Calculate global progress
-    const learningNodes = nodes.filter(n => n.type !== "start-end" && n.type !== "decision" && !n.data.isStartNode);
+    // Calculate global progress (include all learning nodes including the start node)
+    const learningNodes = nodes.filter(n => n.type !== "start-end" && n.type !== "decision");
     const completedNodesCount = learningNodes.filter(n => n.data.isCompleted || n.data.quizPassed).length;
     const totalNodesCount = learningNodes.length;
     const progressPercentage = totalNodesCount > 0 ? Math.round((completedNodesCount / totalNodesCount) * 100) : 0;

@@ -16,6 +16,7 @@ const MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 const generateQuizSchema = z.object({
   topic: z.string().min(1, "Topic is required"),
   description: z.string().optional(),
+  resources: z.array(z.string()).optional(), // Learning resource URLs/titles for context
 });
 
 interface QuizQuestion {
@@ -25,14 +26,17 @@ interface QuizQuestion {
   explanation: string;
 }
 
-const QUIZ_PROMPT = `You are an expert quiz generator. Generate exactly 5 multiple choice questions to test understanding of the given topic.
+const QUIZ_PROMPT = `You are an expert quiz generator for a learning platform. Generate exactly 5 multiple choice questions to test understanding of the given topic.
 
 RULES:
 1. Each question must have exactly 4 options (A, B, C, D)
 2. Only ONE option is correct
-3. Questions should test understanding, not just memorization
-4. Include a brief explanation for why the correct answer is right
-5. Make questions progressively harder (easy to medium to hard)
+3. Questions should test deep understanding, not just memorization
+4. Include a clear, educational explanation for why the correct answer is right
+5. Make questions progressively harder (easy → medium → hard)
+6. If learning resources are provided, base your questions on the concepts and topics covered by those resources
+7. Questions should be practical and relevant to real-world usage
+8. Avoid trivially obvious or trick questions
 
 Return ONLY valid JSON in this EXACT format:
 {
@@ -63,11 +67,16 @@ router.post("/generate", async (req, res) => {
       });
     }
 
-    const { topic, description } = validation.data;
+    const { topic, description, resources } = validation.data;
 
-    const userPrompt = description
-      ? `Generate a quiz about "${topic}". Context: ${description}`
-      : `Generate a quiz about "${topic}"`;
+    // Build user prompt with resource context
+    let userPrompt = `Generate a quiz about "${topic}".`;
+    if (description) {
+      userPrompt += ` Context: ${description}`;
+    }
+    if (resources && resources.length > 0) {
+      userPrompt += `\n\nThe learner has been studying from these resources:\n${resources.map((r, i) => `${i + 1}. ${r}`).join('\n')}\n\nPlease base your questions on the concepts, techniques, and knowledge that would be covered by these resources. Focus on practical understanding that someone who studied these materials should know.`;
+    }
 
     const response = await openai.chat.completions.create({
       model: MODEL,
@@ -206,8 +215,8 @@ router.post("/submit", async (req, res) => {
       totalQuestions,
       percentage: Math.round(scorePercentage * 100),
       passed,
-      message: passed 
-        ? "Congratulations! You passed the quiz!" 
+      message: passed
+        ? "Congratulations! You passed the quiz!"
         : `You need ${Math.ceil(totalQuestions * PASSING_PERCENTAGE)} correct answers to pass.`,
     });
   } catch (error: any) {

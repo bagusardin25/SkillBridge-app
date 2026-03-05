@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useRoadmapStore } from "@/store/useRoadmapStore";
+import { useAuthStore } from "@/store/useAuthStore";
 import {
     X,
     ExternalLink,
@@ -17,13 +18,19 @@ import {
     GraduationCap,
     Lock,
     Clock,
-    ArrowRight
+    ArrowRight,
+    ChevronDown,
+    Trophy,
+    XCircle,
+    Zap
 } from "lucide-react";
 import { useReactFlow } from "@xyflow/react";
 import type { RoadmapNodeData } from "@/types/roadmap";
 import { QuizFullScreen } from "@/components/quiz/QuizFullScreen";
 import { NodeChatPanel } from "@/components/chat/NodeChatPanel";
 import { FullScreenChat } from "@/components/chat/FullScreenChat";
+import { getQuizResult, type QuizResultData } from "@/lib/api";
+import { cn } from "@/lib/utils";
 
 const categoryLabels: Record<string, { label: string; color: string }> = {
     core: { label: "Core", color: "bg-primary text-primary-foreground" },
@@ -68,14 +75,39 @@ export function NodeDetailPanel() {
     const [activeTab, setActiveTab] = useState("resources");
     const [showQuiz, setShowQuiz] = useState(false);
     const [showFullScreenChat, setShowFullScreenChat] = useState(false);
+    const [quizResult, setQuizResult] = useState<QuizResultData | null>(null);
+    const [expandedQuestions, setExpandedQuestions] = useState<Set<number>>(new Set());
+    const [showQuizReview, setShowQuizReview] = useState(false);
+
+    const { user } = useAuthStore();
 
     // Reset tab to resources when node changes
     useEffect(() => {
         setActiveTab("resources");
+        setQuizResult(null);
+        setExpandedQuestions(new Set());
+        setShowQuizReview(false);
     }, [selectedNodeIds]);
 
     const selectedNode = nodes.find((n) => selectedNodeIds.includes(n.id));
     const data = selectedNode?.data as RoadmapNodeData | undefined;
+
+    // Fetch quiz result when node is completed
+    useEffect(() => {
+        const fetchQuizResult = async () => {
+            if (!currentRoadmapId || !selectedNode || !user?.id) return;
+            const nodeData = selectedNode.data as RoadmapNodeData;
+            if (!nodeData?.quizPassed && !nodeData?.isCompleted) return;
+
+            try {
+                const result = await getQuizResult(currentRoadmapId, selectedNode.id, user.id);
+                setQuizResult(result);
+            } catch {
+                // Quiz result not found — no problem
+            }
+        };
+        fetchQuizResult();
+    }, [currentRoadmapId, selectedNode, user?.id]);
 
     // Find prerequisite nodes (nodes that point to this node)
     const prerequisiteNodes = selectedNode
@@ -389,14 +421,108 @@ export function NodeDetailPanel() {
                                         </div>
                                     )}
                                     {isCompleted ? (
-                                        <div className="flex items-center gap-3 p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border border-emerald-200 dark:border-emerald-800">
-                                            <div className="h-10 w-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center flex-shrink-0">
-                                                <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                                        <div className="space-y-3">
+                                            {/* Quiz Passed Banner */}
+                                            <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-xl border border-emerald-200/60 dark:border-emerald-800/60">
+                                                <div className="h-10 w-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md shadow-emerald-500/20">
+                                                    <Trophy className="h-5 w-5 text-white" />
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="font-semibold text-sm text-emerald-700 dark:text-emerald-400">Quiz Selesai! ✅</p>
+                                                    {quizResult && (
+                                                        <div className="flex items-center gap-2 mt-0.5">
+                                                            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-500">
+                                                                {Math.round((quizResult.score / quizResult.totalQuestions) * 100)}%
+                                                            </span>
+                                                            <span className="text-xs text-muted-foreground">•</span>
+                                                            <span className="text-xs text-muted-foreground">
+                                                                {quizResult.score}/{quizResult.totalQuestions} benar
+                                                            </span>
+                                                            <span className="inline-flex items-center gap-0.5 text-xs text-amber-600 dark:text-amber-400">
+                                                                <Zap className="h-3 w-3" /> +100 XP
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
-                                            <div>
-                                                <p className="font-medium text-emerald-700 dark:text-emerald-400">Quiz Completed!</p>
-                                                <p className="text-sm text-emerald-600 dark:text-emerald-500">You've mastered this topic.</p>
-                                            </div>
+
+                                            {/* Review Questions Toggle */}
+                                            {quizResult && quizResult.questions && quizResult.questions.length > 0 && (
+                                                <div className="rounded-xl border overflow-hidden">
+                                                    <button
+                                                        onClick={() => setShowQuizReview(!showQuizReview)}
+                                                        className="w-full flex items-center justify-between p-3 hover:bg-muted/50 transition-colors"
+                                                    >
+                                                        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                                                            <BookOpen className="h-3.5 w-3.5" />
+                                                            Review Jawaban
+                                                        </span>
+                                                        <ChevronDown className={cn(
+                                                            "h-4 w-4 text-muted-foreground transition-transform duration-200",
+                                                            showQuizReview && "rotate-180"
+                                                        )} />
+                                                    </button>
+
+                                                    {showQuizReview && (
+                                                        <div className="border-t divide-y">
+                                                            {quizResult.questions.map((q, i) => {
+                                                                const userAnswer = quizResult.answers[i];
+                                                                const isCorrect = userAnswer === q.correctIndex;
+                                                                const isExpanded = expandedQuestions.has(i);
+
+                                                                return (
+                                                                    <button
+                                                                        key={i}
+                                                                        onClick={() => {
+                                                                            const newSet = new Set(expandedQuestions);
+                                                                            if (isExpanded) newSet.delete(i);
+                                                                            else newSet.add(i);
+                                                                            setExpandedQuestions(newSet);
+                                                                        }}
+                                                                        className="w-full text-left p-3 hover:bg-muted/30 transition-colors"
+                                                                    >
+                                                                        {/* Question header */}
+                                                                        <div className="flex items-start gap-2">
+                                                                            <div className={cn(
+                                                                                "h-5 w-5 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5",
+                                                                                isCorrect
+                                                                                    ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600"
+                                                                                    : "bg-red-100 dark:bg-red-900/30 text-red-500"
+                                                                            )}>
+                                                                                {isCorrect ? <CheckCircle2 className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
+                                                                            </div>
+                                                                            <p className="text-xs font-medium flex-1 leading-relaxed line-clamp-2">
+                                                                                Q{i + 1}. {q.question}
+                                                                            </p>
+                                                                            <ChevronDown className={cn(
+                                                                                "h-3.5 w-3.5 text-muted-foreground transition-transform flex-shrink-0 mt-0.5",
+                                                                                isExpanded && "rotate-180"
+                                                                            )} />
+                                                                        </div>
+
+                                                                        {/* Expanded details */}
+                                                                        {isExpanded && (
+                                                                            <div className="mt-2 ml-7 space-y-2">
+                                                                                {!isCorrect && (
+                                                                                    <p className="text-xs text-red-500 dark:text-red-400">
+                                                                                        ✗ Jawabanmu: {q.options[userAnswer ?? 0]}
+                                                                                    </p>
+                                                                                )}
+                                                                                <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                                                                                    ✓ Jawaban benar: {q.options[q.correctIndex]}
+                                                                                </p>
+                                                                                <div className="text-[11px] text-muted-foreground bg-muted/50 rounded-lg p-2 leading-relaxed">
+                                                                                    💡 {q.explanation}
+                                                                                </div>
+                                                                            </div>
+                                                                        )}
+                                                                    </button>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
                                     ) : !allPrerequisitesPassed ? (
                                         <div className="p-5 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 rounded-xl border border-amber-200/60 dark:border-amber-800/60 relative overflow-hidden group">
@@ -570,6 +696,7 @@ export function NodeDetailPanel() {
                 <QuizFullScreen
                     topic={data.label}
                     description={data.description}
+                    resources={data.resources}
                     nodeId={selectedNode.id}
                     onComplete={handleQuizComplete}
                     onClose={() => setShowQuiz(false)}

@@ -386,11 +386,11 @@ export interface QuizResponse {
 }
 
 // Quiz Functions
-export async function generateQuiz(topic: string, description?: string): Promise<QuizResponse> {
+export async function generateQuiz(topic: string, description?: string, resources?: string[]): Promise<QuizResponse> {
   const res = await fetch(`${API_URL}/quiz/generate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ topic, description }),
+    body: JSON.stringify({ topic, description, resources }),
   });
 
   const data = await res.json();
