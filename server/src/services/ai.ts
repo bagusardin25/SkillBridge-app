@@ -1,6 +1,5 @@
 import OpenAI from "openai";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { enrichNodeResources } from "./resourceEnricher.js";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -494,14 +493,6 @@ export async function generateRoadmap(
 
       if (validation.isValid) {
         console.log(`Roadmap generated successfully on attempt ${attempt + 1}`);
-
-        // Enrich resources with real APIs (YouTube + Dev.to + validation)
-        try {
-          await enrichNodeResources(roadmapData.nodes);
-        } catch (enrichError) {
-          console.warn("Resource enrichment failed, using AI-generated resources:", enrichError);
-        }
-
         return roadmapData;
       }
 
@@ -512,14 +503,6 @@ export async function generateRoadmap(
       // If this is the last attempt, return anyway but log warning
       if (attempt === maxRetries - 1) {
         console.warn("Max retries reached, returning roadmap with validation warnings");
-
-        // Still try to enrich resources even with validation warnings
-        try {
-          await enrichNodeResources(roadmapData.nodes);
-        } catch (enrichError) {
-          console.warn("Resource enrichment failed:", enrichError);
-        }
-
         return roadmapData;
       }
     } catch (error: any) {
@@ -544,27 +527,11 @@ export async function generateRoadmap(
 
           if (validation.isValid) {
             console.log("Roadmap generated successfully with Gemini fallback");
-
-            // Enrich resources
-            try {
-              await enrichNodeResources(geminiResult.nodes);
-            } catch (enrichError) {
-              console.warn("Resource enrichment failed:", enrichError);
-            }
-
             return geminiResult;
           }
 
           // Return anyway if validation has minor issues
           console.warn("Gemini result has validation warnings:", validation.errors);
-
-          // Still try to enrich
-          try {
-            await enrichNodeResources(geminiResult.nodes);
-          } catch (enrichError) {
-            console.warn("Resource enrichment failed:", enrichError);
-          }
-
           return geminiResult;
         } catch (geminiError: any) {
           console.error("Gemini fallback also failed:", geminiError.message);

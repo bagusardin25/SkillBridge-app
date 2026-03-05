@@ -1,8 +1,27 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
 import { generateRoadmap, RoadmapPreferences } from "../services/ai.js";
+import { enrichNodeResources } from "../services/resourceEnricher.js";
 
 const router = Router();
+
+// Background resource enrichment (fire-and-forget)
+async function enrichAndUpdateRoadmap(roadmapId: string, nodes: any[]) {
+  try {
+    console.log(`🔄 Background enrichment started for roadmap ${roadmapId}`);
+    const enrichedNodes = await enrichNodeResources(nodes);
+
+    // Update the roadmap in DB with enriched resources
+    await prisma.roadmap.update({
+      where: { id: roadmapId },
+      data: { nodes: enrichedNodes as any },
+    });
+
+    console.log(`✅ Background enrichment complete for roadmap ${roadmapId}`);
+  } catch (error) {
+    console.error(`❌ Background enrichment failed for roadmap ${roadmapId}:`, error);
+  }
+}
 
 // POST /api/roadmap/generate - Generate roadmap from AI
 router.post("/generate", async (req, res) => {
@@ -58,7 +77,13 @@ router.post("/generate", async (req, res) => {
           edges: roadmapData.edges,
         },
       });
-      return res.json({ ...roadmapData, id: savedRoadmap.id });
+
+      // Return roadmap immediately to client
+      res.json({ ...roadmapData, id: savedRoadmap.id });
+
+      // Fire-and-forget: enrich resources in background
+      enrichAndUpdateRoadmap(savedRoadmap.id, roadmapData.nodes);
+      return;
     }
 
     res.json(roadmapData);

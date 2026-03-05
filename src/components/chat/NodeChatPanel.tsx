@@ -58,14 +58,18 @@ function MarkdownContent({ content }: { content: string }) {
 // Typewriter component for streaming AI responses
 function TypewriterText({ text, onComplete }: { text: string; onComplete?: () => void }) {
     const [displayedText, setDisplayedText] = useState("");
+    const completedRef = useRef(false);
 
     useEffect(() => {
         let charIndex = 0;
+        completedRef.current = false;
         setDisplayedText("");
 
         // Start typing after thinking delay
         const delayTimer = setTimeout(() => {
             const typeText = () => {
+                if (completedRef.current) return;
+
                 if (charIndex < text.length) {
                     // Calculate dynamic speed based on chunk size to type faster
                     const chunkSize = Math.max(1, Math.floor(text.length / 50)); // Type up to 50 chunks
@@ -77,6 +81,7 @@ function TypewriterText({ text, onComplete }: { text: string; onComplete?: () =>
                         // Fast typing delay: 5-15ms
                         setTimeout(typeText, Math.random() * 10 + 5);
                     } else {
+                        completedRef.current = true;
                         onComplete?.();
                     }
                 }
@@ -86,10 +91,19 @@ function TypewriterText({ text, onComplete }: { text: string; onComplete?: () =>
 
         }, THINKING_DELAY);
 
-        return () => clearTimeout(delayTimer);
-    }, [text, onComplete]);
+        return () => {
+            completedRef.current = true;
+            clearTimeout(delayTimer);
+        };
+    }, [text]); // Remove onComplete from deps to prevent re-triggers
 
-    return <>{displayedText}<span className="animate-pulse">|</span></>;
+    // Render markdown during typing (same rendering as completed state)
+    return (
+        <div>
+            <MarkdownContent content={displayedText} />
+            {!completedRef.current && <span className="inline-block w-1.5 h-4 bg-violet-500 animate-pulse ml-0.5 align-text-bottom rounded-sm" />}
+        </div>
+    );
 }
 
 interface NodeChatPanelProps {
@@ -339,12 +353,10 @@ export function NodeChatPanel({ nodeId, topic, onExpand }: NodeChatPanelProps) {
                                         {message.role === "user" ? (
                                             <p className="whitespace-pre-wrap">{message.content}</p>
                                         ) : isStreaming ? (
-                                            <div className="prose prose-sm dark:prose-invert max-w-none">
-                                                <TypewriterText
-                                                    text={message.content}
-                                                    onComplete={() => handleStreamingComplete(message.id)}
-                                                />
-                                            </div>
+                                            <TypewriterText
+                                                text={message.content}
+                                                onComplete={() => handleStreamingComplete(message.id)}
+                                            />
                                         ) : (
                                             <MarkdownContent content={message.content} />
                                         )}
