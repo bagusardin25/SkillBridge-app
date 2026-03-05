@@ -783,3 +783,14 @@ export async function clearChatHistory(projectId: string): Promise<void> {
     throw new Error("Failed to clear chat history");
   }
 }
+
+// Clear chat history for a specific node
+export async function clearNodeChatHistory(projectId: string, nodeId: string): Promise<void> {
+  const res = await fetch(`${API_URL}/chat/${projectId}/node/${nodeId}`, {
+    method: "DELETE",
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to clear node chat history");
+  }
+}

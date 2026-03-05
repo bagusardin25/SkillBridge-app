@@ -27,25 +27,29 @@
   }
 
   .dark {
-    --background: 0 0% 1%;
+    --background: 0 0% 9%;
+    /* Softer dark: #171717 */
     --foreground: 0 0% 98%;
-    --card: 0 0% 4%;
+    --card: 0 0% 12%;
+    /* #1f1f1f */
     --card-foreground: 0 0% 98%;
-    --popover: 0 0% 4%;
+    --popover: 0 0% 12%;
     --popover-foreground: 0 0% 98%;
     --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 1%;
-    --secondary: 0 0% 8%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 15%;
+    /* #262626 */
     --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 8%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 0 0% 8%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 65%;
+    --accent: 0 0% 15%;
     --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 12%;
-    --input: 0 0% 12%;
-    --ring: 240 4.9% 83.9%;
+    --border: 0 0% 20%;
+    /* #333333 */
+    --input: 0 0% 20%;
+    --ring: 0 0% 83.9%;
   }
 }
 
@@ -224,10 +228,11 @@ html {
 
 /* Main landing wrapper */
 .landing-page {
-  background-color: #020202;
+  background-color: #121212;
+  /* Softer base */
   background-image:
-    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
-    radial-gradient(ellipse 60% 35% at 70% 0%, rgba(59, 130, 246, 0.04) 0%, transparent 50%);
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 35% at 70% 0%, rgba(59, 130, 246, 0.03) 0%, transparent 50%);
   color: #eeeeee;
   min-height: 100vh;
   overflow-x: hidden;
@@ -261,10 +266,10 @@ html {
 
 /* Glassmorphism nav when scrolled */
 .landing-nav-scrolled {
-  background: rgba(2, 2, 2, 0.9);
+  background: rgba(18, 18, 18, 0.9);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid #262626;
+  border-bottom: 1px solid #2d2d2d;
   box-shadow: none;
 }
 
@@ -334,8 +339,9 @@ html {
 .landing-feature-card {
   padding: 2rem 2.25rem;
   border-radius: 12px;
-  background: #080808;
-  border: 1px solid #262626;
+  background: #171717;
+  /* Brighter card */
+  border: 1px solid #2d2d2d;
   transition: all 0.4s ease;
   position: relative;
   overflow: hidden;
@@ -362,7 +368,7 @@ html {
   position: absolute;
   inset: 1px;
   border-radius: 11px;
-  background: #080808;
+  background: #171717;
   z-index: -1;
   transition: background 0.3s ease;
 }
@@ -377,7 +383,7 @@ html {
 }
 
 .landing-feature-card:hover::after {
-  background: #0a0a0a;
+  background: #1c1c1c;
 }
 
 @property --card-border-angle {
@@ -420,15 +426,15 @@ html {
 .landing-browser-frame {
   border-radius: 12px;
   overflow: hidden;
-  background: #080808;
-  border: 1px solid #262626;
+  background: #121212;
+  border: 1px solid #2d2d2d;
   position: relative;
   z-index: 1;
   transform: rotateX(4deg) rotateY(0deg) scale(0.98);
   transform-style: preserve-3d;
   transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1), border-color 0.3s ease, box-shadow 0.5s ease;
   box-shadow:
-    0 25px 60px -15px rgba(0, 0, 0, 0.7),
+    0 25px 60px -15px rgba(0, 0, 0, 0.5),
     0 0 30px -5px rgba(139, 92, 246, 0.05);
 }
 

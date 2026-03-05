@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useRoadmapStore } from "@/store/useRoadmapStore";
-import { getNodeChatHistory, sendNodeChatMessage, type ChatMessage } from "@/lib/api";
+import { getNodeChatHistory, sendNodeChatMessage, clearNodeChatHistory, type ChatMessage } from "@/lib/api";
 import { Sparkles, Send, Loader2, MessageSquare, AlertCircle, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
@@ -223,35 +223,44 @@ export function NodeChatPanel({ nodeId, topic }: NodeChatPanelProps) {
         );
     }
 
-    const handleClearChat = () => {
+    const handleClearChat = async () => {
         if (!currentProjectId) return;
 
         // Optimistically clear UI
         setMessages([]);
 
-        // Need backend support to clear history for real,
-        // For now, we simulate clearing so user can start fresh
+        // Persist to backend
+        try {
+            await clearNodeChatHistory(currentProjectId, nodeId);
+        } catch (error) {
+            console.error("Failed to clear node chat history:", error);
+        }
+
         toast.success("Riwayat percakapan dibersihkan");
     };
 
     return (
-        <div className="h-full flex flex-col relative w-full overflow-hidden">
-            {/* Header / Clear Chat button */}
-            {messages.length > 0 && (
-                <div className="absolute top-2 right-4 z-10">
+        <div className="h-full flex flex-col w-full overflow-hidden">
+            {/* Header bar with topic & clear button */}
+            <div className="px-4 py-2 border-b flex items-center justify-between flex-shrink-0 bg-muted/5">
+                <div className="flex items-center gap-2 min-w-0">
+                    <Sparkles className="h-3.5 w-3.5 text-violet-500 flex-shrink-0" />
+                    <span className="text-xs font-medium text-muted-foreground truncate">{topic}</span>
+                </div>
+                {messages.length > 0 && (
                     <Button
                         variant="ghost"
                         size="sm"
                         onClick={handleClearChat}
-                        className="h-7 text-xs text-muted-foreground hover:text-destructive bg-background/50 backdrop-blur-sm border shadow-sm"
+                        className="h-7 text-xs text-muted-foreground hover:text-destructive flex-shrink-0"
                         disabled={isSending}
                         title="Clear conversation"
                     >
                         <Trash2 className="h-3.5 w-3.5 mr-1" />
                         Clear
                     </Button>
-                </div>
-            )}
+                )}
+            </div>
 
             {/* Chat Messages */}
             <ScrollArea className="flex-1 px-4" ref={scrollRef}>
