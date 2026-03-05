@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { enrichNodeResources } from "./resourceEnricher.js";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -171,37 +172,29 @@ EDGE RULES:
 - NO branch edges
 
 QUALITY REQUIREMENTS:
-1. RESOURCES MUST INCLUDE (in this priority order):
-   a) 1-2 FREE YouTube video links - MUST be from these trusted channels:
-      - Fireship (youtube.com/@Fireship)
-      - Traversy Media (youtube.com/@TraversyMedia)
-      - The Net Ninja (youtube.com/@NetNinja)
-      - Web Dev Simplified (youtube.com/@WebDevSimplified)
-      - freeCodeCamp (youtube.com/@freecodecamp)
-      - Programming with Mosh (youtube.com/@programmingwithmosh)
-      - Codevolution (youtube.com/@Codevolution)
-      - The Coding Train (youtube.com/@TheCodingTrain)
-   b) 1 Official documentation link (docs.*, developer.*, official sites)
-   c) Optional: roadmap.sh, MDN Web Docs, freeCodeCamp articles
+1. RESOURCES - Use TOPIC KEYWORDS instead of actual URLs:
+   - For resources array, provide 1-2 official documentation URLs that you are CONFIDENT exist:
+     - React: "https://react.dev/learn"
+     - MDN: "https://developer.mozilla.org/en-US/docs/..."
+     - Python: "https://docs.python.org/3/tutorial/"
+     - Node.js: "https://nodejs.org/en/learn"
+     - roadmap.sh: "https://roadmap.sh/..."
+   - ONLY include URLs you are 100% sure exist. If unsure, leave resources as empty array []
+   - Do NOT include YouTube URLs — videos will be added automatically
+   - Do NOT invent or guess URLs
 
-2. RESOURCE FORMAT RULES:
-   - YouTube: Use FULL video URL like "https://www.youtube.com/watch?v=VIDEO_ID"
-   - Include SPECIFIC video links, NOT just channel URLs
-   - All resources must be FREE and publicly accessible
-   - NO Udemy, Coursera paid courses
-
-3. Each description MUST be MAX 8 WORDS - a short summary, NOT a paragraph. Example: "Belajar dasar sintaks dan struktur Go"
-4. Include REALISTIC estimatedTime for each node based on complexity:
+2. Each description MUST be MAX 8 WORDS - a short summary, NOT a paragraph. Example: "Belajar dasar sintaks dan struktur Go"
+3. Include REALISTIC estimatedTime for each node based on complexity:
    - Basic concept/intro: "~2-4 jam"
    - Intermediate topic: "~1-2 hari"
    - Advanced topic: "~3-5 hari"
    - Project/hands-on: "~1 minggu"
-5. Calculate totalEstimatedTime based on ACTUAL topic complexity:
+4. Calculate totalEstimatedTime based on ACTUAL topic complexity:
    - Simple (HTML, CSS basics): "~2-3 minggu"
    - Medium (JavaScript, React basics): "~1-2 bulan"
    - Complex (Full-stack, System Design): "~3-6 bulan"
-6. Ensure LOGICAL PROGRESSION - each topic builds on previous ones
-7. NO duplicate or overlapping topics
+5. Ensure LOGICAL PROGRESSION - each topic builds on previous ones
+6. NO duplicate or overlapping topics
 
 IMPORTANT:
 - Return ONLY valid JSON, no markdown code blocks
@@ -501,6 +494,14 @@ export async function generateRoadmap(
 
       if (validation.isValid) {
         console.log(`Roadmap generated successfully on attempt ${attempt + 1}`);
+
+        // Enrich resources with real APIs (YouTube + Dev.to + validation)
+        try {
+          await enrichNodeResources(roadmapData.nodes);
+        } catch (enrichError) {
+          console.warn("Resource enrichment failed, using AI-generated resources:", enrichError);
+        }
+
         return roadmapData;
       }
 
@@ -511,6 +512,14 @@ export async function generateRoadmap(
       // If this is the last attempt, return anyway but log warning
       if (attempt === maxRetries - 1) {
         console.warn("Max retries reached, returning roadmap with validation warnings");
+
+        // Still try to enrich resources even with validation warnings
+        try {
+          await enrichNodeResources(roadmapData.nodes);
+        } catch (enrichError) {
+          console.warn("Resource enrichment failed:", enrichError);
+        }
+
         return roadmapData;
       }
     } catch (error: any) {
@@ -535,11 +544,27 @@ export async function generateRoadmap(
 
           if (validation.isValid) {
             console.log("Roadmap generated successfully with Gemini fallback");
+
+            // Enrich resources
+            try {
+              await enrichNodeResources(geminiResult.nodes);
+            } catch (enrichError) {
+              console.warn("Resource enrichment failed:", enrichError);
+            }
+
             return geminiResult;
           }
 
           // Return anyway if validation has minor issues
           console.warn("Gemini result has validation warnings:", validation.errors);
+
+          // Still try to enrich
+          try {
+            await enrichNodeResources(geminiResult.nodes);
+          } catch (enrichError) {
+            console.warn("Resource enrichment failed:", enrichError);
+          }
+
           return geminiResult;
         } catch (geminiError: any) {
           console.error("Gemini fallback also failed:", geminiError.message);

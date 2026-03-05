@@ -314,34 +314,62 @@ export function NodeDetailPanel() {
 
                                     <div className="space-y-2">
                                         {data.videos.map((video, index) => {
-                                            const isVisited = data.visitedResources?.includes(video);
-                                            const videoName = getResourceName(video);
+                                            // Handle both structured objects and plain URLs (backward compat)
+                                            const isStructured = typeof video === 'object' && video !== null;
+                                            const videoUrl = isStructured ? video.url : video;
+                                            const videoTitle = isStructured ? video.title : getResourceName(video);
+                                            const thumbnail = isStructured ? video.thumbnail : null;
+                                            const channelTitle = isStructured ? video.channelTitle : null;
+                                            const isVisited = data.visitedResources?.includes(videoUrl);
 
                                             return (
                                                 <div
                                                     key={index}
-                                                    className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-3 rounded-xl bg-card border border-border/50 hover:border-red-500/30 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 group relative overflow-hidden cursor-pointer"
-                                                    onClick={() => { handleResourceClick(video); window.open(video, "_blank"); }}
+                                                    className="rounded-xl bg-card border border-border/50 hover:border-red-500/30 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 group relative overflow-hidden cursor-pointer"
+                                                    onClick={() => { handleResourceClick(videoUrl); window.open(videoUrl, "_blank"); }}
                                                 >
-                                                    <span className="absolute inset-0 bg-gradient-to-r from-red-500/0 via-red-500/5 to-red-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-                                                    <span className="text-[10px] uppercase tracking-wider px-2 py-1 rounded font-bold flex-shrink-0 bg-red-500 text-white shadow-sm group-hover:shadow transition-shadow">
-                                                        Video
-                                                    </span>
-                                                    <a
-                                                        href={video}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        onClick={(e) => { e.stopPropagation(); handleResourceClick(video); }}
-                                                        className={`text-sm font-medium flex-1 flex items-center justify-between gap-2 transition-colors ${isVisited ? "text-muted-foreground" : "text-foreground group-hover:text-red-500"
-                                                            }`}
-                                                    >
-                                                        <span className="line-clamp-1">{videoName}</span>
-                                                        {isVisited ? (
-                                                            <CheckCircle2 className="h-4 w-4 text-emerald-500 flex-shrink-0" />
-                                                        ) : (
-                                                            <ExternalLink className="h-4 w-4 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all text-red-500 flex-shrink-0" />
-                                                        )}
-                                                    </a>
+                                                    <span className="absolute inset-0 bg-gradient-to-r from-red-500/0 via-red-500/5 to-red-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-10" />
+
+                                                    {/* Thumbnail */}
+                                                    {thumbnail ? (
+                                                        <div className="relative w-full aspect-video bg-muted rounded-t-xl overflow-hidden">
+                                                            <img
+                                                                src={thumbnail}
+                                                                alt={videoTitle}
+                                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                                loading="lazy"
+                                                            />
+                                                            {/* Play overlay */}
+                                                            <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                                                <div className="h-10 w-10 rounded-full bg-red-600 flex items-center justify-center shadow-lg">
+                                                                    <svg className="h-5 w-5 text-white ml-0.5" viewBox="0 0 24 24" fill="currentColor">
+                                                                        <path d="M8 5v14l11-7z" />
+                                                                    </svg>
+                                                                </div>
+                                                            </div>
+                                                            {/* Visited overlay */}
+                                                            {isVisited && (
+                                                                <div className="absolute top-2 right-2">
+                                                                    <CheckCircle2 className="h-5 w-5 text-emerald-500 drop-shadow-md" />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    ) : null}
+
+                                                    {/* Video Info */}
+                                                    <div className="p-3 flex items-start gap-2">
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className={`text-sm font-medium line-clamp-2 leading-snug ${isVisited ? "text-muted-foreground" : "text-foreground group-hover:text-red-600 dark:group-hover:text-red-400"} transition-colors`}>
+                                                                {videoTitle}
+                                                            </p>
+                                                            {channelTitle && (
+                                                                <p className="text-[10px] text-muted-foreground mt-1 truncate">
+                                                                    {channelTitle}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                        <ExternalLink className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 mt-0.5" />
+                                                    </div>
                                                 </div>
                                             );
                                         })}
@@ -555,7 +583,7 @@ export function NodeDetailPanel() {
                     topic={data.label}
                     description={data.description}
                     resources={data.resources}
-                    videos={data.videos}
+                    videos={data.videos as any[]}
                     category={data.category}
                     isCompleted={data.quizPassed || data.isCompleted}
                     onClose={() => setShowFullScreenChat(false)}

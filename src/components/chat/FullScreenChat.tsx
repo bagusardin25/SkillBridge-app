@@ -219,7 +219,7 @@ interface FullScreenChatProps {
     topic: string;
     description?: string;
     resources?: string[];
-    videos?: string[];
+    videos?: (string | { url: string; title: string; thumbnail: string; channelTitle?: string })[];
     category?: string;
     isCompleted?: boolean;
     onClose: () => void;
@@ -264,8 +264,13 @@ export function FullScreenChat({
 
     // All resources combined
     const allResources = [
-        ...resources.map(r => ({ url: r, type: 'resource' as const })),
-        ...videos.map(v => ({ url: v, type: 'video' as const })),
+        ...resources.map(r => ({ url: r, type: 'resource' as const, title: getResourceName(r), thumbnail: null as string | null })),
+        ...videos.map(v => {
+            if (typeof v === 'object' && v !== null) {
+                return { url: v.url, type: 'video' as const, title: v.title, thumbnail: v.thumbnail, channelTitle: v.channelTitle };
+            }
+            return { url: v, type: 'video' as const, title: getResourceName(v), thumbnail: null as string | null };
+        }),
     ];
 
     // Welcome message
@@ -530,20 +535,34 @@ export function FullScreenChat({
                                     <div className="space-y-1.5">
                                         {allResources.map((r, i) => {
                                             const info = getResourceType(r.url);
-                                            const name = getResourceName(r.url);
+                                            const isVideo = r.type === 'video';
+
                                             return (
                                                 <a
                                                     key={i}
                                                     href={r.url}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="flex items-center gap-2 p-2 rounded-lg text-xs hover:bg-muted/50 transition-colors group"
+                                                    className="block rounded-lg hover:bg-muted/50 transition-colors group overflow-hidden"
                                                 >
-                                                    <span className={`text-[8px] uppercase px-1.5 py-0.5 rounded font-bold flex-shrink-0 ${info.color}`}>
-                                                        {info.type}
-                                                    </span>
-                                                    <span className="truncate text-foreground/80 group-hover:text-foreground flex-1">{name}</span>
-                                                    <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 flex-shrink-0 transition-opacity" />
+                                                    {/* Show mini thumbnail for videos */}
+                                                    {isVideo && r.thumbnail && (
+                                                        <div className="relative w-full aspect-video bg-muted rounded-t-lg overflow-hidden">
+                                                            <img src={r.thumbnail} alt={r.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+                                                            <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                <div className="h-7 w-7 rounded-full bg-red-600 flex items-center justify-center">
+                                                                    <svg className="h-3.5 w-3.5 text-white ml-0.5" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    <div className="flex items-center gap-2 p-2">
+                                                        <span className={`text-[8px] uppercase px-1.5 py-0.5 rounded font-bold flex-shrink-0 ${info.color}`}>
+                                                            {info.type}
+                                                        </span>
+                                                        <span className="truncate text-xs text-foreground/80 group-hover:text-foreground flex-1">{r.title}</span>
+                                                        <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 flex-shrink-0 transition-opacity" />
+                                                    </div>
                                                 </a>
                                             );
                                         })}

@@ -63,6 +63,8 @@ export function convertToReactFlowNodes(
         label: node.label,
         description: node.data.description,
         resources: node.data.resources,
+        videos: (node.data as any).videos || [],
+        articles: (node.data as any).articles || [],
         category: "core" as const,
         phase: (node.data as any).phase || undefined,
         estimatedTime: (node.data as any).estimatedTime || undefined,
