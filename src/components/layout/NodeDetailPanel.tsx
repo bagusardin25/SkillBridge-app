@@ -269,7 +269,7 @@ export function NodeDetailPanel() {
             // User Answer
             doc.setFont("helvetica", "normal");
             doc.setTextColor(isCorrect ? 16 : 220, isCorrect ? 185 : 53, isCorrect ? 129 : 69); // Green or Red
-            const userAnswerLabel = isCorrect ? "✓ Correctly answered:" : "✗ Your answer:";
+            const userAnswerLabel = isCorrect ? "[V] Correctly answered:" : "[X] Your answer:";
             const userAnswerText = userAnswer !== undefined ? q.options[userAnswer] : "No answer";
             const userAnsLines = doc.splitTextToSize(`${userAnswerLabel} ${userAnswerText}`, maxLineWidth);
             doc.text(userAnsLines, margin + 5, yPos);
@@ -278,7 +278,7 @@ export function NodeDetailPanel() {
             // Correct Answer (if user was wrong)
             if (!isCorrect) {
                 doc.setTextColor(16, 185, 129); // Green
-                const correctAnsLines = doc.splitTextToSize(`✓ Correct answer: ${q.options[q.correctIndex]}`, maxLineWidth);
+                const correctAnsLines = doc.splitTextToSize(`[V] Correct answer: ${q.options[q.correctIndex]}`, maxLineWidth);
                 doc.text(correctAnsLines, margin + 5, yPos);
                 yPos += (correctAnsLines.length * 5) + 2;
             }
@@ -286,7 +286,7 @@ export function NodeDetailPanel() {
             // Explanation
             doc.setTextColor(100, 100, 100); // Gray
             doc.setFont("helvetica", "italic");
-            const expLines = doc.splitTextToSize(`Explanation: ${q.explanation}`, maxLineWidth - 5);
+            const expLines = doc.splitTextToSize(`> Explanation: ${q.explanation}`, maxLineWidth - 5);
             doc.text(expLines, margin + 5, yPos);
             yPos += (expLines.length * 5) + 8;
         });
