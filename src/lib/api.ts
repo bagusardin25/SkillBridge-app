@@ -482,6 +482,53 @@ export async function getQuizResult(
   return data;
 }
 
+// ---------------------------------------------------------------------------
+// Notes API
+// ---------------------------------------------------------------------------
+
+export interface NodeNoteData {
+  note: string;
+  updatedAt: string | null;
+}
+
+export async function getNodeNote(
+  roadmapId: string,
+  nodeId: string,
+  userId: string
+): Promise<NodeNoteData> {
+  const res = await fetch(`${API_URL}/notes/${roadmapId}/${nodeId}/${userId}`);
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.error || "Failed to fetch note");
+  }
+
+  return data;
+}
+
+export async function saveNodeNote(
+  roadmapId: string,
+  nodeId: string,
+  userId: string,
+  content: string
+): Promise<NodeNoteData> {
+  const res = await fetch(`${API_URL}/notes/${roadmapId}/${nodeId}/${userId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ content }),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.error || "Failed to save note");
+  }
+
+  return data;
+}
+
 // Get all quiz results for a roadmap (for loading completion status)
 export interface QuizResultSummary {
   nodeId: string;

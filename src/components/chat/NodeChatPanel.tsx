@@ -291,7 +291,7 @@ export function NodeChatPanel({ nodeId, topic, onExpand }: NodeChatPanelProps) {
             </div>
 
             {/* Chat Messages */}
-            <ScrollArea className="flex-1 px-4" ref={scrollRef}>
+            <ScrollArea className="flex-1 min-h-0 px-4" ref={scrollRef}>
                 <div className="py-4 space-y-4">
                     {isLoading ? (
                         <div className="flex items-center justify-center py-8">

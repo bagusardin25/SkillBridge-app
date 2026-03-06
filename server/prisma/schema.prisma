@@ -101,3 +101,15 @@ model ChatMessage {
 
   @@index([projectId, nodeId])
 }
+
+model NodeNote {
+  id        String   @id @default(cuid())
+  roadmapId String
+  nodeId    String
+  userId    String
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([roadmapId, nodeId, userId])
+}

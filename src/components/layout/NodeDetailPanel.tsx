@@ -22,14 +22,19 @@ import {
     ChevronDown,
     Trophy,
     XCircle,
-    Zap
+    Zap,
+    StickyNote,
+    Save,
+    Loader2,
+    Download
 } from "lucide-react";
 import { useReactFlow } from "@xyflow/react";
+import { jsPDF } from "jspdf";
 import type { RoadmapNodeData } from "@/types/roadmap";
 import { QuizFullScreen } from "@/components/quiz/QuizFullScreen";
 import { NodeChatPanel } from "@/components/chat/NodeChatPanel";
 import { FullScreenChat } from "@/components/chat/FullScreenChat";
-import { getQuizResult, type QuizResultData } from "@/lib/api";
+import { getQuizResult, type QuizResultData, getNodeNote, saveNodeNote } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 const categoryLabels: Record<string, { label: string; color: string }> = {
@@ -78,6 +83,9 @@ export function NodeDetailPanel() {
     const [quizResult, setQuizResult] = useState<QuizResultData | null>(null);
     const [expandedQuestions, setExpandedQuestions] = useState<Set<number>>(new Set());
     const [showQuizReview, setShowQuizReview] = useState(false);
+    const [noteContent, setNoteContent] = useState("");
+    const [isSavingNote, setIsSavingNote] = useState(false);
+    const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
     const { user } = useAuthStore();
 
@@ -87,10 +95,56 @@ export function NodeDetailPanel() {
         setQuizResult(null);
         setExpandedQuestions(new Set());
         setShowQuizReview(false);
+        setNoteContent("");
+        setLastSaved(null);
     }, [selectedNodeIds]);
 
     const selectedNode = nodes.find((n) => selectedNodeIds.includes(n.id));
     const data = selectedNode?.data as RoadmapNodeData | undefined;
+
+    // Fetch note when tab is selected
+    useEffect(() => {
+        const fetchNote = async () => {
+            if (activeTab === "notes" && currentRoadmapId && selectedNode && user?.id) {
+                try {
+                    const data = await getNodeNote(currentRoadmapId, selectedNode.id, user.id);
+                    setNoteContent(data.note || "");
+                    if (data.updatedAt) {
+                        setLastSaved(new Date(data.updatedAt));
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch node note:", error);
+                }
+            }
+        };
+        fetchNote();
+    }, [activeTab, currentRoadmapId, selectedNode, user?.id]);
+
+    // Handle Note Save (debounced via onBlur or explicit save button)
+    const handleSaveNote = async () => {
+        if (!currentRoadmapId || !selectedNode || !user?.id) return;
+        setIsSavingNote(true);
+        try {
+            const data = await saveNodeNote(currentRoadmapId, selectedNode.id, user.id, noteContent);
+            if (data.updatedAt) {
+                setLastSaved(new Date(data.updatedAt));
+            }
+        } catch (error) {
+            console.error("Failed to save note:", error);
+        } finally {
+            setIsSavingNote(false);
+        }
+    };
+
+    // Auto-save debounced
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (activeTab === "notes" && noteContent !== "") {
+                handleSaveNote();
+            }
+        }, 3000);
+        return () => clearTimeout(timer);
+    }, [noteContent, activeTab]);
 
     // Fetch quiz result when node is completed
     useEffect(() => {
@@ -139,6 +193,109 @@ export function NodeDetailPanel() {
         setShowQuiz(false);
     };
 
+    // Handle PDF Export for Quiz Result
+    const handleExportPDF = () => {
+        if (!quizResult || !data) return;
+
+        const doc = new jsPDF();
+
+        // Settings & Styling
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const margin = 20;
+        const maxLineWidth = pageWidth - margin * 2;
+        let yPos = 20;
+
+        // Title
+        doc.setFontSize(20);
+        doc.setTextColor(33, 37, 41);
+        doc.setFont("helvetica", "bold");
+        doc.text("Quiz Result Summary", margin, yPos);
+        yPos += 10;
+
+        // Topic details
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(73, 80, 87);
+        doc.text(`Topic: ${data.label}`, margin, yPos);
+        yPos += 7;
+
+        const dateStr = new Date(quizResult.createdAt).toLocaleDateString([], {
+            year: 'numeric', month: 'long', day: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+        });
+        doc.text(`Date: ${dateStr}`, margin, yPos);
+        yPos += 7;
+
+        // Score details
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(quizResult.passed ? 16 : 220, quizResult.passed ? 185 : 53, quizResult.passed ? 129 : 69); // Green or Red
+        doc.text(`Result: ${quizResult.passed ? "PASSED" : "FAILED"} (${quizResult.percentage}%)`, margin, yPos);
+        yPos += 7;
+
+        doc.setTextColor(73, 80, 87);
+        doc.text(`Score: ${quizResult.score} / ${quizResult.totalQuestions} Correct`, margin, yPos);
+        yPos += 15;
+
+        // Separator line
+        doc.setDrawColor(200, 200, 200);
+        doc.line(margin, yPos, pageWidth - margin, yPos);
+        yPos += 10;
+
+        // Questions Review
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(14);
+        doc.setTextColor(33, 37, 41);
+        doc.text("Questions Review", margin, yPos);
+        yPos += 10;
+
+        quizResult.questions.forEach((q, i) => {
+            const userAnswer = quizResult.answers[i];
+            const isCorrect = userAnswer === q.correctIndex;
+
+            // Page break check
+            if (yPos > 270) {
+                doc.addPage();
+                yPos = 20;
+            }
+
+            // Question
+            doc.setFontSize(11);
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(33, 37, 41);
+            const questionLines = doc.splitTextToSize(`${i + 1}. ${q.question}`, maxLineWidth);
+            doc.text(questionLines, margin, yPos);
+            yPos += (questionLines.length * 5) + 2;
+
+            // User Answer
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(isCorrect ? 16 : 220, isCorrect ? 185 : 53, isCorrect ? 129 : 69); // Green or Red
+            const userAnswerLabel = isCorrect ? "✓ Correctly answered:" : "✗ Your answer:";
+            const userAnswerText = userAnswer !== undefined ? q.options[userAnswer] : "No answer";
+            const userAnsLines = doc.splitTextToSize(`${userAnswerLabel} ${userAnswerText}`, maxLineWidth);
+            doc.text(userAnsLines, margin + 5, yPos);
+            yPos += (userAnsLines.length * 5) + 2;
+
+            // Correct Answer (if user was wrong)
+            if (!isCorrect) {
+                doc.setTextColor(16, 185, 129); // Green
+                const correctAnsLines = doc.splitTextToSize(`✓ Correct answer: ${q.options[q.correctIndex]}`, maxLineWidth);
+                doc.text(correctAnsLines, margin + 5, yPos);
+                yPos += (correctAnsLines.length * 5) + 2;
+            }
+
+            // Explanation
+            doc.setTextColor(100, 100, 100); // Gray
+            doc.setFont("helvetica", "italic");
+            const expLines = doc.splitTextToSize(`Explanation: ${q.explanation}`, maxLineWidth - 5);
+            doc.text(expLines, margin + 5, yPos);
+            yPos += (expLines.length * 5) + 8;
+        });
+
+        // Save PDF
+        const safeTopicName = (data.label || 'quiz').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        doc.save(`${safeTopicName}-quiz-result.pdf`);
+    };
+
     // Handle resource click - track visited resources
     const handleResourceClick = (resource: string) => {
         if (!selectedNode || !data) return;
@@ -178,7 +335,7 @@ export function NodeDetailPanel() {
     return (
         <div className="flex flex-col h-full bg-background w-full">
             {/* Panel Header - Similar to ChatPanel */}
-            <div className="h-14 px-4 border-b bg-muted/10 flex items-center justify-between">
+            <div className="h-14 px-4 border-b bg-muted/10 flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-3">
                     <div className="relative">
                         <div className="h-8 w-8 rounded-full bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center border border-violet-200 dark:border-violet-800">
@@ -195,39 +352,41 @@ export function NodeDetailPanel() {
                 </Button>
             </div>
 
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
                 {/* Tabs Header */}
-                <div className="px-3 pt-2 pb-0">
-                    <div className="flex items-center justify-between gap-2">
-                        <TabsList className="h-8 flex-1">
-                            <TabsTrigger value="resources" className="text-xs px-2 gap-1">
-                                <Heart className="h-3.5 w-3.5" />
-                                Resources
-                            </TabsTrigger>
-                            <TabsTrigger value="ai-tutor" className="text-xs px-2 gap-1">
-                                <Sparkles className="h-3.5 w-3.5" />
-                                AI Tutor
-                            </TabsTrigger>
-                        </TabsList>
+                <div className="px-4 pt-2 pb-2 shrink-0 space-y-2">
+                    <TabsList className="h-8 w-full">
+                        <TabsTrigger value="resources" className="text-xs px-2 gap-1 flex-1">
+                            <Heart className="h-3.5 w-3.5" />
+                            <span className="hidden sm:inline">Resources</span>
+                        </TabsTrigger>
+                        <TabsTrigger value="ai-tutor" className="text-xs px-2 gap-1 flex-1">
+                            <Sparkles className="h-3.5 w-3.5" />
+                            <span className="hidden sm:inline">AI Tutor</span>
+                        </TabsTrigger>
+                        <TabsTrigger value="notes" className="text-xs px-2 gap-1 flex-1">
+                            <StickyNote className="h-3.5 w-3.5" />
+                            <span className="hidden sm:inline">Notes</span>
+                        </TabsTrigger>
+                    </TabsList>
 
-                        {/* Status Badge (read-only) */}
-                        <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${isCompleted
-                            ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400"
-                            : "bg-muted text-muted-foreground"
-                            }`}>
-                            {isCompleted ? (
-                                <CheckCircle2 className="h-3.5 w-3.5" />
-                            ) : (
-                                <Circle className="h-3.5 w-3.5" />
-                            )}
-                            {isCompleted ? "Done" : "Pending"}
-                        </div>
+                    {/* Status Badge (read-only) */}
+                    <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium ${isCompleted
+                        ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400"
+                        : "bg-muted text-muted-foreground"
+                        }`}>
+                        {isCompleted ? (
+                            <CheckCircle2 className="h-3 w-3" />
+                        ) : (
+                            <Circle className="h-3 w-3" />
+                        )}
+                        <span>{isCompleted ? "Done" : "Pending"}</span>
                     </div>
                 </div>
 
                 {/* Resources Tab */}
-                <TabsContent value="resources" className="flex-1 overflow-hidden m-0">
-                    <ScrollArea className="h-full">
+                <TabsContent value="resources" className="flex-1 m-0 mt-2 min-h-0 flex flex-col overflow-hidden FocusBlock">
+                    <ScrollArea className="flex-1 min-h-0">
                         <div className="p-4 space-y-4">
                             {/* Title & Category & Estimated Time */}
                             <div className="space-y-3">
@@ -446,22 +605,38 @@ export function NodeDetailPanel() {
                                                 </div>
                                             </div>
 
-                                            {/* Review Questions Toggle */}
+                                            {/* Review Questions Toggle and PDF Export */}
                                             {quizResult && quizResult.questions && quizResult.questions.length > 0 && (
                                                 <div className="rounded-xl border overflow-hidden">
-                                                    <button
-                                                        onClick={() => setShowQuizReview(!showQuizReview)}
-                                                        className="w-full flex items-center justify-between p-3 hover:bg-muted/50 transition-colors"
-                                                    >
-                                                        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                                                            <BookOpen className="h-3.5 w-3.5" />
-                                                            Review Jawaban
-                                                        </span>
-                                                        <ChevronDown className={cn(
-                                                            "h-4 w-4 text-muted-foreground transition-transform duration-200",
-                                                            showQuizReview && "rotate-180"
-                                                        )} />
-                                                    </button>
+                                                    <div className="w-full flex items-center justify-between p-3 bg-muted/20">
+                                                        <button
+                                                            onClick={() => setShowQuizReview(!showQuizReview)}
+                                                            className="flex-1 flex items-center gap-2 hover:opacity-80 transition-opacity"
+                                                        >
+                                                            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                                                                <BookOpen className="h-3.5 w-3.5" />
+                                                                Review Jawaban
+                                                            </span>
+                                                            <ChevronDown className={cn(
+                                                                "h-4 w-4 text-muted-foreground transition-transform duration-200",
+                                                                showQuizReview && "rotate-180"
+                                                            )} />
+                                                        </button>
+
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-7 text-xs px-2 ml-2 hover:bg-muted"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleExportPDF();
+                                                            }}
+                                                            title="Download Quiz Result as PDF"
+                                                        >
+                                                            <Download className="h-3.5 w-3.5 mr-1.5" />
+                                                            Export PDF
+                                                        </Button>
+                                                    </div>
 
                                                     {showQuizReview && (
                                                         <div className="border-t divide-y">
@@ -537,7 +712,7 @@ export function NodeDetailPanel() {
                                                 </div>
                                             </div>
 
-                                            <div className="space-y-2 relative z-10 bg-white/50 dark:bg-black/20 rounded-lg p-3 border border-amber-100/50 dark:border-amber-900/50">
+                                            <div className="space-y-2 relative z-10 bg-muted/50 dark:bg-black/20 rounded-lg p-3 border border-amber-100/50 dark:border-amber-900/50">
                                                 {incompletePrerequisites.map((node, i) => (
                                                     <div key={node.id} className="flex items-start gap-2.5">
                                                         <div className="h-5 w-5 rounded-full bg-amber-200/50 dark:bg-amber-900/50 border border-amber-300 dark:border-amber-700 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -628,7 +803,7 @@ export function NodeDetailPanel() {
                                                 </div>
                                             </div>
 
-                                            <div className="space-y-2 relative z-10 bg-white/50 dark:bg-black/20 rounded-lg p-3 border border-amber-100/50 dark:border-amber-900/50">
+                                            <div className="space-y-2 relative z-10 bg-muted/50 dark:bg-black/20 rounded-lg p-3 border border-amber-100/50 dark:border-amber-900/50">
                                                 {incompletePrerequisites.map((node, i) => (
                                                     <div key={node.id} className="flex items-start gap-2.5">
                                                         <div className="h-5 w-5 rounded-full bg-amber-200/50 dark:bg-amber-900/50 border border-amber-300 dark:border-amber-700 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -682,11 +857,45 @@ export function NodeDetailPanel() {
                 </TabsContent>
 
                 {/* AI Tutor Tab */}
-                <TabsContent value="ai-tutor" className="flex-1 overflow-hidden m-0">
+                <TabsContent value="ai-tutor" className="flex-1 min-h-0 m-0 mt-2 flex flex-col overflow-hidden FocusBlock">
                     <NodeChatPanel
                         nodeId={selectedNode.id}
                         topic={data.label}
                         onExpand={() => setShowFullScreenChat(true)}
+                    />
+                </TabsContent>
+
+                {/* Notes Tab */}
+                <TabsContent value="notes" className="flex-1 overflow-hidden m-0 mt-2 min-h-0 flex flex-col FocusBlock">
+                    <div className="p-4 border-b bg-muted/20 flex items-center justify-between shadow-sm z-10 shrink-0">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <StickyNote className="h-4 w-4" />
+                            <span className="font-medium">Personal Notes</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            {isSavingNote ? (
+                                <span className="text-xs text-muted-foreground flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" /> Saving...</span>
+                            ) : lastSaved ? (
+                                <span className="text-xs text-muted-foreground flex items-center gap-1"><Save className="h-3 w-3" /> Saved {lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            ) : null}
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-7 text-xs shrink-0"
+                                onClick={handleSaveNote}
+                                disabled={isSavingNote}
+                            >
+                                Force Save
+                            </Button>
+                        </div>
+                    </div>
+                    <textarea
+                        className="flex-1 min-h-0 w-full bg-transparent p-4 outline-none resize-none placeholder:text-muted-foreground/50"
+                        placeholder="Write your personal notes for this topic here... (Auto-saves while typing)"
+                        value={noteContent}
+                        onChange={(e) => setNoteContent(e.target.value)}
+                        onBlur={handleSaveNote}
+                        spellCheck="false"
                     />
                 </TabsContent>
             </Tabs>

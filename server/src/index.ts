@@ -8,6 +8,7 @@ import projectRouter from "./routes/project.js";
 import authRouter from "./routes/auth.js";
 import quizRouter from "./routes/quiz.js";
 import profileRouter from "./routes/profile.js";
+import notesRouter from "./routes/notes.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -35,6 +36,7 @@ app.use("/api/chat", chatRouter);
 app.use("/api/project", projectRouter);
 app.use("/api/quiz", quizRouter);
 app.use("/api/profile", profileRouter);
+app.use("/api/notes", notesRouter);
 
 // Health check
 app.get("/api/health", (_, res) => {

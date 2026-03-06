@@ -9,7 +9,7 @@ import {
 interface LabeledEdgeData {
     label?: string;
     edgeType?: "main" | "branch" | "optional";
-    pathStatus?: "completed" | "active" | "locked";
+    pathStatus?: "completed" | "active" | "locked" | "prerequisite";
 }
 
 function LabeledEdgeComponent({
@@ -55,6 +55,11 @@ function LabeledEdgeComponent({
         resolvedStyle.opacity = 0.4;
         resolvedStyle.strokeDasharray = "5,5";
         edgeClass += " react-flow__edge-path";
+    } else if (pathStatus === "prerequisite") {
+        resolvedStyle.stroke = "#f59e0b"; // amber-500
+        resolvedStyle.strokeWidth = 3;
+        resolvedStyle.filter = "drop-shadow(0 0 6px rgba(245, 158, 11, 0.5))";
+        edgeClass += " react-flow__edge-path active-path";
     }
 
     return (

@@ -55,6 +55,7 @@ export function FlowCanvas() {
         addNode,
         isEditMode,
         interactionMode,
+        selectedNodeIds,
         setSelectedNodeIds,
         toggleAiPanel,
         isAiPanelOpen,
@@ -345,6 +346,11 @@ export function FlowCanvas() {
     const progressPercentage = totalNodesCount > 0 ? Math.round((completedNodesCount / totalNodesCount) * 100) : 0;
 
     // Calculate dynamic edge statuses
+    // Determine if selected node is locked (has incomplete prerequisites)
+    const selectedNodeId = selectedNodeIds.length === 1 ? selectedNodeIds[0] : null;
+    const selectedNode = selectedNodeId ? nodes.find(n => n.id === selectedNodeId) : null;
+    const isSelectedNodeLocked = selectedNode && !selectedNode.data.isCompleted && !selectedNode.data.quizPassed;
+
     const dynamicEdges = edges.map(edge => {
         const sourceNode = nodes.find(n => n.id === edge.source);
         const targetNode = nodes.find(n => n.id === edge.target);
@@ -357,6 +363,11 @@ export function FlowCanvas() {
             status = "completed";
         } else if (isSourceCompleted && !isTargetCompleted) {
             status = "active";
+        }
+
+        // Highlight prerequisite edges: if target = selected locked node AND source is incomplete
+        if (isSelectedNodeLocked && edge.target === selectedNodeId && !isSourceCompleted) {
+            status = "prerequisite";
         }
 
         return {
