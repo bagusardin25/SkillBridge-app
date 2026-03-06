@@ -624,3 +624,60 @@ html {
     display: none;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   Infinite Marquee
+   ═══════════════════════════════════════════════════════════ */
+@keyframes landing-marquee {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: landing-marquee 40s linear infinite;
+  width: max-content;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Vertical Data Flow Lines
+   ═══════════════════════════════════════════════════════════ */
+@keyframes data-flow {
+  0% {
+    transform: translateY(-100vh);
+  }
+
+  100% {
+    transform: translateY(100vh);
+  }
+}
+
+.animate-data-flow {
+  animation: data-flow 10s linear infinite;
+}
+
+.animate-data-flow-delayed {
+  animation: data-flow 14s linear infinite;
+  animation-delay: -5s;
+}
+
+/* Utilities */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+  /* Chrome, Safari and Opera */
+}
