@@ -12,12 +12,9 @@ import {
     Trash2,
     ExternalLink,
     BookOpen,
-    Video,
     CheckCircle2,
     Minimize2,
     Lightbulb,
-    Globe,
-    Rss,
     Copy,
     Check,
     RefreshCw,
@@ -243,7 +240,6 @@ export function FullScreenChat({
     const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
     const [showScrollBtn, setShowScrollBtn] = useState(false);
     const [lastUserMessage, setLastUserMessage] = useState<string>("");
-    const scrollRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const bottomRef = useRef<HTMLDivElement>(null);
 
