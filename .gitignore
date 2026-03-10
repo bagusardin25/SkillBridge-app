@@ -22,3 +22,18 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Env and local secrets
+.env
+.env.*
+!.env.example
+server/.env
+server/.env.*
+!server/.env.example
+
+# TestSprite generated local artifacts (keep TC*.py committed)
+testsprite_tests/tmp/
+testsprite_exec_log.txt
+testsprite_tests/testsprite-mcp-test-report.md
+testsprite_tests/testsprite-mcp-test-report.html
+mcp-config.local.json

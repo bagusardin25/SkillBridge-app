@@ -101,6 +101,15 @@ GITHUB_CLIENT_ID="..."
 GITHUB_CLIENT_SECRET="..."
 ```
 
+## 🧪 Testing
+
+SkillBridge includes an automated E2E testing suite generated and executed using **TestSprite AI**.
+
+*   Tests are located in the `testsprite_tests/` directory.
+*   The suite uses **Playwright** (`testsprite_tests/TC*.py`) to run robust automated browser tests against the Vite development server.
+*   Test scenarios cover roadmap generation, interacting with learning nodes, completing quizzes, and viewing the global progress indicator.
+*   A comprehensive test report is generated at `testsprite_tests/testsprite-mcp-test-report.md`.
+
 ## 📄 License
 
 MIT License - feel free to use for your own projects!
