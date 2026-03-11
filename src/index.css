@@ -641,10 +641,13 @@ html {
 .animate-marquee {
   animation: landing-marquee 40s linear infinite;
   width: max-content;
+  will-change: transform;
 }
 
 .animate-marquee:hover {
-  animation-play-state: paused;
+  animation-play-state: running;
+  /* Add an override animation for slow motion */
+  animation: landing-marquee 120s linear infinite;
 }
 
 /* ═══════════════════════════════════════════════════════════

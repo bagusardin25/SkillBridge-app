@@ -289,22 +289,22 @@ function HeroSection() {
                                 type="text"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder={`What do you want to learn? (e.g. ${useTypewriter([
+                                placeholder={`e.g. ${useTypewriter([
                                     "Golang Backend",
                                     "React UI/UX",
                                     "Data Science",
                                     "System Design",
-                                    "iOS Development"
-                                ])})`}
-                                className="flex-1 bg-transparent border-none outline-none text-white text-base sm:text-lg px-2 h-12 w-full placeholder:text-gray-500"
+                                    "iOS App"
+                                ])}`}
+                                className="flex-1 min-w-0 bg-transparent border-none outline-none text-white text-sm sm:text-base px-2 h-12 placeholder:text-gray-500 text-ellipsis overflow-hidden whitespace-nowrap"
                             />
                             <button
                                 type="submit"
-                                className="inline-flex items-center gap-2 px-6 py-3 h-12 rounded-full bg-white text-black font-bold text-sm sm:text-base transition-all duration-300 hover:bg-gray-200 hover:scale-105 shrink-0"
+                                className="inline-flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-3 h-10 sm:h-11 rounded-full bg-white text-black font-bold text-sm transition-all duration-300 hover:bg-gray-200 hover:scale-105 shrink-0"
                             >
                                 <span className="hidden sm:inline">Generate Roadmap</span>
                                 <span className="sm:hidden">Start</span>
-                                <Sparkles className="w-4 h-4 ml-1 text-violet-600" />
+                                <Sparkles className="w-4 h-4 text-violet-600" />
                             </button>
                         </div>
                     </form>
@@ -342,9 +342,9 @@ function HeroSection() {
             </div>
 
             {/* Scroll indicator */}
-            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-                <ChevronDown className="w-5 h-5 text-gray-500" />
-            </div>
+            <a href="#features" className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce z-20 p-2 cursor-pointer text-gray-500 hover:text-white transition-colors" aria-label="Scroll to features">
+                <ChevronDown className="w-6 h-6" />
+            </a>
         </section>
     );
 }
@@ -352,14 +352,50 @@ function HeroSection() {
 // ─── Social Proof Section ──────────────────────────────────
 function SocialProofSection() {
     const techStack = [
-        { name: "React", icon: "⚛️" },
-        { name: "TypeScript", icon: "📘" },
-        { name: "Tailwind CSS", icon: "🌊" },
-        { name: "React Flow", icon: "🔀" },
-        { name: "Node.js", icon: "🟩" },
-        { name: "OpenAI GPT-4", icon: "🧠" },
-        { name: "PostgreSQL", icon: "🐘" },
+        { name: "React", src: "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/react/react-original.svg" },
+        { name: "TypeScript", src: "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/typescript/typescript-original.svg" },
+        { name: "Tailwind CSS", src: "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/tailwindcss/tailwindcss-original.svg" },
+        { name: "React Flow", icon: <GitFork className="w-8 h-8 text-pink-500" /> },
+        { name: "Node.js", src: "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nodejs/nodejs-plain.svg" },
+        { name: "OpenAI GPT-4", icon: <Brain className="w-8 h-8 text-white" /> },
+        { name: "PostgreSQL", src: "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/postgresql/postgresql-original.svg" },
     ];
+
+    const [isHovered, setIsHovered] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const contentRef = useRef<HTMLDivElement>(null);
+    const requestRef = useRef<number>(0);
+    const positionRef = useRef(0);
+    
+    // Smoothly interpolate speed
+    const currentSpeedRef = useRef(1);
+
+    useEffect(() => {
+        const animate = () => {
+            // Target speed: slow down to 0.15 on hover instead of stopping
+            const targetSpeed = isHovered ? 0.15 : 1;
+            
+            // Lerp the speed for smooth transition
+            currentSpeedRef.current += (targetSpeed - currentSpeedRef.current) * 0.05;
+            
+            positionRef.current -= currentSpeedRef.current;
+
+            if (contentRef.current && containerRef.current) {
+                // If we've scrolled half the duplicated content (which is 1 full set length), reset
+                const halfWidth = contentRef.current.scrollWidth / 2;
+                if (Math.abs(positionRef.current) >= halfWidth) {
+                    positionRef.current = 0;
+                }
+                
+                contentRef.current.style.transform = `translate3d(${positionRef.current}px, 0, 0)`;
+            }
+
+            requestRef.current = requestAnimationFrame(animate);
+        };
+
+        requestRef.current = requestAnimationFrame(animate);
+        return () => cancelAnimationFrame(requestRef.current);
+    }, [isHovered]);
 
     // Duplicate array multiple times for seamless infinite scroll
     const marqueeItems = [...techStack, ...techStack, ...techStack, ...techStack];
@@ -374,12 +410,24 @@ function SocialProofSection() {
                 Powered by industry-leading technology
             </p>
 
-            <div className="flex w-full overflow-hidden">
-                <div className="flex gap-12 sm:gap-24 items-center animate-marquee opacity-50 transition-opacity duration-300">
+            <div 
+                className="flex w-full overflow-hidden"
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+                ref={containerRef}
+            >
+                <div 
+                    ref={contentRef}
+                    className="flex gap-12 sm:gap-24 items-center opacity-50 hover:opacity-100 transition-opacity duration-500 w-max"
+                >
                     {marqueeItems.map((tech, i) => (
-                        <div key={i} className="flex items-center gap-3 whitespace-nowrap text-xl sm:text-2xl font-bold text-gray-300 grayscale hover:grayscale-0 transition-all cursor-default">
-                            <span>{tech.icon}</span>
-                            <span>{tech.name}</span>
+                        <div key={i} className="flex items-center gap-3 whitespace-nowrap text-xl sm:text-2xl font-bold text-gray-300 transition-all cursor-default">
+                            {tech.src ? (
+                                <img src={tech.src} alt={tech.name} className="w-8 h-8 object-contain" />
+                            ) : (
+                                tech.icon
+                            )}
+                            <span className="opacity-80 hover:opacity-100 transition-opacity">{tech.name}</span>
                         </div>
                     ))}
                 </div>
@@ -1099,6 +1147,9 @@ export function LandingPage() {
 
             <Navbar />
             <HeroSection />
+            <div className="mt-8 mb-16">
+                <SocialProofSection />
+            </div>
             <hr className="landing-section-divider" />
             <ComparisonSection />
             <hr className="landing-section-divider" />
@@ -1113,8 +1164,6 @@ export function LandingPage() {
             <FAQSection />
             <hr className="landing-section-divider" />
             <PricingSection />
-            <hr className="landing-section-divider" />
-            <SocialProofSection />
             <Footer />
         </div>
     );
