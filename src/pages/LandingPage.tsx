@@ -401,35 +401,41 @@ function SocialProofSection() {
     const marqueeItems = [...techStack, ...techStack, ...techStack, ...techStack];
 
     return (
-        <section className="relative py-10 border-b border-white/5 bg-black/40 backdrop-blur-md overflow-hidden flex flex-col items-center">
-            {/* Fade edges */}
-            <div className="absolute left-0 top-0 bottom-0 w-24 sm:w-48 bg-gradient-to-r from-[#121212] to-transparent z-10 pointer-events-none" />
-            <div className="absolute right-0 top-0 bottom-0 w-24 sm:w-48 bg-gradient-to-l from-[#121212] to-transparent z-10 pointer-events-none" />
-
-            <p className="text-xs sm:text-sm font-semibold tracking-[0.2em] uppercase text-gray-500 mb-6 z-10">
+        <section className="relative py-12 flex flex-col items-center overflow-hidden">
+            <p className="text-sm sm:text-base font-semibold tracking-[0.2em] uppercase text-gray-500 mb-6 z-10">
                 Powered by industry-leading technology
             </p>
 
-            <div 
-                className="flex w-full overflow-hidden"
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
-                ref={containerRef}
-            >
+            {/* Marquee Container with Top/Bottom Borders */}
+            <div className="relative w-full border-y border-violet-900/40 bg-[#0a0a0a]/40 backdrop-blur-sm">
+                {/* Fade edges */}
+                <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-40 bg-gradient-to-r from-[#121212] via-[#121212]/80 to-transparent z-10 pointer-events-none" />
+                <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-40 bg-gradient-to-l from-[#121212] via-[#121212]/80 to-transparent z-10 pointer-events-none" />
+
                 <div 
-                    ref={contentRef}
-                    className="flex gap-12 sm:gap-24 items-center opacity-50 hover:opacity-100 transition-opacity duration-500 w-max"
+                    className="flex w-full overflow-hidden"
+                    onMouseEnter={() => setIsHovered(true)}
+                    onMouseLeave={() => setIsHovered(false)}
+                    ref={containerRef}
                 >
-                    {marqueeItems.map((tech, i) => (
-                        <div key={i} className="flex items-center gap-3 whitespace-nowrap text-xl sm:text-2xl font-bold text-gray-300 transition-all cursor-default">
-                            {tech.src ? (
-                                <img src={tech.src} alt={tech.name} className="w-8 h-8 object-contain" />
-                            ) : (
-                                tech.icon
-                            )}
-                            <span className="opacity-80 hover:opacity-100 transition-opacity">{tech.name}</span>
-                        </div>
-                    ))}
+                    <div 
+                        ref={contentRef}
+                        className="flex items-center opacity-80 hover:opacity-100 transition-opacity duration-500 w-max"
+                    >
+                        {marqueeItems.map((tech, i) => (
+                            <div 
+                                key={i} 
+                                className="flex items-center justify-center gap-3 sm:gap-4 w-48 sm:w-64 h-20 sm:h-24 border-r border-violet-900/40 transition-all cursor-default bg-transparent hover:bg-violet-900/10"
+                            >
+                                {tech.src ? (
+                                    <img src={tech.src} alt={tech.name} className="w-8 h-8 sm:w-10 sm:h-10 object-contain" />
+                                ) : (
+                                    <div className="scale-90 sm:scale-100">{tech.icon}</div>
+                                )}
+                                <span className="text-base sm:text-lg font-bold text-gray-300 tracking-wide">{tech.name}</span>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
         </section>
