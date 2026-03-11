@@ -16,13 +16,24 @@ import { LanguagePage } from "@/pages/LanguagePage";
 import { SharePage } from "@/pages/SharePage";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useRoadmapStore } from "@/store/useRoadmapStore";
 import { updateStreak } from "@/lib/api";
 import { useLearningTimeTracker } from "@/hooks/useLearningTimeTracker";
 import { Toaster } from "sonner";
 
 function App() {
   const { setLoading, isAuthenticated, user } = useAuthStore();
+  const { isDarkMode } = useRoadmapStore();
   const streakUpdated = useRef(false);
+
+  // Sync theme with document class
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [isDarkMode]);
 
   // Track learning time while user is active
   useLearningTimeTracker();

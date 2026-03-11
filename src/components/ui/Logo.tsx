@@ -1,5 +1,5 @@
 // SkillBridge Logo Component
-// Matches the favicon design: dark background with violet bridge icon
+// Matches the favicon design: themed background with violet bridge icon
 
 export function Logo({ size = 40, className = "" }: { size?: number; className?: string }) {
     return (
@@ -7,9 +7,9 @@ export function Logo({ size = 40, className = "" }: { size?: number; className?:
             width={size}
             height={size}
             viewBox="0 0 100 100"
-            className={className}
+            className={`${className} transition-colors`}
         >
-            <rect width="100" height="100" rx="20" fill="#1a1a1a" />
+            <rect width="100" height="100" rx="20" className="fill-slate-900 dark:fill-[#1a1a1a]" />
             <path
                 d="M30 70 L50 30 L70 70"
                 stroke="#8B5CF6"

@@ -14,10 +14,14 @@ import {
     BookOpen,
     XCircle,
     CheckCircle,
-    Check
+    Check,
+    Globe,
+    Sun
 } from "lucide-react";
 import { StaticRoadmapVisual } from "@/components/landing/HeroRoadmapDemo";
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useRoadmapStore } from "@/store/useRoadmapStore";
+import { LanguageDialog } from "@/components/ui/LanguageDialog";
 
 // ─── Scroll Reveal Hook ────────────────────────────────────
 function useScrollReveal() {
@@ -169,6 +173,8 @@ function useCursorGlow() {
 // ─── Navbar ────────────────────────────────────────────────
 function Navbar() {
     const [scrolled, setScrolled] = useState(false);
+    const [langOpen, setLangOpen] = useState(false);
+    const { isDarkMode, toggleTheme } = useRoadmapStore();
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -186,40 +192,61 @@ function Navbar() {
             <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <Logo size={32} />
-                    <span className="text-xl font-bold text-white">SkillBridge</span>
+                    <span className="text-xl font-bold text-foreground dark:text-white transition-colors">SkillBridge</span>
                 </div>
 
-                <div className="hidden md:flex items-center gap-8 text-sm text-gray-300">
-                    <a href="#features" className="hover:text-white transition-colors">
+                <div className="hidden md:flex items-center gap-8 text-sm text-muted-foreground dark:text-gray-300">
+                    <a href="#features" className="hover:text-foreground dark:hover:text-white transition-colors">
                         Features
                     </a>
-                    <a href="#preview" className="hover:text-white transition-colors">
+                    <a href="#preview" className="hover:text-foreground dark:hover:text-white transition-colors">
                         Preview
                     </a>
-                    <a href="#how-it-works" className="hover:text-white transition-colors">
+                    <a href="#how-it-works" className="hover:text-foreground dark:hover:text-white transition-colors">
                         How It Works
                     </a>
-                    <a href="#faq" className="hover:text-white transition-colors">
+                    <a href="#faq" className="hover:text-foreground dark:hover:text-white transition-colors">
                         FAQ
                     </a>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 sm:gap-3">
+                    {/* Theme Toggle */}
+                    <button
+                        onClick={toggleTheme}
+                        className="text-muted-foreground dark:text-gray-300 hover:text-foreground dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 p-2 rounded-full transition-colors hidden sm:flex items-center justify-center"
+                        aria-label="Toggle theme"
+                    >
+                        {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                    </button>
+
+                    {/* Language Toggle */}
+                    <button
+                        onClick={() => setLangOpen(true)}
+                        className="text-muted-foreground dark:text-gray-300 hover:text-foreground dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 p-2 rounded-full transition-colors hidden sm:flex items-center justify-center"
+                        aria-label="Change language"
+                    >
+                        <Globe className="h-4 w-4" />
+                    </button>
+
                     <Link
                         to="/login"
-                        className="text-sm text-gray-300 hover:text-white transition-colors hidden sm:inline-block"
+                        className="text-sm text-muted-foreground dark:text-gray-300 hover:text-foreground dark:hover:text-white transition-colors hidden sm:inline-block ml-2"
                     >
                         Login
                     </Link>
                     <Link
                         to="/register"
-                        className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white text-black text-sm font-medium transition-all duration-300 hover:bg-gray-200"
+                        className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-foreground dark:bg-white text-background dark:text-black text-sm font-medium transition-all duration-300 hover:opacity-90 dark:hover:bg-gray-200"
                     >
                         Get Started
                         <ArrowRight className="w-3.5 h-3.5" />
                     </Link>
                 </div>
             </div>
+            
+            {/* Language Dialog */}
+            <LanguageDialog open={langOpen} onOpenChange={setLangOpen} />
         </nav>
     );
 }
@@ -252,13 +279,13 @@ function HeroSection() {
                 {/* Left Column: Text & Input */}
                 <div className="w-full md:w-1/2 flex flex-col items-start text-left shrink-0">
                     {/* Badge */}
-                    <div className="scroll-reveal scroll-delay-1 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm text-sm text-gray-300 mb-8 mt-4 md:mt-0">
-                        <Sparkles className="w-4 h-4 text-violet-400" />
+                    <div className="scroll-reveal scroll-delay-1 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-muted/30 dark:bg-white/5 backdrop-blur-sm text-sm text-muted-foreground dark:text-gray-300 mb-8 mt-4 md:mt-0">
+                        <Sparkles className="w-4 h-4 text-violet-500 dark:text-violet-400" />
                         New: GPT-4o Powered Tutoring
                     </div>
 
                     {/* Headline */}
-                    <h1 className="scroll-reveal scroll-delay-2 text-5xl sm:text-6xl lg:text-7xl font-extrabold text-white leading-[1.05] tracking-tight">
+                    <h1 className="scroll-reveal scroll-delay-2 text-5xl sm:text-6xl lg:text-7xl font-extrabold text-foreground dark:text-white leading-[1.05] tracking-tight transition-colors">
                         Build Your <br className="hidden sm:block" />
                         <span className="landing-gradient-text pb-2">
                             Learning Path <br className="hidden sm:block" />
@@ -267,7 +294,7 @@ function HeroSection() {
                     </h1>
 
                     {/* Sub-headline */}
-                    <p className="scroll-reveal scroll-delay-3 mt-6 text-lg sm:text-xl text-gray-400 max-w-xl leading-relaxed">
+                    <p className="scroll-reveal scroll-delay-3 mt-6 text-lg sm:text-xl text-muted-foreground dark:text-gray-400 max-w-xl leading-relaxed transition-colors">
                         Describe your goal, and we'll build a structured, interactive journey tailored just for you. Track your progress with XP, streaks, and an AI tutor at your side.
                     </p>
 
@@ -280,8 +307,8 @@ function HeroSection() {
                             {/* Glow effect behind input */}
                             <div className="absolute inset-0 bg-gradient-to-r from-violet-600/30 to-purple-600/30 blur-xl group-focus-within:opacity-100 opacity-50 transition-opacity rounded-full z-0" />
 
-                            <div className="relative flex items-center w-full bg-[#121212]/80 backdrop-blur-md border border-white/10 group-focus-within:border-violet-500/50 rounded-full p-2 z-10 transition-colors shadow-2xl">
-                                <div className="pl-4 pr-2 text-gray-500">
+                            <div className="relative flex items-center w-full bg-background/80 dark:bg-[#121212]/80 backdrop-blur-md border border-border dark:border-white/10 group-focus-within:border-violet-500/50 rounded-full p-2 z-10 transition-colors shadow-2xl">
+                                <div className="pl-4 pr-2 text-muted-foreground transition-colors">
                                     <Target className="w-5 h-5" />
                                 </div>
                                 <input
@@ -295,7 +322,7 @@ function HeroSection() {
                                         "Cloud Architect",
                                         "iOS Developer"
                                     ])}`}
-                                    className="flex-1 min-w-0 bg-transparent border-none outline-none text-white text-sm md:text-base px-2 h-12 placeholder:text-gray-500 text-ellipsis overflow-hidden whitespace-nowrap"
+                                    className="flex-1 min-w-0 bg-transparent border-none outline-none text-foreground dark:text-white text-sm md:text-base px-2 h-12 placeholder:text-muted-foreground text-ellipsis overflow-hidden whitespace-nowrap transition-colors"
                                 />
                                 <button
                                     type="submit"
@@ -323,7 +350,7 @@ function HeroSection() {
             </div>
 
             {/* Scroll indicator */}
-            <a href="#features" className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce z-20 p-2 cursor-pointer text-gray-500 hover:text-white transition-colors" aria-label="Scroll to features">
+            <a href="#features" className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce z-20 p-2 cursor-pointer text-muted-foreground hover:text-foreground dark:hover:text-white transition-colors" aria-label="Scroll to features">
                 <ChevronDown className="w-6 h-6" />
             </a>
         </section>
@@ -338,7 +365,7 @@ function SocialProofSection() {
         { name: "Tailwind CSS", src: "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/tailwindcss/tailwindcss-original.svg" },
         { name: "React Flow", icon: <GitFork className="w-8 h-8 text-pink-500" /> },
         { name: "Node.js", src: "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nodejs/nodejs-plain.svg" },
-        { name: "OpenAI GPT-4", icon: <Brain className="w-8 h-8 text-white" /> },
+        { name: "OpenAI GPT-4", icon: <Brain className="w-8 h-8 text-foreground dark:text-white transition-colors" /> },
         { name: "PostgreSQL", src: "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/postgresql/postgresql-original.svg" },
     ];
 
@@ -383,15 +410,15 @@ function SocialProofSection() {
 
     return (
         <section className="relative py-12 flex flex-col items-center overflow-hidden">
-            <p className="text-sm sm:text-base font-semibold tracking-[0.2em] uppercase text-gray-500 mb-6 z-10">
+            <p className="text-sm sm:text-base font-semibold tracking-[0.2em] uppercase text-muted-foreground mb-6 z-10 transition-colors">
                 Powered by industry-leading technology
             </p>
 
             {/* Marquee Container with Top/Bottom Borders */}
-            <div className="relative w-full border-y border-violet-900/40 bg-[#0a0a0a]/40 backdrop-blur-sm">
+            <div className="relative w-full border-y border-violet-900/20 dark:border-violet-900/40 bg-muted/20 dark:bg-[#0a0a0a]/40 backdrop-blur-sm transition-colors">
                 {/* Fade edges */}
-                <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-40 bg-gradient-to-r from-[#121212] via-[#121212]/80 to-transparent z-10 pointer-events-none" />
-                <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-40 bg-gradient-to-l from-[#121212] via-[#121212]/80 to-transparent z-10 pointer-events-none" />
+                <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-40 bg-gradient-to-r from-background via-background/80 to-transparent z-10 pointer-events-none" />
+                <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-40 bg-gradient-to-l from-background via-background/80 to-transparent z-10 pointer-events-none" />
 
                 <div 
                     className="flex w-full overflow-hidden"
@@ -406,14 +433,14 @@ function SocialProofSection() {
                         {marqueeItems.map((tech, i) => (
                             <div 
                                 key={i} 
-                                className="flex items-center justify-center gap-3 sm:gap-4 w-48 sm:w-64 h-20 sm:h-24 border-r border-violet-900/40 transition-all cursor-default bg-transparent hover:bg-violet-900/10"
+                                className="flex items-center justify-center gap-3 sm:gap-4 w-48 sm:w-64 h-20 sm:h-24 border-r border-violet-900/20 dark:border-violet-900/40 transition-all cursor-default bg-transparent hover:bg-violet-900/5 dark:hover:bg-violet-900/10"
                             >
                                 {tech.src ? (
                                     <img src={tech.src} alt={tech.name} className="w-8 h-8 sm:w-10 sm:h-10 object-contain" />
                                 ) : (
                                     <div className="scale-90 sm:scale-100">{tech.icon}</div>
                                 )}
-                                <span className="text-base sm:text-lg font-bold text-gray-300 tracking-wide">{tech.name}</span>
+                                <span className="text-base sm:text-lg font-bold text-muted-foreground dark:text-gray-300 tracking-wide transition-colors">{tech.name}</span>
                             </div>
                         ))}
                     </div>
@@ -430,25 +457,25 @@ function ComparisonSection() {
             <div className="landing-grain" />
 
             {/* Glows */}
-            <div className="absolute top-1/2 left-1/2 md:left-1/4 -translate-x-1/2 -translate-y-1/2 w-[300px] md:w-[400px] h-[300px] md:h-[400px] bg-red-500/[0.02] rounded-full blur-[80px] md:blur-[100px] pointer-events-none" />
-            <div className="absolute top-1/2 left-1/2 md:left-3/4 -translate-x-1/2 -translate-y-1/2 w-[300px] md:w-[400px] h-[300px] md:h-[400px] bg-emerald-500/[0.03] rounded-full blur-[80px] md:blur-[100px] pointer-events-none" />
+            <div className="absolute top-1/2 left-1/2 md:left-1/4 -translate-x-1/2 -translate-y-1/2 w-[300px] md:w-[400px] h-[300px] md:h-[400px] bg-red-500/[0.04] dark:bg-red-500/[0.02] rounded-full blur-[80px] md:blur-[100px] pointer-events-none" />
+            <div className="absolute top-1/2 left-1/2 md:left-3/4 -translate-x-1/2 -translate-y-1/2 w-[300px] md:w-[400px] h-[300px] md:h-[400px] bg-emerald-500/[0.05] dark:bg-emerald-500/[0.03] rounded-full blur-[80px] md:blur-[100px] pointer-events-none" />
 
             <div className="relative z-10 max-w-6xl mx-auto px-6">
                 <div className="scroll-reveal text-center mb-16">
-                    <p className="text-sm font-semibold tracking-[0.2em] uppercase text-violet-400 mb-4">
+                    <p className="text-sm font-semibold tracking-[0.2em] uppercase text-violet-600 dark:text-violet-400 mb-4 transition-colors">
                         Why We Built This
                     </p>
-                    <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight">
+                    <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-foreground dark:text-white tracking-tight transition-colors">
                         A smarter way to learn
                     </h2>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
                     {/* The Old Way */}
-                    <div className="scroll-reveal scroll-delay-1 p-6 sm:p-8 rounded-2xl bg-[#120808]/80 border border-red-900/20 flex flex-col h-full">
+                    <div className="scroll-reveal scroll-delay-1 p-6 sm:p-8 rounded-2xl bg-red-50/30 dark:bg-[#120808]/80 border border-red-200 dark:border-red-900/20 flex flex-col h-full transition-colors">
                         <div className="flex items-center gap-3 mb-6">
                             <XCircle className="w-6 h-6 text-red-500" />
-                            <h3 className="text-2xl font-bold text-gray-300">The Old Way</h3>
+                            <h3 className="text-2xl font-bold text-gray-700 dark:text-gray-300 transition-colors">The Old Way</h3>
                         </div>
                         <ul className="space-y-4 flex-1">
                             {[
@@ -458,7 +485,7 @@ function ComparisonSection() {
                                 "Losing motivation because the end goal feels too far",
                                 "Not knowing if you're learning the right things in order"
                             ].map((item, i) => (
-                                <li key={i} className="flex gap-3 text-gray-400">
+                                <li key={i} className="flex gap-3 text-gray-600 dark:text-gray-400 transition-colors">
                                     <span className="text-red-500/50 mt-1">✗</span>
                                     <span>{item}</span>
                                 </li>
@@ -467,13 +494,13 @@ function ComparisonSection() {
                     </div>
 
                     {/* The SkillBridge Way */}
-                    <div className="scroll-reveal scroll-delay-2 p-6 sm:p-8 rounded-2xl bg-[#05120a]/80 border border-emerald-900/30 flex flex-col h-full relative overflow-hidden">
+                    <div className="scroll-reveal scroll-delay-2 p-6 sm:p-8 rounded-2xl bg-emerald-50/40 dark:bg-[#05120a]/80 border border-emerald-200 dark:border-emerald-900/30 flex flex-col h-full relative overflow-hidden transition-colors">
                         {/* Glow effect */}
                         <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-[80px] -z-10" />
 
                         <div className="flex items-center gap-3 mb-6">
                             <CheckCircle className="w-6 h-6 text-emerald-500" />
-                            <h3 className="text-2xl font-bold text-white">SkillBridge</h3>
+                            <h3 className="text-2xl font-bold text-foreground dark:text-white transition-colors">SkillBridge</h3>
                         </div>
                         <ul className="space-y-4 flex-1">
                             {[
@@ -483,7 +510,7 @@ function ComparisonSection() {
                                 "Track progress with visual milestones and streak counters",
                                 "Interactive quizzes to validate your understanding"
                             ].map((item, i) => (
-                                <li key={i} className="flex gap-3 text-gray-300 font-medium">
+                                <li key={i} className="flex gap-3 text-gray-800 dark:text-gray-300 font-medium transition-colors">
                                     <span className="text-emerald-500 mt-1">✓</span>
                                     <span>{item}</span>
                                 </li>
@@ -555,12 +582,12 @@ const features = [
 ];
 
 const colorMap: Record<string, string> = {
-    violet: "from-violet-500/20 to-violet-600/5 border-violet-500/20 text-violet-400",
-    blue: "from-blue-500/20 to-blue-600/5 border-blue-500/20 text-blue-400",
-    purple: "from-purple-500/20 to-purple-600/5 border-purple-500/20 text-purple-400",
-    emerald: "from-emerald-500/20 to-emerald-600/5 border-emerald-500/20 text-emerald-400",
-    amber: "from-amber-500/20 to-amber-600/5 border-amber-500/20 text-amber-400",
-    slate: "from-slate-500/20 to-slate-600/5 border-slate-500/20 text-slate-400",
+    violet: "from-violet-500/20 to-violet-600/5 border-violet-500/20 text-violet-500 dark:text-violet-400",
+    blue: "from-blue-500/20 to-blue-600/5 border-blue-500/20 text-blue-500 dark:text-blue-400",
+    purple: "from-purple-500/20 to-purple-600/5 border-purple-500/20 text-purple-500 dark:text-purple-400",
+    emerald: "from-emerald-500/20 to-emerald-600/5 border-emerald-500/20 text-emerald-500 dark:text-emerald-400",
+    amber: "from-amber-500/20 to-amber-600/5 border-amber-500/20 text-amber-500 dark:text-amber-400",
+    slate: "from-slate-500/20 to-slate-600/5 border-slate-500/20 text-slate-500 dark:text-slate-400",
 };
 
 function FeaturesSection() {
@@ -569,19 +596,19 @@ function FeaturesSection() {
             <div className="landing-grain" />
 
             {/* Ambient glows for richer background */}
-            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-white/[0.015] rounded-full blur-[130px] pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-white/[0.01] rounded-full blur-[120px] pointer-events-none" />
+            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-violet-500/[0.02] dark:bg-white/[0.015] rounded-full blur-[130px] pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-500/[0.02] dark:bg-white/[0.01] rounded-full blur-[120px] pointer-events-none" />
 
             <div className="relative z-10 max-w-7xl mx-auto px-6">
                 {/* Section header */}
                 <div className="scroll-reveal text-center mb-16">
-                    <p className="text-sm font-semibold tracking-[0.2em] uppercase text-violet-400 mb-4">
+                    <p className="text-sm font-semibold tracking-[0.2em] uppercase text-violet-600 dark:text-violet-400 mb-4 transition-colors">
                         Everything You Need
                     </p>
-                    <h2 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight">
+                    <h2 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-foreground dark:text-white tracking-tight transition-colors">
                         Why learners choose SkillBridge?
                     </h2>
-                    <p className="mt-4 text-gray-400 text-lg max-w-2xl mx-auto">
+                    <p className="mt-4 text-muted-foreground dark:text-gray-400 text-lg max-w-2xl mx-auto transition-colors">
                         All the tools you need to build a clear, AI-generated learning path — in one elegant platform.
                     </p>
                 </div>
@@ -601,10 +628,10 @@ function FeaturesSection() {
                                 >
                                     <Icon className="w-6 h-6" />
                                 </div>
-                                <h3 className={`${feature.titleClass} font-semibold text-white mb-2`}>
+                                <h3 className={`${feature.titleClass} font-semibold text-foreground dark:text-white mb-2 transition-colors`}>
                                     {feature.title}
                                 </h3>
-                                <p className="text-gray-400 text-sm leading-relaxed">
+                                <p className="text-muted-foreground dark:text-gray-400 text-sm leading-relaxed transition-colors">
                                     {feature.description}
                                 </p>
                             </div>
@@ -707,18 +734,18 @@ function AppPreviewSection() {
             <div className="landing-grain" />
 
             {/* Background glow */}
-            <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-violet-500/[0.03] rounded-full blur-[120px] pointer-events-none" />
+            <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-violet-500/[0.04] dark:bg-violet-500/[0.03] rounded-full blur-[120px] pointer-events-none" />
 
             <div className="relative z-10 max-w-6xl mx-auto px-6">
                 {/* Section header */}
                 <div className="scroll-reveal text-center mb-12">
-                    <p className="text-sm font-semibold tracking-[0.2em] uppercase text-violet-400 mb-4">
+                    <p className="text-sm font-semibold tracking-[0.2em] uppercase text-violet-600 dark:text-violet-400 mb-4 transition-colors">
                         See It In Action
                     </p>
-                    <h2 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight">
+                    <h2 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-foreground dark:text-white tracking-tight transition-colors">
                         A glimpse into SkillBridge
                     </h2>
-                    <p className="mt-4 text-gray-400 text-lg max-w-2xl mx-auto">
+                    <p className="mt-4 text-muted-foreground dark:text-gray-400 text-lg max-w-2xl mx-auto transition-colors">
                         Real screenshots from the app — explore the core experience.
                     </p>
                 </div>
@@ -730,8 +757,8 @@ function AppPreviewSection() {
                             key={t.id}
                             onClick={() => handleTabClick(i)}
                             className={`relative px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 overflow-hidden whitespace-nowrap snap-center shrink-0 ${activeTab === i
-                                ? "bg-white/10 text-white border border-white/20"
-                                : "text-gray-500 hover:text-white hover:bg-white/5 border border-transparent"
+                                ? "bg-muted dark:bg-white/10 text-foreground dark:text-white border border-border dark:border-white/20"
+                                : "text-muted-foreground hover:text-foreground dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 border border-transparent"
                                 }`}
                         >
                             {/* Progress bar inside active tab */}
@@ -764,7 +791,7 @@ function AppPreviewSection() {
                         style={{ transform: 'perspective(1000px) rotateX(4deg) rotateY(0deg)' }}
                     >
                         {/* Fake Browser Chrome */}
-                        <div className="h-12 bg-[#1a1a1a] border-b border-white/5 flex items-center px-4 gap-4">
+                        <div className="h-12 bg-muted/50 dark:bg-[#1a1a1a] border-b border-border dark:border-white/5 flex items-center px-4 gap-4 transition-colors">
                             {/* Window controls */}
                             <div className="flex gap-2 shrink-0">
                                 <div className="w-3 h-3 rounded-full bg-red-500/80" />
@@ -772,14 +799,14 @@ function AppPreviewSection() {
                                 <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
                             </div>
                             <div className="flex-1 flex justify-center">
-                                <div className="px-4 py-1 rounded-md bg-white/5 text-xs text-gray-500 font-mono">
+                                <div className="px-4 py-1 rounded-md bg-black/5 dark:bg-white/5 text-xs text-muted-foreground font-mono transition-colors">
                                     skillbridge.app
                                 </div>
                             </div>
                         </div>
 
                         {/* Screenshot with smooth crossfade */}
-                        <div className="relative aspect-[16/9] overflow-hidden bg-black/40">
+                        <div className="relative aspect-[16/9] overflow-hidden bg-black/5 dark:bg-black/40 transition-colors">
                             {previewTabs.map((t, i) => (
                                 <img
                                     key={t.id}
@@ -791,7 +818,7 @@ function AppPreviewSection() {
                             ))}
 
                             {/* Subtle bottom gradient overlay */}
-                            <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#020202] to-transparent pointer-events-none" />
+                            <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background dark:from-[#020202] to-transparent pointer-events-none transition-colors" />
                         </div>
                     </div>
 
@@ -803,13 +830,13 @@ function AppPreviewSection() {
                 <div className="mt-8 text-center max-w-2xl mx-auto">
                     <h3
                         key={tab.id + "-title"}
-                        className="text-xl sm:text-2xl font-semibold text-white mb-3 landing-fade-in"
+                        className="text-xl sm:text-2xl font-semibold text-foreground dark:text-white mb-3 landing-fade-in transition-colors"
                     >
                         {tab.title}
                     </h3>
                     <p
                         key={tab.id + "-desc"}
-                        className="text-gray-400 leading-relaxed landing-fade-in"
+                        className="text-muted-foreground dark:text-gray-400 leading-relaxed landing-fade-in transition-colors"
                     >
                         {tab.description}
                     </p>
@@ -850,14 +877,14 @@ function HowItWorksSection() {
             <div className="landing-grain" />
 
             {/* Subtle glow */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-white/[0.01] rounded-full blur-[120px] pointer-events-none" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-violet-500/[0.02] dark:bg-white/[0.01] rounded-full blur-[120px] pointer-events-none" />
 
             <div className="relative z-10 max-w-5xl mx-auto px-6">
                 <div className="scroll-reveal text-center mb-16">
-                    <p className="text-sm font-semibold tracking-[0.2em] uppercase text-violet-400 mb-4">
+                    <p className="text-sm font-semibold tracking-[0.2em] uppercase text-violet-600 dark:text-violet-400 mb-4 transition-colors">
                         Simple & Powerful
                     </p>
-                    <h2 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight">
+                    <h2 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-foreground dark:text-white tracking-tight transition-colors">
                         How it works
                     </h2>
                 </div>
@@ -869,20 +896,20 @@ function HowItWorksSection() {
                             <div key={s.step} className={`scroll-reveal scroll-delay-${i + 1} relative group`}>
                                 {/* Connector line */}
                                 {i < steps.length - 1 && (
-                                    <div className="hidden md:block absolute top-12 left-[calc(50%+40px)] w-[calc(100%-80px)] h-px bg-gradient-to-r from-white/10 to-transparent" />
+                                    <div className="hidden md:block absolute top-12 left-[calc(50%+40px)] w-[calc(100%-80px)] h-px bg-gradient-to-r from-border to-transparent" />
                                 )}
 
                                 <div className="text-center">
-                                    <div className="relative inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-[#080808] border border-[#262626] mb-6 group-hover:border-gray-500/40 transition-all duration-300">
-                                        <Icon className="w-10 h-10 text-violet-400" />
-                                        <span className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-white text-black text-xs font-bold flex items-center justify-center">
+                                    <div className="relative inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-card border border-border mb-6 group-hover:border-primary/40 transition-all duration-300 shadow-sm">
+                                        <Icon className="w-10 h-10 text-violet-600 dark:text-violet-400" />
+                                        <span className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-foreground dark:bg-white text-background dark:text-black text-xs font-bold flex items-center justify-center transition-colors">
                                             {s.step}
                                         </span>
                                     </div>
-                                    <h3 className="text-xl font-semibold text-white mb-3">
+                                    <h3 className="text-xl font-semibold text-foreground dark:text-white mb-3 transition-colors">
                                         {s.title}
                                     </h3>
-                                    <p className="text-gray-400 text-sm leading-relaxed">
+                                    <p className="text-muted-foreground dark:text-gray-400 text-sm leading-relaxed transition-colors">
                                         {s.description}
                                     </p>
                                 </div>
@@ -902,7 +929,7 @@ function TestimonialSection() {
             <div className="landing-grain" />
 
             <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
-                <blockquote className="scroll-reveal-scale text-3xl sm:text-4xl lg:text-5xl font-bold text-white leading-tight">
+                <blockquote className="scroll-reveal-scale text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground dark:text-white leading-tight transition-colors">
                     "The best way to learn is with a{" "}
                     <span className="landing-gradient-text">clear roadmap</span>,{" "}
                     <br className="hidden sm:block" />
@@ -913,8 +940,8 @@ function TestimonialSection() {
                         S
                     </div>
                     <div className="text-left">
-                        <p className="text-white font-semibold">SkillBridge</p>
-                        <p className="text-gray-400 text-sm">AI Learning Platform</p>
+                        <p className="text-foreground dark:text-white font-semibold transition-colors">SkillBridge</p>
+                        <p className="text-muted-foreground dark:text-gray-400 text-sm transition-colors">AI Learning Platform</p>
                     </div>
                 </div>
             </div>
@@ -963,13 +990,13 @@ function FAQSection() {
 
             <div className="relative z-10 max-w-5xl mx-auto px-6">
                 <div className="scroll-reveal text-center mb-16">
-                    <p className="text-sm font-semibold tracking-[0.2em] uppercase text-violet-400 mb-4">
+                    <p className="text-sm font-semibold tracking-[0.2em] uppercase text-violet-600 dark:text-violet-400 mb-4 transition-colors">
                         All About SkillBridge
                     </p>
-                    <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white">
+                    <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground dark:text-white transition-colors">
                         Frequently asked questions
                     </h2>
-                    <p className="mt-4 text-gray-400 text-lg max-w-2xl mx-auto">
+                    <p className="mt-4 text-muted-foreground dark:text-gray-400 text-lg max-w-2xl mx-auto transition-colors">
                         Get quick answers to the most common questions about SkillBridge and how it can help your learning journey.
                     </p>
                 </div>
@@ -977,10 +1004,10 @@ function FAQSection() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {faqs.map((faq, i) => (
                         <div key={faq.question} className={`scroll-reveal scroll-delay-${(i % 2) + 1} space-y-3`}>
-                            <h3 className="text-white font-semibold text-lg">
+                            <h3 className="text-foreground dark:text-white font-semibold text-lg transition-colors">
                                 {faq.question}
                             </h3>
-                            <p className="text-gray-400 text-sm leading-relaxed">
+                            <p className="text-muted-foreground dark:text-gray-400 text-sm leading-relaxed transition-colors">
                                 {faq.answer}
                             </p>
                         </div>
@@ -1001,25 +1028,25 @@ function PricingSection() {
 
             <div className="relative z-10 max-w-4xl mx-auto px-6">
                 <div className="scroll-reveal text-center mb-16">
-                    <p className="text-sm font-semibold tracking-[0.2em] uppercase text-violet-400 mb-4">
+                    <p className="text-sm font-semibold tracking-[0.2em] uppercase text-violet-600 dark:text-violet-400 mb-4 transition-colors">
                         Simple Pricing
                     </p>
-                    <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight">
+                    <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-foreground dark:text-white tracking-tight transition-colors">
                         Start learning for free
                     </h2>
-                    <p className="mt-4 text-gray-400 text-lg max-w-2xl mx-auto">
+                    <p className="mt-4 text-muted-foreground dark:text-gray-400 text-lg max-w-2xl mx-auto transition-colors">
                         We're currently in Beta. Join now to lock in your free access.
                     </p>
                 </div>
 
                 <div className="scroll-reveal scroll-delay-2 relative max-w-lg mx-auto">
                     {/* Glowing background behind pricing card */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-violet-600/30 to-purple-800/10 blur-2xl rounded-3xl" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-violet-600/20 dark:from-violet-600/30 to-purple-800/5 dark:to-purple-800/10 blur-2xl rounded-3xl" />
 
                     <div
                         ref={glowRef}
                         onMouseMove={handleMouseMove}
-                        className="landing-pricing-card relative bg-[#0a0a0a]/90 backdrop-blur-xl border border-white/10 rounded-3xl p-6 sm:p-10 flex flex-col group overflow-hidden"
+                        className="landing-pricing-card relative bg-card/90 dark:bg-[#0a0a0a]/90 backdrop-blur-xl border border-border dark:border-white/10 rounded-3xl p-6 sm:p-10 flex flex-col group overflow-hidden transition-colors"
                     >
                         {/* Interactive Cursor Flashlight inside pricing card */}
                         <div
@@ -1032,17 +1059,17 @@ function PricingSection() {
                         <div className="relative z-10">
                             <div className="flex justify-between items-start mb-6">
                                 <div>
-                                    <h3 className="text-xl sm:text-2xl font-bold text-white">Beta User</h3>
-                                    <p className="text-gray-400 mt-1 text-sm sm:text-base">Full access to all features</p>
+                                    <h3 className="text-xl sm:text-2xl font-bold text-foreground dark:text-white transition-colors">Beta User</h3>
+                                    <p className="text-muted-foreground dark:text-gray-400 mt-1 text-sm sm:text-base transition-colors">Full access to all features</p>
                                 </div>
-                                <span className="inline-flex items-center rounded-full bg-violet-500/10 px-3 py-1 text-xs sm:text-sm font-medium text-violet-400 ring-1 ring-inset ring-violet-500/20">
+                                <span className="inline-flex items-center rounded-full bg-violet-500/10 px-3 py-1 text-xs sm:text-sm font-medium text-violet-600 dark:text-violet-400 ring-1 ring-inset ring-violet-500/20">
                                     Limited Time
                                 </span>
                             </div>
 
-                            <div className="flex items-baseline gap-2 mb-8 border-b border-white/5 pb-8">
-                                <span className="text-4xl sm:text-5xl font-extrabold text-white">$0</span>
-                                <span className="text-gray-400">/month</span>
+                            <div className="flex items-baseline gap-2 mb-8 border-b border-border dark:border-white/5 pb-8 transition-colors">
+                                <span className="text-4xl sm:text-5xl font-extrabold text-foreground dark:text-white transition-colors">$0</span>
+                                <span className="text-muted-foreground dark:text-gray-400 transition-colors">/month</span>
                             </div>
 
                             <ul className="space-y-4 mb-8 flex-1">
@@ -1053,8 +1080,8 @@ function PricingSection() {
                                     "AI Quiz Generation",
                                     "Community Discord access"
                                 ].map((feature, i) => (
-                                    <li key={i} className="flex gap-3 items-center text-gray-300">
-                                        <Check className="w-5 h-5 text-violet-400 shrink-0" />
+                                    <li key={i} className="flex gap-3 items-center text-gray-700 dark:text-gray-300 transition-colors">
+                                        <Check className="w-5 h-5 text-violet-600 dark:text-violet-400 shrink-0" />
                                         <span>{feature}</span>
                                     </li>
                                 ))}
@@ -1062,7 +1089,7 @@ function PricingSection() {
 
                             <Link
                                 to="/register"
-                                className="w-full inline-flex justify-center items-center gap-2 px-6 py-4 rounded-xl bg-white text-black font-bold text-lg transition-all hover:bg-gray-200 hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(139,92,246,0.5)]"
+                                className="w-full inline-flex justify-center items-center gap-2 px-6 py-4 rounded-xl bg-foreground dark:bg-white text-background dark:text-black font-bold text-lg transition-all hover:opacity-90 dark:hover:bg-gray-200 hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(139,92,246,0.3)]"
                             >
                                 Claim Free Account
                                 <ArrowRight className="w-5 h-5" />
@@ -1078,24 +1105,24 @@ function PricingSection() {
 // ─── Footer ────────────────────────────────────────────────
 function Footer() {
     return (
-        <footer className="relative border-t border-[#262626] py-8">
+        <footer className="relative border-t border-border dark:border-[#262626] py-8 transition-colors">
             <div className="landing-grain" />
 
             <div className="relative z-10 max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-2">
                     <Logo size={24} />
-                    <span className="text-sm font-semibold text-gray-400">
+                    <span className="text-sm font-semibold text-muted-foreground dark:text-gray-400 transition-colors">
                         SkillBridge
                     </span>
                 </div>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-muted-foreground dark:text-gray-500 transition-colors">
                     © {new Date().getFullYear()} SkillBridge. Built for Education & Upskilling.
                 </p>
-                <div className="flex items-center gap-6 text-sm text-gray-500">
-                    <Link to="/login" className="hover:text-gray-300 transition-colors">
+                <div className="flex items-center gap-6 text-sm text-muted-foreground dark:text-gray-500">
+                    <Link to="/login" className="hover:text-foreground dark:hover:text-gray-300 transition-colors">
                         Login
                     </Link>
-                    <Link to="/register" className="hover:text-gray-300 transition-colors">
+                    <Link to="/register" className="hover:text-foreground dark:hover:text-gray-300 transition-colors">
                         Sign Up
                     </Link>
                 </div>
@@ -1108,14 +1135,14 @@ function Footer() {
 function AnimatedBackgroundLines() {
     return (
         <div className="fixed inset-0 pointer-events-none z-0 flex justify-between px-[5%] sm:px-[10%] lg:px-[15%]">
-            <div className="w-px h-full bg-white/[0.03] relative overflow-hidden">
-                <div className="absolute top-0 w-full h-[30vh] bg-gradient-to-b from-transparent via-violet-500/80 to-transparent animate-data-flow blur-[2px]" />
+            <div className="w-px h-full bg-border dark:bg-white/[0.03] relative overflow-hidden transition-colors">
+                <div className="absolute top-0 w-full h-[30vh] bg-gradient-to-b from-transparent via-violet-500/40 dark:via-violet-500/80 to-transparent animate-data-flow blur-[2px]" />
             </div>
-            <div className="w-px h-full bg-white/[0.03] relative overflow-hidden hidden md:block">
-                <div className="absolute top-0 w-full h-[40vh] bg-gradient-to-b from-transparent via-purple-500/80 to-transparent animate-data-flow-delayed blur-[2px]" />
+            <div className="w-px h-full bg-border dark:bg-white/[0.03] relative overflow-hidden hidden md:block transition-colors">
+                <div className="absolute top-0 w-full h-[40vh] bg-gradient-to-b from-transparent via-purple-500/40 dark:via-purple-500/80 to-transparent animate-data-flow-delayed blur-[2px]" />
             </div>
-            <div className="w-px h-full bg-white/[0.03] relative overflow-hidden">
-                <div className="absolute top-0 w-full h-[25vh] bg-gradient-to-b from-transparent via-emerald-500/50 to-transparent animate-data-flow blur-[2px]" style={{ animationDelay: '-7s', animationDuration: '12s' }} />
+            <div className="w-px h-full bg-border dark:bg-white/[0.03] relative overflow-hidden transition-colors">
+                <div className="absolute top-0 w-full h-[25vh] bg-gradient-to-b from-transparent via-emerald-500/30 dark:via-emerald-500/50 to-transparent animate-data-flow blur-[2px]" style={{ animationDelay: '-7s', animationDuration: '12s' }} />
             </div>
         </div>
     );
