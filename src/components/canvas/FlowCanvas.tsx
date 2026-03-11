@@ -425,8 +425,8 @@ export function FlowCanvas() {
             >
                 <Background variant={BackgroundVariant.Dots} gap={20} size={1} />
                 <Controls className="bg-background border-border" />
-                <Panel position="top-center" className="mt-4 flex flex-col items-center gap-3">
-                    {totalNodesCount > 0 && (
+                <Panel position="top-center" className="mt-4 flex flex-col items-center gap-3" aria-label="Global progress indicator">
+                    {totalNodesCount > 0 ? (
                         <div className="bg-card/90 backdrop-blur border border-border rounded-full shadow-md px-4 py-2 flex items-center gap-4 cursor-default animate-node-appear">
                             <span className="text-xs font-semibold whitespace-nowrap">
                                 🚀 {completedNodesCount} / {totalNodesCount} Topik
@@ -439,6 +439,12 @@ export function FlowCanvas() {
                             </div>
                             <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 min-w-[32px] text-right">
                                 {progressPercentage}%
+                            </span>
+                        </div>
+                    ) : (
+                        <div className="bg-card/90 backdrop-blur border border-border rounded-full shadow-md px-4 py-2 flex items-center gap-4 cursor-default">
+                            <span className="text-xs font-semibold whitespace-nowrap text-muted-foreground">
+                                🚀 0 / 0 Topik — 0%
                             </span>
                         </div>
                     )}

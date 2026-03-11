@@ -33,7 +33,9 @@ export function TemplateSelector({ onSelectTemplate, onAskAi, onClose }: Templat
                 <button
                     onClick={onClose}
                     className="absolute top-3 right-3 p-1 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                    title="Mulai manual"
+                    title="Close"
+                    aria-label="Close"
+                    data-testid="template-selector-close"
                 >
                     <X className="h-4 w-4" />
                 </button>

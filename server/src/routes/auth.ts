@@ -299,7 +299,12 @@ router.post("/forgot-password", async (req, res) => {
       data: { resetToken, resetExpires },
     });
 
-    await sendPasswordResetEmail(email, resetToken);
+    // Try to send email, but don't fail the request if SMTP is unconfigured
+    try {
+      await sendPasswordResetEmail(email, resetToken);
+    } catch (emailError) {
+      console.error("Failed to send password reset email (SMTP may be unconfigured):", emailError);
+    }
 
     res.json({ message: "If your email is registered, you will receive a password reset link." });
   } catch (error) {
