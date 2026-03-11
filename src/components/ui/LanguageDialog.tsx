@@ -45,6 +45,9 @@ export function LanguageDialog({ open, onOpenChange }: LanguageDialogProps) {
     const handleSave = () => {
         localStorage.setItem("language", selectedLanguage);
         
+        // Dispatch custom event so other components can react
+        window.dispatchEvent(new CustomEvent("languageChange", { detail: selectedLanguage }));
+        
         const langName = LANGUAGES.find(l => l.code === selectedLanguage)?.name || selectedLanguage;
         toast.success(`Bahasa diubah ke ${langName}`);
         

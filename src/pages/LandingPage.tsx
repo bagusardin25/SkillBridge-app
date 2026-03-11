@@ -22,6 +22,23 @@ import { StaticRoadmapVisual } from "@/components/landing/HeroRoadmapDemo";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRoadmapStore } from "@/store/useRoadmapStore";
 import { LanguageDialog } from "@/components/ui/LanguageDialog";
+import { getTranslations, getStoredLanguage, type Language, type Translations } from "@/lib/translations";
+
+// ─── Language Hook ─────────────────────────────────────────
+function useLanguage(): Translations {
+    const [lang, setLang] = useState<Language>(getStoredLanguage);
+
+    useEffect(() => {
+        const handler = (e: Event) => {
+            const detail = (e as CustomEvent).detail;
+            if (detail === "en" || detail === "id") setLang(detail);
+        };
+        window.addEventListener("languageChange", handler);
+        return () => window.removeEventListener("languageChange", handler);
+    }, []);
+
+    return getTranslations(lang);
+}
 
 // ─── Scroll Reveal Hook ────────────────────────────────────
 function useScrollReveal() {
@@ -171,7 +188,7 @@ function useCursorGlow() {
 }
 
 // ─── Navbar ────────────────────────────────────────────────
-function Navbar() {
+function Navbar({ t }: { t: Translations }) {
     const [scrolled, setScrolled] = useState(false);
     const [langOpen, setLangOpen] = useState(false);
     const { isDarkMode, toggleTheme } = useRoadmapStore();
@@ -197,16 +214,16 @@ function Navbar() {
 
                 <div className="hidden md:flex items-center gap-8 text-sm text-muted-foreground dark:text-gray-300">
                     <a href="#features" className="hover:text-foreground dark:hover:text-white transition-colors">
-                        Features
+                        {t.nav.features}
                     </a>
                     <a href="#preview" className="hover:text-foreground dark:hover:text-white transition-colors">
-                        Preview
+                        {t.nav.preview}
                     </a>
                     <a href="#how-it-works" className="hover:text-foreground dark:hover:text-white transition-colors">
-                        How It Works
+                        {t.nav.howItWorks}
                     </a>
                     <a href="#faq" className="hover:text-foreground dark:hover:text-white transition-colors">
-                        FAQ
+                        {t.nav.faq}
                     </a>
                 </div>
 
@@ -233,13 +250,13 @@ function Navbar() {
                         to="/login"
                         className="text-sm text-muted-foreground dark:text-gray-300 hover:text-foreground dark:hover:text-white transition-colors hidden sm:inline-block ml-2"
                     >
-                        Login
+                        {t.nav.login}
                     </Link>
                     <Link
                         to="/register"
                         className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-foreground dark:bg-white text-background dark:text-black text-sm font-medium transition-all duration-300 hover:opacity-90 dark:hover:bg-gray-200"
                     >
-                        Get Started
+                        {t.nav.getStarted}
                         <ArrowRight className="w-3.5 h-3.5" />
                     </Link>
                 </div>
@@ -252,7 +269,7 @@ function Navbar() {
 }
 
 // ─── Hero Section ──────────────────────────────────────────
-function HeroSection() {
+function HeroSection({ t }: { t: Translations }) {
     const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState("");
 
@@ -281,21 +298,21 @@ function HeroSection() {
                     {/* Badge */}
                     <div className="scroll-reveal scroll-delay-1 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-muted/30 dark:bg-white/5 backdrop-blur-sm text-sm text-muted-foreground dark:text-gray-300 mb-8 mt-4 md:mt-0">
                         <Sparkles className="w-4 h-4 text-violet-500 dark:text-violet-400" />
-                        New: GPT-4o Powered Tutoring
+                        {t.hero.badge}
                     </div>
 
                     {/* Headline */}
                     <h1 className="scroll-reveal scroll-delay-2 text-5xl sm:text-6xl lg:text-7xl font-extrabold text-foreground dark:text-white leading-[1.05] tracking-tight transition-colors">
-                        Build Your <br className="hidden sm:block" />
+                        {t.hero.headlinePre}<br className="hidden sm:block" />
                         <span className="landing-gradient-text pb-2">
-                            Learning Path <br className="hidden sm:block" />
-                            with AI.
+                            {t.hero.headlineGradient1}<br className="hidden sm:block" />
+                            {t.hero.headlineGradient2}
                         </span>
                     </h1>
 
                     {/* Sub-headline */}
                     <p className="scroll-reveal scroll-delay-3 mt-6 text-lg sm:text-xl text-muted-foreground dark:text-gray-400 max-w-xl leading-relaxed transition-colors">
-                        Describe your goal, and we'll build a structured, interactive journey tailored just for you. Track your progress with XP, streaks, and an AI tutor at your side.
+                        {t.hero.subheadline}
                     </p>
 
                     {/* Interactive Prompt Input */}
@@ -315,21 +332,15 @@ function HeroSection() {
                                     type="text"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    placeholder={`e.g. Become a Senior ${useTypewriter([
-                                        "React Developer",
-                                        "Go Backend Engineer",
-                                        "Data Scientist",
-                                        "Cloud Architect",
-                                        "iOS Developer"
-                                    ])}`}
+                                    placeholder={`${t.hero.placeholderPrefix}${useTypewriter(t.hero.typewriterTexts)}`}
                                     className="flex-1 min-w-0 bg-transparent border-none outline-none text-foreground dark:text-white text-sm md:text-base px-2 h-12 placeholder:text-muted-foreground text-ellipsis overflow-hidden whitespace-nowrap transition-colors"
                                 />
                                 <button
                                     type="submit"
                                     className="inline-flex items-center gap-2 px-5 py-2.5 h-11 rounded-full bg-violet-600 hover:bg-violet-500 text-white font-bold text-sm transition-all duration-300 hover:scale-105 shrink-0"
                                 >
-                                    <span className="hidden sm:inline">Start Journey</span>
-                                    <span className="sm:hidden">Start</span>
+                                    <span className="hidden sm:inline">{t.hero.startJourney}</span>
+                                    <span className="sm:hidden">{t.hero.start}</span>
                                     <ArrowRight className="w-4 h-4 ml-1" />
                                 </button>
                             </div>
@@ -358,7 +369,7 @@ function HeroSection() {
 }
 
 // ─── Social Proof Section ──────────────────────────────────
-function SocialProofSection() {
+function SocialProofSection({ t }: { t: Translations }) {
     const techStack = [
         { name: "React", src: "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/react/react-original.svg" },
         { name: "TypeScript", src: "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/typescript/typescript-original.svg" },
@@ -411,7 +422,7 @@ function SocialProofSection() {
     return (
         <section className="relative py-12 flex flex-col items-center overflow-hidden">
             <p className="text-sm sm:text-base font-semibold tracking-[0.2em] uppercase text-muted-foreground mb-6 z-10 transition-colors">
-                Powered by industry-leading technology
+                {t.socialProof.title}
             </p>
 
             {/* Marquee Container with Top/Bottom Borders */}
@@ -451,7 +462,7 @@ function SocialProofSection() {
 }
 
 // ─── Comparison Section ────────────────────────────────────
-function ComparisonSection() {
+function ComparisonSection({ t }: { t: Translations }) {
     return (
         <section className="relative py-24 sm:py-32">
             <div className="landing-grain" />
@@ -463,10 +474,10 @@ function ComparisonSection() {
             <div className="relative z-10 max-w-6xl mx-auto px-6">
                 <div className="scroll-reveal text-center mb-16">
                     <p className="text-sm font-semibold tracking-[0.2em] uppercase text-violet-600 dark:text-violet-400 mb-4 transition-colors">
-                        Why We Built This
+                        {t.comparison.sectionLabel}
                     </p>
                     <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-foreground dark:text-white tracking-tight transition-colors">
-                        A smarter way to learn
+                        {t.comparison.sectionTitle}
                     </h2>
                 </div>
 
@@ -475,16 +486,10 @@ function ComparisonSection() {
                     <div className="scroll-reveal scroll-delay-1 p-6 sm:p-8 rounded-2xl bg-red-50/30 dark:bg-[#120808]/80 border border-red-200 dark:border-red-900/20 flex flex-col h-full transition-colors">
                         <div className="flex items-center gap-3 mb-6">
                             <XCircle className="w-6 h-6 text-red-500" />
-                            <h3 className="text-2xl font-bold text-gray-700 dark:text-gray-300 transition-colors">The Old Way</h3>
+                            <h3 className="text-2xl font-bold text-gray-700 dark:text-gray-300 transition-colors">{t.comparison.oldWayTitle}</h3>
                         </div>
                         <ul className="space-y-4 flex-1">
-                            {[
-                                "Opening 20+ YouTube tabs trying to find where to start",
-                                "Reading confusing documentation without clear context",
-                                "Getting stuck on a bug with no one to ask for help",
-                                "Losing motivation because the end goal feels too far",
-                                "Not knowing if you're learning the right things in order"
-                            ].map((item, i) => (
+                            {t.comparison.oldWayItems.map((item, i) => (
                                 <li key={i} className="flex gap-3 text-gray-600 dark:text-gray-400 transition-colors">
                                     <span className="text-red-500/50 mt-1">✗</span>
                                     <span>{item}</span>
@@ -500,16 +505,10 @@ function ComparisonSection() {
 
                         <div className="flex items-center gap-3 mb-6">
                             <CheckCircle className="w-6 h-6 text-emerald-500" />
-                            <h3 className="text-2xl font-bold text-foreground dark:text-white transition-colors">SkillBridge</h3>
+                            <h3 className="text-2xl font-bold text-foreground dark:text-white transition-colors">{t.comparison.newWayTitle}</h3>
                         </div>
                         <ul className="space-y-4 flex-1">
-                            {[
-                                "One AI-generated roadmap tailored to your exact goal",
-                                "Curated steps organized in logical progression",
-                                "Chat with an AI Tutor anytime you get stuck on a topic",
-                                "Track progress with visual milestones and streak counters",
-                                "Interactive quizzes to validate your understanding"
-                            ].map((item, i) => (
+                            {t.comparison.newWayItems.map((item, i) => (
                                 <li key={i} className="flex gap-3 text-gray-800 dark:text-gray-300 font-medium transition-colors">
                                     <span className="text-emerald-500 mt-1">✓</span>
                                     <span>{item}</span>
@@ -590,7 +589,7 @@ const colorMap: Record<string, string> = {
     slate: "from-slate-500/20 to-slate-600/5 border-slate-500/20 text-slate-500 dark:text-slate-400",
 };
 
-function FeaturesSection() {
+function FeaturesSection({ t }: { t: Translations }) {
     return (
         <section id="features" className="relative py-24 sm:py-32">
             <div className="landing-grain" />
@@ -603,13 +602,13 @@ function FeaturesSection() {
                 {/* Section header */}
                 <div className="scroll-reveal text-center mb-16">
                     <p className="text-sm font-semibold tracking-[0.2em] uppercase text-violet-600 dark:text-violet-400 mb-4 transition-colors">
-                        Everything You Need
+                        {t.features.sectionLabel}
                     </p>
                     <h2 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-foreground dark:text-white tracking-tight transition-colors">
-                        Why learners choose SkillBridge?
+                        {t.features.sectionTitle}
                     </h2>
                     <p className="mt-4 text-muted-foreground dark:text-gray-400 text-lg max-w-2xl mx-auto transition-colors">
-                        All the tools you need to build a clear, AI-generated learning path — in one elegant platform.
+                        {t.features.sectionDescription}
                     </p>
                 </div>
 
@@ -629,10 +628,10 @@ function FeaturesSection() {
                                     <Icon className="w-6 h-6" />
                                 </div>
                                 <h3 className={`${feature.titleClass} font-semibold text-foreground dark:text-white mb-2 transition-colors`}>
-                                    {feature.title}
+                                    {t.features.items[i]?.title ?? feature.title}
                                 </h3>
                                 <p className="text-muted-foreground dark:text-gray-400 text-sm leading-relaxed transition-colors">
-                                    {feature.description}
+                                    {t.features.items[i]?.description ?? feature.description}
                                 </p>
                             </div>
                         );
@@ -679,7 +678,7 @@ const previewTabs = [
     },
 ];
 
-function AppPreviewSection() {
+function AppPreviewSection({ t }: { t: Translations }) {
     const [activeTab, setActiveTab] = useState(0);
     const [progress, setProgress] = useState(0);
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -740,21 +739,21 @@ function AppPreviewSection() {
                 {/* Section header */}
                 <div className="scroll-reveal text-center mb-12">
                     <p className="text-sm font-semibold tracking-[0.2em] uppercase text-violet-600 dark:text-violet-400 mb-4 transition-colors">
-                        See It In Action
+                        {t.preview.sectionLabel}
                     </p>
                     <h2 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-foreground dark:text-white tracking-tight transition-colors">
-                        A glimpse into SkillBridge
+                        {t.preview.sectionTitle}
                     </h2>
                     <p className="mt-4 text-muted-foreground dark:text-gray-400 text-lg max-w-2xl mx-auto transition-colors">
-                        Real screenshots from the app — explore the core experience.
+                        {t.preview.sectionDescription}
                     </p>
                 </div>
 
                 {/* Tabs */}
                 <div className="flex sm:flex-wrap justify-start sm:justify-center gap-2 mb-8 overflow-x-auto pb-4 sm:pb-0 hide-scrollbar snap-x">
-                    {previewTabs.map((t, i) => (
+                    {previewTabs.map((tab, i) => (
                         <button
-                            key={t.id}
+                            key={tab.id}
                             onClick={() => handleTabClick(i)}
                             className={`relative px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 overflow-hidden whitespace-nowrap snap-center shrink-0 ${activeTab === i
                                 ? "bg-muted dark:bg-white/10 text-foreground dark:text-white border border-border dark:border-white/20"
@@ -768,7 +767,7 @@ function AppPreviewSection() {
                                     style={{ width: `${progress}%` }}
                                 />
                             )}
-                            {t.label}
+                            {t.preview.tabs[i]?.label ?? tab.label}
                         </button>
                     ))}
                 </div>
@@ -832,13 +831,13 @@ function AppPreviewSection() {
                         key={tab.id + "-title"}
                         className="text-xl sm:text-2xl font-semibold text-foreground dark:text-white mb-3 landing-fade-in transition-colors"
                     >
-                        {tab.title}
+                        {t.preview.tabs[activeTab]?.title ?? tab.title}
                     </h3>
                     <p
                         key={tab.id + "-desc"}
                         className="text-muted-foreground dark:text-gray-400 leading-relaxed landing-fade-in transition-colors"
                     >
-                        {tab.description}
+                        {t.preview.tabs[activeTab]?.description ?? tab.description}
                     </p>
                 </div>
             </div>
@@ -871,7 +870,7 @@ const steps = [
     },
 ];
 
-function HowItWorksSection() {
+function HowItWorksSection({ t }: { t: Translations }) {
     return (
         <section id="how-it-works" className="relative py-24 sm:py-32">
             <div className="landing-grain" />
@@ -882,10 +881,10 @@ function HowItWorksSection() {
             <div className="relative z-10 max-w-5xl mx-auto px-6">
                 <div className="scroll-reveal text-center mb-16">
                     <p className="text-sm font-semibold tracking-[0.2em] uppercase text-violet-600 dark:text-violet-400 mb-4 transition-colors">
-                        Simple & Powerful
+                        {t.howItWorks.sectionLabel}
                     </p>
                     <h2 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-foreground dark:text-white tracking-tight transition-colors">
-                        How it works
+                        {t.howItWorks.sectionTitle}
                     </h2>
                 </div>
 
@@ -907,10 +906,10 @@ function HowItWorksSection() {
                                         </span>
                                     </div>
                                     <h3 className="text-xl font-semibold text-foreground dark:text-white mb-3 transition-colors">
-                                        {s.title}
+                                        {t.howItWorks.steps[i]?.title ?? s.title}
                                     </h3>
                                     <p className="text-muted-foreground dark:text-gray-400 text-sm leading-relaxed transition-colors">
-                                        {s.description}
+                                        {t.howItWorks.steps[i]?.description ?? s.description}
                                     </p>
                                 </div>
                             </div>
@@ -923,17 +922,16 @@ function HowItWorksSection() {
 }
 
 // ─── Testimonial Section ───────────────────────────────────
-function TestimonialSection() {
+function TestimonialSection({ t }: { t: Translations }) {
     return (
         <section className="relative py-24 sm:py-32">
             <div className="landing-grain" />
 
             <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
                 <blockquote className="scroll-reveal-scale text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground dark:text-white leading-tight transition-colors">
-                    "The best way to learn is with a{" "}
-                    <span className="landing-gradient-text">clear roadmap</span>,{" "}
-                    <br className="hidden sm:block" />
-                    and a guide who never sleeps."
+                    {t.testimonial.quote1}
+                    <span className="landing-gradient-text">{t.testimonial.quoteHighlight}</span>
+                    {t.testimonial.quote2}
                 </blockquote>
                 <div className="scroll-reveal scroll-delay-2 mt-8 flex items-center justify-center gap-4">
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg">
@@ -941,7 +939,7 @@ function TestimonialSection() {
                     </div>
                     <div className="text-left">
                         <p className="text-foreground dark:text-white font-semibold transition-colors">SkillBridge</p>
-                        <p className="text-muted-foreground dark:text-gray-400 text-sm transition-colors">AI Learning Platform</p>
+                        <p className="text-muted-foreground dark:text-gray-400 text-sm transition-colors">{t.testimonial.subtitle}</p>
                     </div>
                 </div>
             </div>
@@ -983,7 +981,7 @@ const faqs = [
     },
 ];
 
-function FAQSection() {
+function FAQSection({ t }: { t: Translations }) {
     return (
         <section id="faq" className="relative py-24 sm:py-32">
             <div className="landing-grain" />
@@ -991,18 +989,18 @@ function FAQSection() {
             <div className="relative z-10 max-w-5xl mx-auto px-6">
                 <div className="scroll-reveal text-center mb-16">
                     <p className="text-sm font-semibold tracking-[0.2em] uppercase text-violet-600 dark:text-violet-400 mb-4 transition-colors">
-                        All About SkillBridge
+                        {t.faq.sectionLabel}
                     </p>
                     <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground dark:text-white transition-colors">
-                        Frequently asked questions
+                        {t.faq.sectionTitle}
                     </h2>
                     <p className="mt-4 text-muted-foreground dark:text-gray-400 text-lg max-w-2xl mx-auto transition-colors">
-                        Get quick answers to the most common questions about SkillBridge and how it can help your learning journey.
+                        {t.faq.sectionDescription}
                     </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {faqs.map((faq, i) => (
+                    {t.faq.items.map((faq, i) => (
                         <div key={faq.question} className={`scroll-reveal scroll-delay-${(i % 2) + 1} space-y-3`}>
                             <h3 className="text-foreground dark:text-white font-semibold text-lg transition-colors">
                                 {faq.question}
@@ -1019,7 +1017,7 @@ function FAQSection() {
 }
 
 // ─── Pricing Section ───────────────────────────────────────
-function PricingSection() {
+function PricingSection({ t }: { t: Translations }) {
     const { ref: glowRef, handleMouseMove } = useCursorGlow();
 
     return (
@@ -1029,13 +1027,13 @@ function PricingSection() {
             <div className="relative z-10 max-w-4xl mx-auto px-6">
                 <div className="scroll-reveal text-center mb-16">
                     <p className="text-sm font-semibold tracking-[0.2em] uppercase text-violet-600 dark:text-violet-400 mb-4 transition-colors">
-                        Simple Pricing
+                        {t.pricing.sectionLabel}
                     </p>
                     <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-foreground dark:text-white tracking-tight transition-colors">
-                        Start learning for free
+                        {t.pricing.sectionTitle}
                     </h2>
                     <p className="mt-4 text-muted-foreground dark:text-gray-400 text-lg max-w-2xl mx-auto transition-colors">
-                        We're currently in Beta. Join now to lock in your free access.
+                        {t.pricing.sectionDescription}
                     </p>
                 </div>
 
@@ -1059,27 +1057,21 @@ function PricingSection() {
                         <div className="relative z-10">
                             <div className="flex justify-between items-start mb-6">
                                 <div>
-                                    <h3 className="text-xl sm:text-2xl font-bold text-foreground dark:text-white transition-colors">Beta User</h3>
-                                    <p className="text-muted-foreground dark:text-gray-400 mt-1 text-sm sm:text-base transition-colors">Full access to all features</p>
+                                    <h3 className="text-xl sm:text-2xl font-bold text-foreground dark:text-white transition-colors">{t.pricing.planName}</h3>
+                                    <p className="text-muted-foreground dark:text-gray-400 mt-1 text-sm sm:text-base transition-colors">{t.pricing.planDescription}</p>
                                 </div>
                                 <span className="inline-flex items-center rounded-full bg-violet-500/10 px-3 py-1 text-xs sm:text-sm font-medium text-violet-600 dark:text-violet-400 ring-1 ring-inset ring-violet-500/20">
-                                    Limited Time
+                                    {t.pricing.badge}
                                 </span>
                             </div>
 
                             <div className="flex items-baseline gap-2 mb-8 border-b border-border dark:border-white/5 pb-8 transition-colors">
                                 <span className="text-4xl sm:text-5xl font-extrabold text-foreground dark:text-white transition-colors">$0</span>
-                                <span className="text-muted-foreground dark:text-gray-400 transition-colors">/month</span>
+                                <span className="text-muted-foreground dark:text-gray-400 transition-colors">{t.pricing.perMonth}</span>
                             </div>
 
                             <ul className="space-y-4 mb-8 flex-1">
-                                {[
-                                    "Unlimited AI Roadmaps",
-                                    "Unlimited AI Tutor chats",
-                                    "Progress tracking & Analytics",
-                                    "AI Quiz Generation",
-                                    "Community Discord access"
-                                ].map((feature, i) => (
+                                {t.pricing.features.map((feature, i) => (
                                     <li key={i} className="flex gap-3 items-center text-gray-700 dark:text-gray-300 transition-colors">
                                         <Check className="w-5 h-5 text-violet-600 dark:text-violet-400 shrink-0" />
                                         <span>{feature}</span>
@@ -1091,7 +1083,7 @@ function PricingSection() {
                                 to="/register"
                                 className="w-full inline-flex justify-center items-center gap-2 px-6 py-4 rounded-xl bg-foreground dark:bg-white text-background dark:text-black font-bold text-lg transition-all hover:opacity-90 dark:hover:bg-gray-200 hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(139,92,246,0.3)]"
                             >
-                                Claim Free Account
+                                {t.pricing.cta}
                                 <ArrowRight className="w-5 h-5" />
                             </Link>
                         </div>
@@ -1103,7 +1095,7 @@ function PricingSection() {
 }
 
 // ─── Footer ────────────────────────────────────────────────
-function Footer() {
+function Footer({ t }: { t: Translations }) {
     return (
         <footer className="relative border-t border-border dark:border-[#262626] py-8 transition-colors">
             <div className="landing-grain" />
@@ -1116,14 +1108,14 @@ function Footer() {
                     </span>
                 </div>
                 <p className="text-sm text-muted-foreground dark:text-gray-500 transition-colors">
-                    © {new Date().getFullYear()} SkillBridge. Built for Education & Upskilling.
+                    © {new Date().getFullYear()} SkillBridge. {t.footer.copyright}
                 </p>
                 <div className="flex items-center gap-6 text-sm text-muted-foreground dark:text-gray-500">
                     <Link to="/login" className="hover:text-foreground dark:hover:text-gray-300 transition-colors">
-                        Login
+                        {t.footer.login}
                     </Link>
                     <Link to="/register" className="hover:text-foreground dark:hover:text-gray-300 transition-colors">
-                        Sign Up
+                        {t.footer.signUp}
                     </Link>
                 </div>
             </div>
@@ -1151,6 +1143,7 @@ function AnimatedBackgroundLines() {
 export function LandingPage() {
     useScrollReveal();
     const spotlightRef = useCursorSpotlight();
+    const t = useLanguage();
 
     return (
         <div className="landing-page">
@@ -1159,26 +1152,26 @@ export function LandingPage() {
             {/* Cursor-following spotlight */}
             <div ref={spotlightRef} className="landing-cursor-spotlight" />
 
-            <Navbar />
-            <HeroSection />
+            <Navbar t={t} />
+            <HeroSection t={t} />
             <div className="mt-8 mb-16">
-                <SocialProofSection />
+                <SocialProofSection t={t} />
             </div>
             <hr className="landing-section-divider" />
-            <ComparisonSection />
+            <ComparisonSection t={t} />
             <hr className="landing-section-divider" />
-            <FeaturesSection />
+            <FeaturesSection t={t} />
             <hr className="landing-section-divider" />
-            <AppPreviewSection />
+            <AppPreviewSection t={t} />
             <hr className="landing-section-divider" />
-            <HowItWorksSection />
+            <HowItWorksSection t={t} />
             <hr className="landing-section-divider" />
-            <TestimonialSection />
+            <TestimonialSection t={t} />
             <hr className="landing-section-divider" />
-            <FAQSection />
+            <FAQSection t={t} />
             <hr className="landing-section-divider" />
-            <PricingSection />
-            <Footer />
+            <PricingSection t={t} />
+            <Footer t={t} />
         </div>
     );
 }
