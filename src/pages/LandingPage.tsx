@@ -421,7 +421,7 @@ function SocialProofSection({ t }: { t: Translations }) {
 
     return (
         <section className="relative py-12 flex flex-col items-center overflow-hidden">
-            <p className="text-sm sm:text-base font-semibold tracking-[0.2em] uppercase text-muted-foreground mb-6 z-10 transition-colors">
+            <p className="text-sm sm:text-base font-semibold tracking-[0.2em] uppercase text-muted-foreground mb-6 z-10 transition-colors text-center px-6">
                 {t.socialProof.title}
             </p>
 
@@ -444,14 +444,14 @@ function SocialProofSection({ t }: { t: Translations }) {
                         {marqueeItems.map((tech, i) => (
                             <div 
                                 key={i} 
-                                className="flex items-center justify-center gap-3 sm:gap-4 w-48 sm:w-64 h-20 sm:h-24 border-r border-violet-900/20 dark:border-violet-900/40 transition-all cursor-default bg-transparent hover:bg-violet-900/5 dark:hover:bg-violet-900/10"
+                                className="flex items-center justify-center gap-4 sm:gap-6 w-64 sm:w-80 h-24 sm:h-32 border-r border-violet-900/20 dark:border-violet-900/40 transition-all cursor-default bg-transparent hover:bg-violet-900/5 dark:hover:bg-violet-900/10"
                             >
                                 {tech.src ? (
-                                    <img src={tech.src} alt={tech.name} className="w-8 h-8 sm:w-10 sm:h-10 object-contain" />
+                                    <img src={tech.src} alt={tech.name} className="w-10 h-10 sm:w-12 sm:h-12 object-contain" />
                                 ) : (
-                                    <div className="scale-90 sm:scale-100">{tech.icon}</div>
+                                    <div className="scale-110 sm:scale-125">{tech.icon}</div>
                                 )}
-                                <span className="text-base sm:text-lg font-bold text-muted-foreground dark:text-gray-300 tracking-wide transition-colors">{tech.name}</span>
+                                <span className="text-lg sm:text-2xl font-bold text-muted-foreground dark:text-gray-300 tracking-wide transition-colors">{tech.name}</span>
                             </div>
                         ))}
                     </div>
