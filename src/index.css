@@ -497,6 +497,20 @@ html {
 
 .landing-fade-in {
   animation: landing-fade-in 0.4s ease-out;
+/* Animated Gradient Text */
+.landing-gradient-text {
+  background: linear-gradient(to right, #ffffff, #a855f7, #3b82f6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-size: 200% auto;
+  animation: landing-gradient-text-anim 5s linear infinite;
+}
+
+@keyframes landing-gradient-text-anim {
+  0% { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
 }
 
 /* ═══════════════════════════════════════════════════════════

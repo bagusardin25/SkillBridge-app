@@ -16,7 +16,7 @@ import {
     CheckCircle,
     Check
 } from "lucide-react";
-import { HeroRoadmapDemo } from "@/components/landing/HeroRoadmapDemo";
+import { StaticRoadmapVisual } from "@/components/landing/HeroRoadmapDemo";
 import { useState, useEffect, useRef, useCallback } from "react";
 
 // ─── Scroll Reveal Hook ────────────────────────────────────
@@ -239,11 +239,8 @@ function HeroSection() {
     };
 
     return (
-        <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
-            {/* Interactive React Flow Background */}
-            <HeroRoadmapDemo />
-
-            {/* Glow blobs (put below z-10 text, above React Flow) */}
+        <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24 pb-16">
+            {/* Glow blobs */}
             <div className="landing-glow-blob landing-glow-blob-1 pointer-events-none" />
             <div className="landing-glow-blob landing-glow-blob-2 pointer-events-none" />
             <div className="landing-glow-blob landing-glow-blob-3 pointer-events-none" />
@@ -251,93 +248,77 @@ function HeroSection() {
             {/* Grain overlay */}
             <div className="landing-grain pointer-events-none" />
 
-            <div className="relative z-10 text-center px-6 max-w-4xl mx-auto w-full">
-                {/* Badge */}
-                <div className="scroll-reveal scroll-delay-1 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm text-sm text-gray-300 mb-8 mt-12 sm:mt-0">
-                    <Sparkles className="w-4 h-4 text-violet-400" />
-                    AI-Powered Learning Platform
-                </div>
+            <div className="relative z-10 px-6 max-w-7xl mx-auto w-full flex flex-col md:flex-row items-center gap-12 lg:gap-20">
+                {/* Left Column: Text & Input */}
+                <div className="w-full md:w-1/2 flex flex-col items-start text-left shrink-0">
+                    {/* Badge */}
+                    <div className="scroll-reveal scroll-delay-1 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm text-sm text-gray-300 mb-8 mt-4 md:mt-0">
+                        <Sparkles className="w-4 h-4 text-violet-400" />
+                        New: GPT-4o Powered Tutoring
+                    </div>
 
-                {/* Headline */}
-                <h1 className="scroll-reveal scroll-delay-2 text-4xl sm:text-6xl lg:text-7xl font-extrabold text-white leading-[1.1] tracking-tight">
-                    Build Your Learning{" "}
-                    <br className="hidden sm:block" />
-                    Path with{" "}
-                    <span className="landing-gradient-text">AI.</span>
-                </h1>
+                    {/* Headline */}
+                    <h1 className="scroll-reveal scroll-delay-2 text-5xl sm:text-6xl lg:text-7xl font-extrabold text-white leading-[1.05] tracking-tight">
+                        Build Your <br className="hidden sm:block" />
+                        <span className="landing-gradient-text pb-2">
+                            Learning Path <br className="hidden sm:block" />
+                            with AI.
+                        </span>
+                    </h1>
 
-                {/* Sub-headline */}
-                <p className="scroll-reveal scroll-delay-3 mt-6 text-lg sm:text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
-                    Describe your goal, and AI will create a personalized roadmap
-                    to guide your learning journey — structured, visual, and interactive.
-                </p>
+                    {/* Sub-headline */}
+                    <p className="scroll-reveal scroll-delay-3 mt-6 text-lg sm:text-xl text-gray-400 max-w-xl leading-relaxed">
+                        Describe your goal, and we'll build a structured, interactive journey tailored just for you. Track your progress with XP, streaks, and an AI tutor at your side.
+                    </p>
 
-                {/* Interactive Prompt Input */}
-                <div className="scroll-reveal scroll-delay-4 mt-8 max-w-2xl mx-auto w-full">
-                    <form
-                        onSubmit={handleSearch}
-                        className="relative flex items-center w-full group"
-                    >
-                        {/* Glow effect behind input */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-violet-600/30 to-purple-600/30 blur-xl group-focus-within:opacity-100 opacity-50 transition-opacity rounded-full z-0" />
+                    {/* Interactive Prompt Input */}
+                    <div className="scroll-reveal scroll-delay-4 mt-8 w-full max-w-xl">
+                        <form
+                            onSubmit={handleSearch}
+                            className="relative flex items-center w-full group"
+                        >
+                            {/* Glow effect behind input */}
+                            <div className="absolute inset-0 bg-gradient-to-r from-violet-600/30 to-purple-600/30 blur-xl group-focus-within:opacity-100 opacity-50 transition-opacity rounded-full z-0" />
 
-                        <div className="relative flex items-center w-full bg-[#0a0a0a]/80 backdrop-blur-md border border-white/10 group-focus-within:border-violet-500/50 rounded-full p-2 z-10 transition-colors shadow-2xl">
-                            <div className="pl-4 pr-2 text-gray-400">
-                                <Target className="w-5 h-5" />
+                            <div className="relative flex items-center w-full bg-[#121212]/80 backdrop-blur-md border border-white/10 group-focus-within:border-violet-500/50 rounded-full p-2 z-10 transition-colors shadow-2xl">
+                                <div className="pl-4 pr-2 text-gray-500">
+                                    <Target className="w-5 h-5" />
+                                </div>
+                                <input
+                                    type="text"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    placeholder={`e.g. Become a Senior ${useTypewriter([
+                                        "React Developer",
+                                        "Go Backend Engineer",
+                                        "Data Scientist",
+                                        "Cloud Architect",
+                                        "iOS Developer"
+                                    ])}`}
+                                    className="flex-1 min-w-0 bg-transparent border-none outline-none text-white text-sm md:text-base px-2 h-12 placeholder:text-gray-500 text-ellipsis overflow-hidden whitespace-nowrap"
+                                />
+                                <button
+                                    type="submit"
+                                    className="inline-flex items-center gap-2 px-5 py-2.5 h-11 rounded-full bg-violet-600 hover:bg-violet-500 text-white font-bold text-sm transition-all duration-300 hover:scale-105 shrink-0"
+                                >
+                                    <span className="hidden sm:inline">Start Journey</span>
+                                    <span className="sm:hidden">Start</span>
+                                    <ArrowRight className="w-4 h-4 ml-1" />
+                                </button>
                             </div>
-                            <input
-                                type="text"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder={`e.g. ${useTypewriter([
-                                    "Golang Backend",
-                                    "React UI/UX",
-                                    "Data Science",
-                                    "System Design",
-                                    "iOS App"
-                                ])}`}
-                                className="flex-1 min-w-0 bg-transparent border-none outline-none text-white text-sm sm:text-base px-2 h-12 placeholder:text-gray-500 text-ellipsis overflow-hidden whitespace-nowrap"
-                            />
-                            <button
-                                type="submit"
-                                className="inline-flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-3 h-10 sm:h-11 rounded-full bg-white text-black font-bold text-sm transition-all duration-300 hover:bg-gray-200 hover:scale-105 shrink-0"
-                            >
-                                <span className="hidden sm:inline">Generate Roadmap</span>
-                                <span className="sm:hidden">Start</span>
-                                <Sparkles className="w-4 h-4 text-violet-600" />
-                            </button>
-                        </div>
-                    </form>
+                        </form>
 
-                    <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-sm text-gray-500">
-                        <span className="shrink-0">Popular:</span>
-                        {["Fullstack React", "Data Science", "System Design", "UI/UX"].map(tag => (
-                            <button
-                                key={tag}
-                                type="button"
-                                onClick={() => setSearchQuery(tag)}
-                                className="px-3 py-1 bg-white/5 border border-white/10 rounded-full hover:bg-white/10 hover:text-white transition-colors cursor-pointer whitespace-nowrap"
-                            >
-                                {tag}
-                            </button>
-                        ))}
                     </div>
                 </div>
 
-                {/* Stats */}
-                <div className="scroll-reveal scroll-delay-5 mt-16 flex flex-wrap items-center justify-center gap-8 sm:gap-12 text-center">
-                    {[
-                        { value: "AI", label: "Powered Roadmaps" },
-                        { value: "∞", label: "Topics Available" },
-                        { value: "100%", label: "Free to Start" },
-                    ].map((stat) => (
-                        <div key={stat.label} className="group">
-                            <div className="text-2xl sm:text-3xl font-bold text-white group-hover:text-gray-300 transition-colors">
-                                {stat.value}
-                            </div>
-                            <div className="text-sm text-gray-500 mt-1">{stat.label}</div>
-                        </div>
-                    ))}
+                {/* Right Column: Roadmap Demo */}
+                <div className="scroll-reveal scroll-delay-5 w-full md:w-1/2 h-[500px] md:h-[600px] relative hidden md:block">
+                     <StaticRoadmapVisual />
+                </div>
+                
+                {/* Mobile Roadmap Demo (shown below text on small screens) */}
+                <div className="scroll-reveal scroll-delay-5 w-full h-[400px] relative md:hidden mt-8">
+                     <StaticRoadmapVisual />
                 </div>
             </div>
 
