@@ -170,7 +170,7 @@ export function Sidebar({ className }: { className?: string }) {
         if (window.innerWidth < 768 && isSidebarOpen) {
             toggleSidebar();
         }
-        navigate("/login");
+        navigate("/");
         toast.success("Logged out successfully");
     };
 
