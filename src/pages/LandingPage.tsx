@@ -948,38 +948,6 @@ function TestimonialSection({ t }: { t: Translations }) {
 }
 
 // ─── FAQ Section ───────────────────────────────────────────
-const faqs = [
-    {
-        question: "Is SkillBridge free?",
-        answer:
-            "Yes! SkillBridge is free to get started. You can generate AI roadmaps, use the visual editor, and track your progress at no cost.",
-    },
-    {
-        question: "What topics can I learn?",
-        answer:
-            "Anything! From programming languages like Python and Go, to broader goals like \"Become a Full-Stack Developer\" or \"Learn System Design\".",
-    },
-    {
-        question: "How does the AI generate roadmaps?",
-        answer:
-            "SkillBridge uses advanced AI (GPT/Gemini) to act as a curriculum architect. It breaks down your goal into structured learning steps with logical ordering.",
-    },
-    {
-        question: "Can I edit the generated roadmap?",
-        answer:
-            "Absolutely! The visual flowchart editor lets you drag, rearrange, add, or remove nodes to customize the roadmap to your preferences.",
-    },
-    {
-        question: "Is my data saved?",
-        answer:
-            "Yes. Your roadmaps and progress are saved securely. You can access them anytime from any device after logging in.",
-    },
-    {
-        question: "Do I need an account?",
-        answer:
-            "Yes, a free account is required to save your roadmaps and track progress. You can sign up with email, Google, or GitHub.",
-    },
-];
 
 function FAQSection({ t }: { t: Translations }) {
     return (
