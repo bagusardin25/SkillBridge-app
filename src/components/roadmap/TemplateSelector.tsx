@@ -41,20 +41,24 @@ export function TemplateSelector({ onSelectTemplate, onAskAi, onClose }: Templat
                 </button>
             )}
 
-            <div className="h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-2">
-                <LayoutTemplate className="h-6 w-6 text-primary" />
+            <div className="relative h-16 w-16 mx-auto mb-4 flex items-center justify-center">
+                <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full" />
+                <div className="relative bg-background border shadow-sm h-full w-full rounded-2xl flex items-center justify-center transform rotate-3 hover:rotate-6 transition-all">
+                    <LayoutTemplate className="h-7 w-7 text-primary" />
+                </div>
             </div>
             
-            <h3 className="text-lg font-semibold mb-1">Start Your Learning Journey</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-                Choose a template or ask AI to create a personalized roadmap.
+            <h3 className="text-xl font-bold tracking-tight mb-2">Start Your Learning Journey</h3>
+            <p className="text-sm text-muted-foreground mb-6 max-w-[80%] mx-auto">
+                Choose a curated template or ask AI to construct a highly personalized roadmap just for you.
             </p>
 
             {/* Category Filter */}
-            <div className="flex flex-wrap justify-center gap-2 mb-4">
+            <div className="flex flex-wrap justify-center gap-2 mb-6">
                 <Button
-                    variant={selectedCategory === null ? "default" : "outline"}
+                    variant={selectedCategory === null ? "default" : "secondary"}
                     size="sm"
+                    className={`rounded-full px-4 ${selectedCategory === null ? "shadow-md shadow-primary/20" : "hover:bg-primary/10 hover:text-primary bg-muted/50"}`}
                     onClick={() => setSelectedCategory(null)}
                 >
                     All
@@ -62,8 +66,9 @@ export function TemplateSelector({ onSelectTemplate, onAskAi, onClose }: Templat
                 {categories.map(cat => (
                     <Button
                         key={cat}
-                        variant={selectedCategory === cat ? "default" : "outline"}
+                        variant={selectedCategory === cat ? "default" : "secondary"}
                         size="sm"
+                        className={`rounded-full px-4 ${selectedCategory === cat ? "shadow-md shadow-primary/20" : "hover:bg-primary/10 hover:text-primary bg-muted/50"}`}
                         onClick={() => setSelectedCategory(cat)}
                     >
                         {cat}
@@ -77,15 +82,18 @@ export function TemplateSelector({ onSelectTemplate, onAskAi, onClose }: Templat
                     {filteredTemplates.map(template => (
                         <Card
                             key={template.id}
-                            className="cursor-pointer hover:border-primary hover:scale-[1.02] hover:shadow-lg transition-all duration-200 text-left"
+                            className="cursor-pointer group hover:border-primary/50 border-transparent bg-card shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-left overflow-hidden relative"
                             onClick={() => onSelectTemplate(template)}
                         >
-                            <CardHeader className="p-4 pb-2">
-                                <div className="flex items-start justify-between">
-                                    <span className="text-2xl">{template.icon}</span>
+                            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                            <CardHeader className="p-4 pb-2 relative z-10">
+                                <div className="flex items-start justify-between mb-2">
+                                    <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300">
+                                        {template.icon}
+                                    </div>
                                     <Badge 
                                         variant="secondary" 
-                                        className={difficultyColors[template.difficulty]}
+                                        className={`rounded-full font-medium px-2.5 py-0.5 border ${difficultyColors[template.difficulty]}`}
                                     >
                                         {template.difficulty}
                                     </Badge>
@@ -113,13 +121,15 @@ export function TemplateSelector({ onSelectTemplate, onAskAi, onClose }: Templat
             </ScrollArea>
 
             {/* AI Alternative */}
-            <div className="border-t pt-3">
-                <p className="text-xs text-muted-foreground mb-2">
-                    Want something more personalized?
-                </p>
-                <Button onClick={onAskAi} size="default" className="w-full">
-                    <Sparkles className="mr-2 h-4 w-4" />
-                    Ask AI to Create Custom Roadmap
+            <div className="border-t pt-4 mt-2">
+                <Button 
+                    onClick={onAskAi} 
+                    size="default" 
+                    className="w-full relative overflow-hidden group shadow-[0_0_15px_rgba(139,92,246,0.3)] dark:shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_25px_rgba(139,92,246,0.5)] transition-all duration-300"
+                >
+                    <div className="absolute inset-0 bg-gradient-to-r from-violet-600 to-indigo-600 dark:from-zinc-800 dark:to-zinc-900 group-hover:opacity-90 transition-opacity" />
+                    <Sparkles className="mr-2 h-4 w-4 relative z-10 text-white animate-pulse" />
+                    <span className="relative z-10 text-white font-medium">Ask AI to Create Custom Roadmap</span>
                 </Button>
             </div>
         </div>

@@ -391,12 +391,12 @@ export function Sidebar({ className }: { className?: string }) {
                     </div>
                 </div>
 
-                <div className="space-y-4 py-2 flex-1 overflow-y-auto">
-                    <div className="px-3">
+                <div className="space-y-4 py-4 flex-1 overflow-y-auto w-full">
+                    <div className="px-4">
                         <div className="space-y-1">
                             <Button
                                 variant="secondary"
-                                className="w-full justify-start"
+                                className="w-full justify-start shadow-sm hover:shadow-md transition-shadow"
                                 onClick={() => setIsDialogOpen(true)}
                             >
                                 <Plus className="mr-2 h-4 w-4" />
@@ -405,19 +405,19 @@ export function Sidebar({ className }: { className?: string }) {
                         </div>
                     </div>
 
-                    <div className="px-3">
-                        <h2 className="mb-2 px-4 text-sm font-medium text-muted-foreground">
-                            Projects
+                    <div className="px-2">
+                        <h2 className="mb-3 px-4 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                            Your Projects
                         </h2>
-                        <div className="space-y-1">
+                        <div className="space-y-1 px-2">
                             {isLoading ? (
-                                <div className="space-y-2 px-1">
-                                    <div className="h-9 bg-muted rounded-md animate-pulse" />
-                                    <div className="h-9 bg-muted rounded-md animate-pulse w-4/5" />
-                                    <div className="h-9 bg-muted rounded-md animate-pulse w-3/4" />
+                                <div className="space-y-3 px-2">
+                                    <div className="h-10 bg-muted/50 rounded-lg animate-pulse" />
+                                    <div className="h-10 bg-muted/50 rounded-lg animate-pulse w-5/6" />
+                                    <div className="h-10 bg-muted/50 rounded-lg animate-pulse w-4/5" />
                                 </div>
                             ) : filteredProjects.length === 0 ? (
-                                <p className="px-4 py-2 text-sm text-muted-foreground">
+                                <p className="px-4 py-3 text-sm text-muted-foreground text-center bg-muted/20 rounded-lg border border-dashed border-border/50">
                                     {searchQuery ? "No matching projects" : "No projects yet"}
                                 </p>
                             ) : (
@@ -425,21 +425,26 @@ export function Sidebar({ className }: { className?: string }) {
                                     <div
                                         key={project.id}
                                         className={cn(
-                                            "group relative flex items-center",
-                                            newProjectId === project.id && "animate-in fade-in slide-in-from-left-2 duration-300"
+                                            "group relative flex items-center rounded-lg transition-colors",
+                                            newProjectId === project.id && "animate-in fade-in slide-in-from-left-2 duration-300",
+                                            currentProjectId === project.id ? "bg-primary/10 dark:bg-primary/20" : "hover:bg-muted/60"
                                         )}
                                     >
                                         <Button
-                                            variant={currentProjectId === project.id ? "secondary" : "ghost"}
+                                            variant="ghost"
                                             className={cn(
-                                                "w-full justify-start font-normal pr-8 transition-all duration-300",
+                                                "w-full justify-start font-normal pr-8 transition-all duration-300 h-10 rounded-lg",
                                                 currentProjectId === project.id
-                                                    ? "bg-primary/10 text-primary font-medium border-l-[3px] border-l-primary rounded-none rounded-r-md shadow-[inset_2px_0_10px_-4px_rgba(139,92,246,0.3)] dark:bg-primary/20"
-                                                    : "hover:bg-muted/80 hover:translate-x-1"
+                                                    ? "text-primary font-medium hover:bg-transparent"
+                                                    : "text-muted-foreground hover:text-foreground hover:bg-transparent hover:translate-x-1"
                                             )}
                                             onClick={() => handleSelectProject(project)}
                                         >
-                                            <Folder className={cn("mr-2 h-4 w-4 transition-transform group-hover:scale-110", currentProjectId === project.id && "fill-primary/20 text-primary")} />
+                                            <div className={cn(
+                                                "absolute left-0 top-1/2 -translate-y-1/2 w-1 h-0 bg-primary rounded-r-full transition-all duration-300",
+                                                currentProjectId === project.id ? "h-6 opacity-100" : "opacity-0"
+                                            )} />
+                                            <Folder className={cn("mr-3 h-4 w-4 transition-transform group-hover:scale-110", currentProjectId === project.id && "fill-primary/20 text-primary")} />
                                             <span className="truncate">{project.title}</span>
                                         </Button>
                                         <DropdownMenu>

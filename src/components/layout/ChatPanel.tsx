@@ -37,10 +37,12 @@ type Message = {
     feedback?: "like" | "dislike" | null;
 };
 
+import { Rocket, FileText, Target } from "lucide-react";
+
 const SUGGESTIONS = [
-    { icon: "🚀", text: "Buatkan roadmap React Developer" },
-    { icon: "📚", text: "Jelaskan konsep System Design" },
-    { icon: "🎯", text: "Bagaimana cara belajar Go?" },
+    { icon: <Rocket className="h-5 w-5" />, text: "Buatkan roadmap React Developer" },
+    { icon: <FileText className="h-5 w-5" />, text: "Jelaskan konsep System Design" },
+    { icon: <Target className="h-5 w-5" />, text: "Bagaimana cara belajar Go?" },
 ];
 
 const TYPING_SPEED = 15; // ms per character
@@ -554,10 +556,10 @@ export function ChatPanel() {
             <div className="h-14 px-4 border-b flex items-center justify-between bg-muted/10">
                 <div className="flex items-center gap-3">
                     <div className="relative">
-                        <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                        <div className="h-8 w-8 rounded-full bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
                             <Bot className="h-5 w-5 text-white" />
                         </div>
-                        <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-green-500 border-2 border-background"></span>
+                        <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 border-2 border-background"></span>
                     </div>
                     <div>
                         <h2 className="text-sm font-semibold leading-none">AI Assistant</h2>
@@ -722,16 +724,18 @@ export function ChatPanel() {
                                     <Sparkles className="h-3.5 w-3.5 text-primary animate-pulse" />
                                     <span className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">Mulai dengan topik di bawah:</span>
                                 </div>
-                                <div className="grid grid-cols-1 gap-2">
+                                <div className="grid grid-cols-1 gap-2.5">
                                     {SUGGESTIONS.map((suggestion, index) => (
                                         <button
                                             key={index}
                                             onClick={() => handleSuggestionClick(suggestion.text)}
-                                            className="group flex items-center gap-3 text-xs text-left p-3.5 rounded-xl border bg-card/50 hover:bg-card hover:border-primary/40 hover:shadow-md transition-all duration-300 relative overflow-hidden"
+                                            className="group flex items-center gap-3 text-xs text-left p-3.5 rounded-xl border border-border/60 bg-card/40 hover:bg-card hover:border-primary/40 hover:shadow-sm transition-all duration-300 relative overflow-hidden"
                                         >
                                             <span className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-                                            <span className="text-xl group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-300">{suggestion.icon}</span>
-                                            <span className="font-medium group-hover:text-primary transition-colors">{suggestion.text}</span>
+                                            <div className="text-muted-foreground group-hover:text-primary transition-colors duration-300 group-hover:scale-110 group-hover:-rotate-6 transform p-1.5 rounded-lg bg-muted/50 group-hover:bg-primary/10">
+                                                {suggestion.icon}
+                                            </div>
+                                            <span className="font-medium text-muted-foreground group-hover:text-foreground transition-colors">{suggestion.text}</span>
                                         </button>
                                     ))}
                                 </div>
@@ -758,7 +762,7 @@ export function ChatPanel() {
                                     )}
                                 >
                                     {msg.role === "assistant" ? (
-                                        <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center flex-shrink-0 shadow-sm">
+                                        <div className="h-8 w-8 rounded-full bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center flex-shrink-0 shadow-lg shadow-violet-500/20">
                                             <Bot className="h-4 w-4 text-white" />
                                         </div>
                                     ) : (
@@ -886,11 +890,9 @@ export function ChatPanel() {
                     )}
                     {isLoading && (
                         <div className="flex gap-3 max-w-[90%]">
-                            <Avatar className="h-8 w-8 border bg-background shadow-sm">
-                                <AvatarFallback className="bg-primary/10 text-primary">
-                                    <Sparkles className="h-4 w-4 animate-pulse" />
-                                </AvatarFallback>
-                            </Avatar>
+                            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center flex-shrink-0 shadow-lg shadow-violet-500/20">
+                                <Sparkles className="h-4 w-4 text-white animate-pulse" />
+                            </div>
                             <div className="bg-muted/80 backdrop-blur-sm rounded-2xl rounded-tl-sm p-4 flex flex-col gap-2 min-w-[120px] shadow-sm border border-border/50">
                                 <div className="flex items-center gap-1.5 h-4">
                                     <span className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
@@ -908,13 +910,16 @@ export function ChatPanel() {
             </ScrollArea >
 
             {/* Input Area */}
-            < div className="p-4 border-t bg-background" >
-                <form className="flex w-full items-end gap-2" onSubmit={handleSendMessage}>
+            <div className="p-4 bg-background border-t">
+                <form 
+                    className="relative flex w-full items-center bg-muted/40 border border-muted-foreground/30 focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/50 rounded-[24px] p-1.5 shadow-sm transition-all duration-300" 
+                    onSubmit={handleSendMessage}
+                >
                     <Input
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
-                        className="flex-1 min-h-[40px]"
-                        placeholder="Type a message..."
+                        className="flex-1 bg-transparent border-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-3 min-h-[44px] shadow-none"
+                        placeholder="Ask AI anything..."
                         disabled={isLoading}
                     />
                     {isLoading ? (
@@ -925,6 +930,7 @@ export function ChatPanel() {
                                         type="button"
                                         size="icon"
                                         variant="destructive"
+                                        className="h-10 w-10 rounded-[18px] shrink-0"
                                         onClick={handleStopGeneration}
                                     >
                                         <Square className="h-4 w-4" />
@@ -935,13 +941,18 @@ export function ChatPanel() {
                             </Tooltip>
                         </TooltipProvider>
                     ) : (
-                        <Button type="submit" size="icon" disabled={!inputValue.trim()}>
+                        <Button 
+                            type="submit" 
+                            size="icon" 
+                            disabled={!inputValue.trim()}
+                            className="h-10 w-10 rounded-[18px] shrink-0 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm transition-transform active:scale-95"
+                        >
                             <Send className="h-4 w-4" />
                             <span className="sr-only">Send</span>
                         </Button>
                     )}
                 </form>
-            </div >
-        </div >
+            </div>
+        </div>
     );
 }
