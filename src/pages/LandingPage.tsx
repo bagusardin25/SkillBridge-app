@@ -160,7 +160,7 @@ function use3DTilt(maxTilt = 12) {
         const rotateY = ((x - centerX) / centerX) * maxTilt;
 
         ref.current.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
-        ref.current.style.transition = 'transform 0.1s ease-out';
+        ref.current.style.transition = 'transform 0.05s linear';
     }, [maxTilt]);
 
     const handleMouseLeave = useCallback(() => {
@@ -847,7 +847,9 @@ function AppPreviewSection({ t }: { t: Translations }) {
     const handleTabClick = (index: number) => {
         setActiveTab(index);
         setProgress(0);
-        startCycle();
+        // Stop auto-cycling permanently once user manually interacts with tabs
+        if (intervalRef.current) clearInterval(intervalRef.current);
+        isPausedRef.current = true;
 
         // Trigger scale animation on tab switch
         const frame = frameRef.current;
@@ -909,7 +911,14 @@ function AppPreviewSection({ t }: { t: Translations }) {
                 <div
                     className="scroll-reveal scroll-delay-2 landing-preview-wrapper max-w-5xl mx-auto"
                     onMouseMove={handleMouseMove}
-                    onMouseLeave={handleMouseLeave}
+                    onMouseLeave={() => {
+                        handleMouseLeave();
+                        // Resume auto-cycle only if user hasn't manually clicked a tab
+                        // We check intervalRef existence as a proxy for "is auto cycle active"
+                        if (intervalRef.current) {
+                            isPausedRef.current = false;
+                        }
+                    }}
                     onMouseEnter={() => {
                         isPausedRef.current = true;
                     }}

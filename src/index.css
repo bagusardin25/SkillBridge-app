@@ -461,7 +461,8 @@ html {
   z-index: 1;
   transform: rotateX(4deg) rotateY(0deg) scale(0.98);
   transform-style: preserve-3d;
-  transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1), border-color 0.3s ease, box-shadow 0.5s ease;
+  /* Removed transform transition here so JS use3DTilt can control it perfectly */
+  transition: border-color 0.3s ease, box-shadow 0.5s ease;
   box-shadow:
     0 25px 60px -15px rgba(0, 0, 0, 0.1),
     0 0 30px -5px rgba(139, 92, 246, 0.05);
@@ -474,7 +475,7 @@ html {
 }
 
 .landing-browser-frame:hover {
-  transform: rotateX(0deg) rotateY(0deg) scale(1);
+  /* transform removed: let JS handle the 3D tilt tracking */
   border-color: hsl(var(--primary) / 0.3);
   box-shadow:
     0 30px 80px -20px rgba(0, 0, 0, 0.15),
@@ -508,15 +509,15 @@ html {
 /* Scale pulse on tab switch */
 @keyframes preview-tab-switch {
   0% {
-    transform: rotateX(4deg) scale(0.96);
+    scale: 0.98;
   }
 
   50% {
-    transform: rotateX(3deg) scale(0.97);
+    scale: 0.99;
   }
 
   100% {
-    transform: rotateX(4deg) scale(0.98);
+    scale: 1;
   }
 }
 
