@@ -101,6 +101,15 @@
   }
 }
 
+@keyframes progress {
+  0% { width: 0%; }
+  100% { width: 100%; }
+}
+
+.animate-progress {
+  animation: progress 1.5s ease-in-out forwards;
+}
+
 .animate-node-appear {
   animation: nodeAppear 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
