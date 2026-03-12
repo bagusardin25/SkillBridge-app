@@ -63,7 +63,7 @@ export function StaticRoadmapVisual() {
                     </div>
                     <div className="text-sm font-medium text-foreground">Generating Pathway...</div>
                     <div className="w-full bg-muted overflow-hidden rounded-full h-1.5">
-                        <div className="bg-primary h-full w-0 animate-[progress_1.5s_ease-in-out_forwards] rounded-full" />
+                        <div className={`bg-primary h-full rounded-full transition-all duration-[1500ms] ease-in-out ${step === 0 ? "w-full" : "w-0"}`} />
                     </div>
                 </div>
 
