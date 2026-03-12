@@ -415,14 +415,20 @@ function HeroSection({ t }: { t: Translations }) {
             <div className="landing-glow-blob landing-glow-blob-2 pointer-events-none" />
             <div className="landing-glow-blob landing-glow-blob-3 pointer-events-none" />
 
+            {/* Floating decorative orbs */}
+            <div className="absolute top-[15%] left-[8%] w-20 h-20 rounded-full bg-violet-500/10 dark:bg-violet-500/15 blur-xl landing-float pointer-events-none" />
+            <div className="absolute top-[35%] right-[5%] w-14 h-14 rounded-full bg-fuchsia-500/10 dark:bg-fuchsia-500/15 blur-lg landing-float-delayed pointer-events-none" />
+            <div className="absolute bottom-[20%] left-[15%] w-24 h-24 rounded-full bg-indigo-500/8 dark:bg-indigo-500/10 blur-2xl landing-float-slow pointer-events-none" />
+            <div className="absolute top-[60%] right-[12%] w-10 h-10 rounded-full bg-purple-400/15 dark:bg-purple-400/20 blur-md landing-float pointer-events-none hidden md:block" />
+
             {/* Grain overlay */}
             <div className="landing-grain pointer-events-none" />
 
             <div className="relative z-10 px-6 max-w-7xl mx-auto w-full flex flex-col md:flex-row items-center gap-12 lg:gap-20">
                 {/* Left Column: Text & Input */}
                 <div className="w-full md:w-1/2 flex flex-col items-start text-left shrink-0">
-                    {/* Badge */}
-                    <div className="scroll-reveal scroll-delay-1 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-muted/30 dark:bg-white/5 backdrop-blur-sm text-sm text-muted-foreground dark:text-gray-300 mb-8 mt-4 md:mt-0">
+                    {/* Badge with shimmer */}
+                    <div className="scroll-reveal scroll-delay-1 landing-shimmer-badge inline-flex items-center gap-2 px-4 py-2 rounded-full border border-violet-500/20 dark:border-violet-400/20 bg-violet-500/5 dark:bg-violet-500/10 backdrop-blur-sm text-sm text-violet-700 dark:text-violet-300 mb-8 mt-4 md:mt-0 shadow-sm">
                         <Sparkles className="w-4 h-4 text-violet-500 dark:text-violet-400" />
                         {t.hero.badge}
                     </div>
@@ -430,7 +436,7 @@ function HeroSection({ t }: { t: Translations }) {
                     {/* Headline */}
                     <h1 className="scroll-reveal scroll-delay-2 text-5xl sm:text-6xl lg:text-7xl font-extrabold text-foreground dark:text-white leading-[1.05] tracking-tight transition-colors">
                         {t.hero.headlinePre}<br className="hidden sm:block" />
-                        <span className="landing-gradient-text pb-2">
+                        <span className="landing-gradient-text pb-2 drop-shadow-[0_0_25px_rgba(139,92,246,0.2)]">
                             {t.hero.headlineGradient1}<br className="hidden sm:block" />
                             {t.hero.headlineGradient2}
                         </span>
@@ -463,7 +469,7 @@ function HeroSection({ t }: { t: Translations }) {
                                 />
                                 <button
                                     type="submit"
-                                    className="inline-flex items-center gap-2 px-5 py-2.5 h-11 rounded-full bg-violet-600 hover:bg-violet-500 text-white font-bold text-sm transition-all duration-300 hover:scale-105 shrink-0"
+                                    className="landing-cta-glow inline-flex items-center gap-2 px-5 py-2.5 h-11 rounded-full bg-violet-600 hover:bg-violet-500 text-white font-bold text-sm transition-all duration-300 hover:scale-105 shrink-0"
                                 >
                                     <span className="hidden sm:inline">{t.hero.startJourney}</span>
                                     <span className="sm:hidden">{t.hero.start}</span>
@@ -1018,14 +1024,14 @@ function HowItWorksSection({ t }: { t: Translations }) {
                     {steps.map((s, i) => {
                         const Icon = s.icon;
                         return (
-                            <div key={s.step} className={`scroll-reveal scroll-delay-${i + 1} relative group`}>
+                            <div key={s.step} className={`scroll-reveal scroll-delay-${i + 1} relative group landing-step-card`}>
                                 {/* Connector line */}
                                 {i < steps.length - 1 && (
-                                    <div className="hidden md:block absolute top-12 left-[calc(50%+40px)] w-[calc(100%-80px)] h-px bg-gradient-to-r from-border to-transparent" />
+                                    <div className="hidden md:block absolute top-12 left-[calc(50%+40px)] w-[calc(100%-80px)] h-px bg-gradient-to-r from-violet-500/30 via-border to-transparent" />
                                 )}
 
                                 <div className="text-center">
-                                    <div className="relative inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-card border border-border mb-6 group-hover:border-primary/40 transition-all duration-300 shadow-sm">
+                                    <div className="landing-step-icon relative inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-card border border-border mb-6 group-hover:border-violet-500/40 transition-all duration-300 shadow-sm">
                                         <Icon className="w-10 h-10 text-violet-600 dark:text-violet-400" />
                                         <span className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-foreground dark:bg-white text-background dark:text-black text-xs font-bold flex items-center justify-center transition-colors">
                                             {s.step}
@@ -1283,19 +1289,19 @@ export function LandingPage() {
             <div className="mt-8 mb-16">
                 <SocialProofSection t={t} />
             </div>
-            <hr className="landing-section-divider" />
+            <div className="landing-section-divider-gradient" />
             <ComparisonSection t={t} />
-            <hr className="landing-section-divider" />
+            <div className="landing-section-divider-gradient" />
             <FeaturesSection t={t} />
-            <hr className="landing-section-divider" />
+            <div className="landing-section-divider-gradient" />
             <AppPreviewSection t={t} />
-            <hr className="landing-section-divider" />
+            <div className="landing-section-divider-gradient" />
             <HowItWorksSection t={t} />
-            <hr className="landing-section-divider" />
+            <div className="landing-section-divider-gradient" />
             <TestimonialSection t={t} />
-            <hr className="landing-section-divider" />
+            <div className="landing-section-divider-gradient" />
             <FAQSection t={t} />
-            <hr className="landing-section-divider" />
+            <div className="landing-section-divider-gradient" />
             <PricingSection t={t} />
             <Footer t={t} />
         </div>
