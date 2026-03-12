@@ -168,29 +168,63 @@ export function Header() {
             return;
         }
 
-        const nodesBounds = getNodesBounds(allNodes);
-        const padding = 50;
-        const imageWidth = nodesBounds.width + (padding * 2);
-        const imageHeight = nodesBounds.height + (padding * 2);
-
-        const viewportElement = document.querySelector('.react-flow__viewport') as HTMLElement;
-        if (!viewportElement) {
-            toast.error("Could not find canvas element");
-            return;
-        }
-
         setIsExporting(true);
         toast.loading("Generating image...", { id: "export" });
 
         try {
+            // Get actual DOM dimensions for each node to ensure highly accurate bounds calculation
+            const nodesWithMeasuredDimensions = allNodes.map((node) => {
+                const el = document.querySelector(`[data-id="${node.id}"]`) as HTMLElement;
+                return {
+                    ...node,
+                    width: el ? el.offsetWidth : (node.measured?.width || node.width || 320),
+                    height: el ? el.offsetHeight : (node.measured?.height || node.height || 120),
+                };
+            });
+
+            // Calculate the total bounding box using React Flow's built-in utility
+            const nodesBounds = getNodesBounds(nodesWithMeasuredDimensions);
+            
+            // Provide generous padding to avoid clipping shadows/handles
+            const padding = 180;
+            // Extra bias so the content sits more centrally in the exported image
+            const centerBias = 140;
+            const exportBounds = {
+                x: nodesBounds.x - padding,
+                y: nodesBounds.y - padding,
+                width: nodesBounds.width + padding * 2 + centerBias * 2,
+                height: nodesBounds.height + padding * 2 + centerBias * 2,
+            };
+
+            const viewportElement = document.querySelector('.react-flow__viewport') as HTMLElement;
+            if (!viewportElement) {
+                toast.error("Could not find canvas element", { id: "export" });
+                setIsExporting(false);
+                return;
+            }
+
+            // Capture the image using html-to-image, applying the transform ONLY to the clone via style
             const dataUrl = await toPng(viewportElement, {
                 backgroundColor: isDarkMode ? '#1a1a1a' : '#ffffff',
-                width: imageWidth,
-                height: imageHeight,
+                width: exportBounds.width,
+                height: exportBounds.height,
                 style: {
-                    width: `${imageWidth}px`,
-                    height: `${imageHeight}px`,
-                    transform: `translate(${-nodesBounds.x + padding}px, ${-nodesBounds.y + padding}px) scale(1)`,
+                    width: `${exportBounds.width}px`,
+                    height: `${exportBounds.height}px`,
+                    // Move content so the top-left of bounds aligns to (0,0)
+                    transform: `translate(${-exportBounds.x + centerBias}px, ${-exportBounds.y + centerBias}px) scale(1)`,
+                    transformOrigin: "0 0",
+                    overflow: "visible",
+                },
+                // Filter out UI overlays
+                filter: (domNode: HTMLElement) => {
+                    const cls = domNode.className || '';
+                    if (typeof cls === 'string') {
+                        if (cls.includes('react-flow__panel')) return false;
+                        if (cls.includes('react-flow__controls')) return false;
+                        if (cls.includes('react-flow__minimap')) return false;
+                    }
+                    return true;
                 },
             });
 
