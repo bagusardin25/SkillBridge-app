@@ -16,7 +16,7 @@ export function StaticRoadmapVisual() {
                             <CheckCircle className="h-4 w-4" />
                         </span>
                     </div>
-                    <div className="flex flex-col items-center justify-center flex-1 w-full pt-6">
+                    <div className="flex flex-col items-center justify-center flex-1 w-full pt-2">
                         <span className="text-base font-bold break-words leading-tight text-center px-4 w-full">React.js</span>
                         <div className="text-xs text-muted-foreground/80 mt-1 line-clamp-2 text-center pointer-events-none">
                             Core UI Library
@@ -33,7 +33,7 @@ export function StaticRoadmapVisual() {
                             <span className="text-sm font-sans tracking-tight">2</span>
                         </span>
                     </div>
-                    <div className="flex flex-col items-center justify-center flex-1 w-full pt-6">
+                    <div className="flex flex-col items-center justify-center flex-1 w-full pt-2">
                         <span className="text-base font-bold break-words leading-tight text-center px-4 w-full">TypeScript</span>
                         <div className="text-xs text-muted-foreground/80 mt-1 line-clamp-2 text-center pointer-events-none">
                             Type Safety
@@ -53,7 +53,7 @@ export function StaticRoadmapVisual() {
                             <span className="text-sm font-sans tracking-tight">3</span>
                         </span>
                     </div>
-                    <div className="flex flex-col items-center justify-center flex-1 w-full pt-6">
+                    <div className="flex flex-col items-center justify-center flex-1 w-full pt-2">
                         <span className="text-base font-bold break-words leading-tight text-center px-4 w-full">System Design</span>
                         <div className="text-xs text-muted-foreground/80 mt-1 line-clamp-2 text-center pointer-events-none">
                             Scalability Patterns
