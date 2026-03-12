@@ -6,7 +6,7 @@ export function StaticRoadmapVisual() {
             {/* The Interactive Roadmap Visual container - Increased to 500x500 */}
             <div className="relative w-[500px] h-[500px] pointer-events-auto scale-[0.6] sm:scale-[0.85] md:scale-100 origin-center shrink-0">
                 {/* Node 1: React (Completed) - Positioned Top Center */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-56 px-4 py-4 text-card-foreground border-border rounded-lg shadow-md border !border-l-[5px] !border-l-emerald-500 bg-emerald-50/90 dark:!bg-emerald-900/50 backdrop-blur ring-1 ring-emerald-500/30 min-h-[90px] z-20 cursor-pointer">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-56 px-4 py-3 text-card-foreground border-border rounded-lg shadow-md border !border-l-[5px] !border-l-emerald-500 bg-emerald-50/90 dark:!bg-emerald-900/50 backdrop-blur ring-1 ring-emerald-500/30 min-h-[90px] z-20 cursor-pointer flex flex-col">
                     <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-foreground border-2 border-background z-50"></div>
                     <div className="absolute -top-2 -right-2 z-10 p-0.5 rounded-full text-emerald-500 bg-white dark:bg-gray-900 shadow-sm">
                         <CheckCircle className="h-5 w-5" />
@@ -16,7 +16,7 @@ export function StaticRoadmapVisual() {
                             <CheckCircle className="h-4 w-4" />
                         </span>
                     </div>
-                    <div className="flex flex-col items-center justify-center h-full w-full relative mt-5">
+                    <div className="flex flex-col items-center justify-center flex-1 w-full pt-6">
                         <span className="text-base font-bold break-words leading-tight text-center px-4 w-full">React.js</span>
                         <div className="text-xs text-muted-foreground/80 mt-1 line-clamp-2 text-center pointer-events-none">
                             Core UI Library
@@ -25,7 +25,7 @@ export function StaticRoadmapVisual() {
                 </div>
 
                 {/* Node 2: TypeScript (Active) - Moved further down and left */}
-                <div className="absolute top-[180px] left-0 w-56 px-4 py-4 text-card-foreground rounded-lg border border-l-[5px] border-l-primary bg-card/90 dark:bg-card/70 ring-[3px] ring-primary ring-offset-2 ring-offset-background/50 shadow-[0_0_20px_rgba(139,92,246,0.5)] !border-primary scale-[1.02] min-h-[90px] z-20 cursor-pointer transform transition-transform">
+                <div className="absolute top-[180px] left-0 w-56 px-4 py-3 text-card-foreground rounded-lg border border-l-[5px] border-l-primary bg-card/90 dark:bg-card/70 ring-[3px] ring-primary ring-offset-2 ring-offset-background/50 shadow-[0_0_20px_rgba(139,92,246,0.5)] !border-primary scale-[1.02] min-h-[90px] z-20 cursor-pointer transform transition-transform flex flex-col">
                     <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-foreground border-2 border-background z-50"></div>
                     <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-foreground border-2 border-background z-50"></div>
                     <div className="absolute left-3 top-3 z-20">
@@ -33,7 +33,7 @@ export function StaticRoadmapVisual() {
                             <span className="text-sm font-sans tracking-tight">2</span>
                         </span>
                     </div>
-                    <div className="flex flex-col items-center justify-center h-full w-full relative mt-5">
+                    <div className="flex flex-col items-center justify-center flex-1 w-full pt-6">
                         <span className="text-base font-bold break-words leading-tight text-center px-4 w-full">TypeScript</span>
                         <div className="text-xs text-muted-foreground/80 mt-1 line-clamp-2 text-center pointer-events-none">
                             Type Safety
@@ -42,7 +42,7 @@ export function StaticRoadmapVisual() {
                 </div>
 
                 {/* Node 3: System Design (Future) - Moved further down and right */}
-                <div className="absolute top-[340px] left-[260px] w-56 px-4 py-4 text-card-foreground border-border rounded-lg shadow-md border border-l-[5px] border-l-violet-500 bg-violet-50/80 dark:bg-violet-900/40 backdrop-blur opacity-60 grayscale-[40%] hover:opacity-100 hover:grayscale-0 transition-all min-h-[90px] z-20 cursor-pointer">
+                <div className="absolute top-[340px] left-[260px] w-56 px-4 py-3 text-card-foreground border-border rounded-lg shadow-md border border-l-[5px] border-l-violet-500 bg-violet-50/80 dark:bg-violet-900/40 backdrop-blur opacity-60 grayscale-[40%] hover:opacity-100 hover:grayscale-0 transition-all min-h-[90px] z-20 cursor-pointer flex flex-col">
                     <div className="absolute top-1/2 -left-1.5 -translate-y-1/2 w-3 h-3 rounded-full bg-muted-foreground/80 border-2 border-background z-50"></div>
                     <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-muted-foreground/80 border-2 border-background z-50"></div>
                     <div className="absolute -top-2 -right-2 z-10 p-1.5 rounded-full text-muted-foreground bg-muted shadow-sm ring-1 ring-border">
@@ -53,7 +53,7 @@ export function StaticRoadmapVisual() {
                             <span className="text-sm font-sans tracking-tight">3</span>
                         </span>
                     </div>
-                    <div className="flex flex-col items-center justify-center h-full w-full relative mt-5">
+                    <div className="flex flex-col items-center justify-center flex-1 w-full pt-6">
                         <span className="text-base font-bold break-words leading-tight text-center px-4 w-full">System Design</span>
                         <div className="text-xs text-muted-foreground/80 mt-1 line-clamp-2 text-center pointer-events-none">
                             Scalability Patterns
@@ -92,7 +92,7 @@ export function StaticRoadmapVisual() {
                     
                     {/* Path 2: TypeScript to System Design */}
                     <path 
-                        d="M 112 276 C 112 340, 180 340, 256 340" 
+                        d="M 112 276 C 112 340, 180 385, 258 385" 
                         fill="none" 
                         className="stroke-muted-foreground opacity-40" 
                         strokeWidth="1.5" 
