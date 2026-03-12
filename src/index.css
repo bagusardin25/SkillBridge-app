@@ -101,6 +101,15 @@
   }
 }
 
+@keyframes progress {
+  0% { width: 0%; }
+  100% { width: 100%; }
+}
+
+.animate-progress {
+  animation: progress 1.5s ease-in-out forwards;
+}
+
 .animate-node-appear {
   animation: nodeAppear 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -272,6 +281,26 @@ html {
   opacity: 0.035;
 }
 
+/* Modern Grid Background (TestPride style) */
+.landing-grid-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  /* Dotted grid pattern */
+  background-image: radial-gradient(hsl(var(--foreground)/0.1) 1px, transparent 1px);
+  background-size: 24px 24px;
+  /* Mask to make the grid fade out so it's not overwhelming */
+  mask-image: linear-gradient(to bottom, black 20%, transparent 95%);
+  -webkit-mask-image: linear-gradient(to bottom, black 20%, transparent 95%);
+}
+
+.dark .landing-grid-bg {
+  background-image: radial-gradient(hsl(var(--foreground)/0.15) 1px, transparent 1px);
+}
+
 /* Glassmorphism nav when scrolled */
 .landing-nav-scrolled {
   background: hsl(var(--background) / 0.8);
@@ -281,19 +310,30 @@ html {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-/* Gradient text effect */
+/* Gradient text effect — premium, simple, sophisticated */
 .landing-gradient-text {
-  background: linear-gradient(to right, #8b5cf6, #a78bfa, #c084fc, #8b5cf6);
-  background-size: 200% auto;
+  background: linear-gradient(135deg, #18181b, #7c3aed, #18181b);
+  background-size: 200% 200%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: landing-gradient-text-anim 5s linear infinite;
+  animation: landing-gradient-text-anim 6s ease infinite;
+}
+
+/* Dark mode — pure white to subtle soft violet */
+.dark .landing-gradient-text {
+  background: linear-gradient(135deg, #ffffff, #a78bfa, #ffffff);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: landing-gradient-text-anim 6s ease infinite;
 }
 
 @keyframes landing-gradient-text-anim {
-  0% { background-position: 0% center; }
-  100% { background-position: 200% center; }
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 /* Subtle ambient glows */
@@ -450,7 +490,8 @@ html {
   z-index: 1;
   transform: rotateX(4deg) rotateY(0deg) scale(0.98);
   transform-style: preserve-3d;
-  transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1), border-color 0.3s ease, box-shadow 0.5s ease;
+  /* Removed transform transition here so JS use3DTilt can control it perfectly */
+  transition: border-color 0.3s ease, box-shadow 0.5s ease;
   box-shadow:
     0 25px 60px -15px rgba(0, 0, 0, 0.1),
     0 0 30px -5px rgba(139, 92, 246, 0.05);
@@ -463,7 +504,7 @@ html {
 }
 
 .landing-browser-frame:hover {
-  transform: rotateX(0deg) rotateY(0deg) scale(1);
+  /* transform removed: let JS handle the 3D tilt tracking */
   border-color: hsl(var(--primary) / 0.3);
   box-shadow:
     0 30px 80px -20px rgba(0, 0, 0, 0.15),
@@ -497,15 +538,15 @@ html {
 /* Scale pulse on tab switch */
 @keyframes preview-tab-switch {
   0% {
-    transform: rotateX(4deg) scale(0.96);
+    scale: 0.98;
   }
 
   50% {
-    transform: rotateX(3deg) scale(0.97);
+    scale: 0.99;
   }
 
   100% {
-    transform: rotateX(4deg) scale(0.98);
+    scale: 1;
   }
 }
 
@@ -528,20 +569,116 @@ html {
 
 .landing-fade-in {
   animation: landing-fade-in 0.4s ease-out;
-/* Animated Gradient Text */
-.landing-gradient-text {
-  background: linear-gradient(to right, #ffffff, #a855f7, #3b82f6);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-size: 200% auto;
-  animation: landing-gradient-text-anim 5s linear infinite;
 }
 
-@keyframes landing-gradient-text-anim {
-  0% { background-position: 0% center; }
+/* ═══════════════════════════════════════════════════════════
+   Modern UI Animations
+   ═══════════════════════════════════════════════════════════ */
+
+/* Floating animation for decorative orbs */
+@keyframes landing-float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33% { transform: translateY(-12px) rotate(1deg); }
+  66% { transform: translateY(6px) rotate(-1deg); }
+}
+
+.landing-float {
+  animation: landing-float 8s ease-in-out infinite;
+}
+
+.landing-float-delayed {
+  animation: landing-float 10s ease-in-out infinite;
+  animation-delay: -3s;
+}
+
+.landing-float-slow {
+  animation: landing-float 14s ease-in-out infinite;
+  animation-delay: -7s;
+}
+
+/* Shimmer effect for badges */
+@keyframes landing-shimmer {
+  0% { background-position: -200% center; }
   100% { background-position: 200% center; }
 }
 
+.landing-shimmer-badge {
+  position: relative;
+  overflow: hidden;
+}
+
+.landing-shimmer-badge::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(139, 92, 246, 0.15) 40%,
+    rgba(139, 92, 246, 0.25) 50%,
+    rgba(139, 92, 246, 0.15) 60%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: landing-shimmer 3s ease-in-out infinite;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* Pulse glow for CTA button */
+@keyframes landing-pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.3), 0 0 40px rgba(139, 92, 246, 0.1); }
+  50% { box-shadow: 0 0 30px rgba(139, 92, 246, 0.5), 0 0 60px rgba(139, 92, 246, 0.2); }
+}
+
+.landing-cta-glow {
+  animation: landing-pulse-glow 3s ease-in-out infinite;
+}
+
+/* Mesh gradient section divider */
+.landing-section-divider-gradient {
+  width: 100%;
+  height: 2px;
+  border: none;
+  margin: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(139, 92, 246, 0.1) 15%,
+    rgba(139, 92, 246, 0.3) 30%,
+    rgba(168, 85, 247, 0.4) 50%,
+    rgba(139, 92, 246, 0.3) 70%,
+    rgba(139, 92, 246, 0.1) 85%,
+    transparent 100%
+  );
+  position: relative;
+}
+
+.landing-section-divider-gradient::after {
+  content: '';
+  position: absolute;
+  inset: -4px 20% -4px 20%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(139, 92, 246, 0.15) 0%,
+    transparent 70%
+  );
+  filter: blur(6px);
+  pointer-events: none;
+}
+
+/* How It Works step card hover effect */
+.landing-step-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.landing-step-card:hover {
+  transform: translateY(-4px);
+}
+
+.landing-step-card:hover .landing-step-icon {
+  box-shadow: 0 0 25px rgba(139, 92, 246, 0.25);
+  border-color: rgba(139, 92, 246, 0.4) !important;
 }
 
 /* ═══════════════════════════════════════════════════════════

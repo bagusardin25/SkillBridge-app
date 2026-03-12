@@ -16,7 +16,9 @@ import {
     CheckCircle,
     Check,
     Globe,
-    Sun
+    Sun,
+    Menu,
+    X
 } from "lucide-react";
 import { StaticRoadmapVisual } from "@/components/landing/HeroRoadmapDemo";
 import { useState, useEffect, useRef, useCallback } from "react";
@@ -158,7 +160,7 @@ function use3DTilt(maxTilt = 12) {
         const rotateY = ((x - centerX) / centerX) * maxTilt;
 
         ref.current.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
-        ref.current.style.transition = 'transform 0.1s ease-out';
+        ref.current.style.transition = 'transform 0.05s linear';
     }, [maxTilt]);
 
     const handleMouseLeave = useCallback(() => {
@@ -191,6 +193,7 @@ function useCursorGlow() {
 function Navbar({ t }: { t: Translations }) {
     const [scrolled, setScrolled] = useState(false);
     const [langOpen, setLangOpen] = useState(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const { isDarkMode, toggleTheme } = useRoadmapStore();
 
     useEffect(() => {
@@ -199,72 +202,195 @@ function Navbar({ t }: { t: Translations }) {
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
+    // Close mobile menu on resize to desktop
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth >= 768) setMobileMenuOpen(false);
+        };
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }, []);
+
+    // Lock body scroll when mobile menu is open
+    useEffect(() => {
+        if (mobileMenuOpen) {
+            document.body.style.overflow = "hidden";
+        } else {
+            document.body.style.overflow = "";
+        }
+        return () => { document.body.style.overflow = ""; };
+    }, [mobileMenuOpen]);
+
+    const mobileNavLinks = [
+        { href: "#features", label: t.nav.features, icon: Sparkles },
+        { href: "#preview", label: t.nav.preview, icon: BookOpen },
+        { href: "#how-it-works", label: t.nav.howItWorks, icon: Zap },
+        { href: "#faq", label: t.nav.faq, icon: MessageSquare },
+    ];
+
+    const handleMobileNavClick = (href: string) => {
+        setMobileMenuOpen(false);
+        // Small delay to let menu close animation play
+        setTimeout(() => {
+            const el = document.querySelector(href);
+            if (el) el.scrollIntoView({ behavior: "smooth" });
+        }, 200);
+    };
+
     return (
-        <nav
-            className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
-                ? "landing-nav-scrolled"
-                : "bg-transparent"
+        <>
+            <nav
+                className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
+                    ? "landing-nav-scrolled"
+                    : "bg-transparent"
+                    }`}
+            >
+                <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <Logo size={32} />
+                        <span className="text-xl font-bold text-foreground dark:text-white transition-colors">SkillBridge</span>
+                    </div>
+
+                    <div className="hidden md:flex items-center gap-8 text-sm text-muted-foreground dark:text-gray-300">
+                        <a href="#features" className="hover:text-foreground dark:hover:text-white transition-colors">
+                            {t.nav.features}
+                        </a>
+                        <a href="#preview" className="hover:text-foreground dark:hover:text-white transition-colors">
+                            {t.nav.preview}
+                        </a>
+                        <a href="#how-it-works" className="hover:text-foreground dark:hover:text-white transition-colors">
+                            {t.nav.howItWorks}
+                        </a>
+                        <a href="#faq" className="hover:text-foreground dark:hover:text-white transition-colors">
+                            {t.nav.faq}
+                        </a>
+                    </div>
+
+                    <div className="flex items-center gap-2 sm:gap-3">
+                        {/* Theme Toggle */}
+                        <button
+                            onClick={toggleTheme}
+                            className="text-muted-foreground dark:text-gray-300 hover:text-foreground dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 p-2 rounded-full transition-colors hidden sm:flex items-center justify-center"
+                            aria-label="Toggle theme"
+                        >
+                            {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                        </button>
+
+                        {/* Language Toggle */}
+                        <button
+                            onClick={() => setLangOpen(true)}
+                            className="text-muted-foreground dark:text-gray-300 hover:text-foreground dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 p-2 rounded-full transition-colors hidden sm:flex items-center justify-center"
+                            aria-label="Change language"
+                        >
+                            <Globe className="h-4 w-4" />
+                        </button>
+
+                        <Link
+                            to="/login"
+                            className="text-sm text-muted-foreground dark:text-gray-300 hover:text-foreground dark:hover:text-white transition-colors hidden sm:inline-block ml-2"
+                        >
+                            {t.nav.login}
+                        </Link>
+                        <Link
+                            to="/register"
+                            className="hidden sm:inline-flex items-center gap-2 px-5 py-2 rounded-full bg-foreground dark:bg-white text-background dark:text-black text-sm font-medium transition-all duration-300 hover:opacity-90 dark:hover:bg-gray-200"
+                        >
+                            {t.nav.getStarted}
+                            <ArrowRight className="w-3.5 h-3.5" />
+                        </Link>
+
+                        {/* Mobile Menu Toggle */}
+                        <button
+                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                            className="md:hidden text-muted-foreground dark:text-gray-300 hover:text-foreground dark:hover:text-white p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors ml-1"
+                            aria-label="Toggle mobile menu"
+                        >
+                            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                        </button>
+                    </div>
+                </div>
+                
+                {/* Language Dialog */}
+                <LanguageDialog open={langOpen} onOpenChange={setLangOpen} />
+            </nav>
+
+            {/* ─── Mobile Menu Overlay ───────────────────────────── */}
+            {/* Backdrop */}
+            <div
+                className={`fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity duration-300 md:hidden ${
+                    mobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
                 }`}
-        >
-            <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <Logo size={32} />
-                    <span className="text-xl font-bold text-foreground dark:text-white transition-colors">SkillBridge</span>
-                </div>
+                onClick={() => setMobileMenuOpen(false)}
+            />
 
-                <div className="hidden md:flex items-center gap-8 text-sm text-muted-foreground dark:text-gray-300">
-                    <a href="#features" className="hover:text-foreground dark:hover:text-white transition-colors">
-                        {t.nav.features}
-                    </a>
-                    <a href="#preview" className="hover:text-foreground dark:hover:text-white transition-colors">
-                        {t.nav.preview}
-                    </a>
-                    <a href="#how-it-works" className="hover:text-foreground dark:hover:text-white transition-colors">
-                        {t.nav.howItWorks}
-                    </a>
-                    <a href="#faq" className="hover:text-foreground dark:hover:text-white transition-colors">
-                        {t.nav.faq}
-                    </a>
-                </div>
+            {/* Menu Panel */}
+            <div
+                className={`fixed top-16 left-0 right-0 z-40 md:hidden transition-all duration-300 ease-out ${
+                    mobileMenuOpen
+                        ? "opacity-100 translate-y-0"
+                        : "opacity-0 -translate-y-4 pointer-events-none"
+                }`}
+            >
+                <div className="mx-4 mt-2 rounded-2xl bg-background/95 dark:bg-[#0a0a0a]/95 backdrop-blur-xl border border-border dark:border-white/10 shadow-2xl overflow-hidden transition-colors">
+                    {/* Quick Navigation Links */}
+                    <div className="p-3">
+                        <p className="px-3 pt-2 pb-3 text-xs font-semibold tracking-[0.15em] uppercase text-muted-foreground dark:text-gray-500 transition-colors">
+                            Quick Access
+                        </p>
+                        <div className="space-y-1">
+                            {mobileNavLinks.map((link, i) => {
+                                const Icon = link.icon;
+                                return (
+                                    <button
+                                        key={link.href}
+                                        onClick={() => handleMobileNavClick(link.href)}
+                                        className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left text-foreground dark:text-white hover:bg-violet-500/10 dark:hover:bg-violet-500/15 transition-all duration-200 group"
+                                        style={{ animationDelay: `${i * 50}ms` }}
+                                    >
+                                        <div className="w-9 h-9 rounded-lg bg-violet-500/10 dark:bg-violet-500/15 flex items-center justify-center group-hover:bg-violet-500/20 dark:group-hover:bg-violet-500/25 transition-colors">
+                                            <Icon className="w-4 h-4 text-violet-600 dark:text-violet-400" />
+                                        </div>
+                                        <span className="text-sm font-medium">{link.label}</span>
+                                        <ArrowRight className="w-3.5 h-3.5 ml-auto text-muted-foreground dark:text-gray-500 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
 
-                <div className="flex items-center gap-2 sm:gap-3">
-                    {/* Theme Toggle */}
-                    <button
-                        onClick={toggleTheme}
-                        className="text-muted-foreground dark:text-gray-300 hover:text-foreground dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 p-2 rounded-full transition-colors hidden sm:flex items-center justify-center"
-                        aria-label="Toggle theme"
-                    >
-                        {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                    </button>
+                    {/* Divider */}
+                    <div className="mx-4 h-px bg-border dark:bg-white/5 transition-colors" />
 
-                    {/* Language Toggle */}
-                    <button
-                        onClick={() => setLangOpen(true)}
-                        className="text-muted-foreground dark:text-gray-300 hover:text-foreground dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 p-2 rounded-full transition-colors hidden sm:flex items-center justify-center"
-                        aria-label="Change language"
-                    >
-                        <Globe className="h-4 w-4" />
-                    </button>
-
-                    <Link
-                        to="/login"
-                        className="text-sm text-muted-foreground dark:text-gray-300 hover:text-foreground dark:hover:text-white transition-colors hidden sm:inline-block ml-2"
-                    >
-                        {t.nav.login}
-                    </Link>
-                    <Link
-                        to="/register"
-                        className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-foreground dark:bg-white text-background dark:text-black text-sm font-medium transition-all duration-300 hover:opacity-90 dark:hover:bg-gray-200"
-                    >
-                        {t.nav.getStarted}
-                        <ArrowRight className="w-3.5 h-3.5" />
-                    </Link>
+                    {/* Utility Row: Theme, Language, Login */}
+                    <div className="p-3 flex items-center gap-2">
+                        <button
+                            onClick={() => { toggleTheme(); }}
+                            className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-muted-foreground dark:text-gray-300 hover:text-foreground dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                            aria-label="Toggle theme"
+                        >
+                            {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                            <span className="text-xs">{isDarkMode ? "Light" : "Dark"}</span>
+                        </button>
+                        <button
+                            onClick={() => { setMobileMenuOpen(false); setLangOpen(true); }}
+                            className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-muted-foreground dark:text-gray-300 hover:text-foreground dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                            aria-label="Change language"
+                        >
+                            <Globe className="h-4 w-4" />
+                            <span className="text-xs">Language</span>
+                        </button>
+                        <div className="flex-1" />
+                        <Link
+                            to="/login"
+                            onClick={() => setMobileMenuOpen(false)}
+                            className="px-4 py-2.5 text-sm font-medium text-muted-foreground dark:text-gray-300 hover:text-foreground dark:hover:text-white rounded-xl hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                        >
+                            {t.nav.login}
+                        </Link>
+                    </div>
                 </div>
             </div>
-            
-            {/* Language Dialog */}
-            <LanguageDialog open={langOpen} onOpenChange={setLangOpen} />
-        </nav>
+        </>
     );
 }
 
@@ -289,14 +415,20 @@ function HeroSection({ t }: { t: Translations }) {
             <div className="landing-glow-blob landing-glow-blob-2 pointer-events-none" />
             <div className="landing-glow-blob landing-glow-blob-3 pointer-events-none" />
 
+            {/* Floating decorative orbs */}
+            <div className="absolute top-[15%] left-[8%] w-20 h-20 rounded-full bg-violet-500/10 dark:bg-violet-500/15 blur-xl landing-float pointer-events-none" />
+            <div className="absolute top-[35%] right-[5%] w-14 h-14 rounded-full bg-fuchsia-500/10 dark:bg-fuchsia-500/15 blur-lg landing-float-delayed pointer-events-none" />
+            <div className="absolute bottom-[20%] left-[15%] w-24 h-24 rounded-full bg-indigo-500/8 dark:bg-indigo-500/10 blur-2xl landing-float-slow pointer-events-none" />
+            <div className="absolute top-[60%] right-[12%] w-10 h-10 rounded-full bg-purple-400/15 dark:bg-purple-400/20 blur-md landing-float pointer-events-none hidden md:block" />
+
             {/* Grain overlay */}
             <div className="landing-grain pointer-events-none" />
 
             <div className="relative z-10 px-6 max-w-7xl mx-auto w-full flex flex-col md:flex-row items-center gap-12 lg:gap-20">
                 {/* Left Column: Text & Input */}
                 <div className="w-full md:w-1/2 flex flex-col items-start text-left shrink-0">
-                    {/* Badge */}
-                    <div className="scroll-reveal scroll-delay-1 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-muted/30 dark:bg-white/5 backdrop-blur-sm text-sm text-muted-foreground dark:text-gray-300 mb-8 mt-4 md:mt-0">
+                    {/* Badge with shimmer */}
+                    <div className="scroll-reveal scroll-delay-1 landing-shimmer-badge inline-flex items-center gap-2 px-4 py-2 rounded-full border border-violet-500/20 dark:border-violet-400/20 bg-violet-500/5 dark:bg-violet-500/10 backdrop-blur-sm text-sm text-violet-700 dark:text-violet-300 mb-8 mt-4 md:mt-0 shadow-sm">
                         <Sparkles className="w-4 h-4 text-violet-500 dark:text-violet-400" />
                         {t.hero.badge}
                     </div>
@@ -304,7 +436,7 @@ function HeroSection({ t }: { t: Translations }) {
                     {/* Headline */}
                     <h1 className="scroll-reveal scroll-delay-2 text-5xl sm:text-6xl lg:text-7xl font-extrabold text-foreground dark:text-white leading-[1.05] tracking-tight transition-colors">
                         {t.hero.headlinePre}<br className="hidden sm:block" />
-                        <span className="landing-gradient-text pb-2">
+                        <span className="landing-gradient-text pb-2 drop-shadow-[0_0_25px_rgba(139,92,246,0.2)]">
                             {t.hero.headlineGradient1}<br className="hidden sm:block" />
                             {t.hero.headlineGradient2}
                         </span>
@@ -337,7 +469,7 @@ function HeroSection({ t }: { t: Translations }) {
                                 />
                                 <button
                                     type="submit"
-                                    className="inline-flex items-center gap-2 px-5 py-2.5 h-11 rounded-full bg-violet-600 hover:bg-violet-500 text-white font-bold text-sm transition-all duration-300 hover:scale-105 shrink-0"
+                                    className="inline-flex items-center gap-2 px-6 py-2.5 h-11 rounded-full bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-900 font-semibold text-sm transition-all duration-300 hover:scale-105 shadow-md hover:shadow-lg shrink-0"
                                 >
                                     <span className="hidden sm:inline">{t.hero.startJourney}</span>
                                     <span className="sm:hidden">{t.hero.start}</span>
@@ -361,8 +493,8 @@ function HeroSection({ t }: { t: Translations }) {
             </div>
 
             {/* Scroll indicator */}
-            <a href="#features" className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce z-20 p-2 cursor-pointer text-muted-foreground hover:text-foreground dark:hover:text-white transition-colors" aria-label="Scroll to features">
-                <ChevronDown className="w-6 h-6" />
+            <a href="#features" className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 p-2 cursor-pointer text-muted-foreground hover:text-foreground dark:hover:text-white transition-colors" aria-label="Scroll to features">
+                <ChevronDown className="w-6 h-6 animate-bounce" />
             </a>
         </section>
     );
@@ -715,7 +847,9 @@ function AppPreviewSection({ t }: { t: Translations }) {
     const handleTabClick = (index: number) => {
         setActiveTab(index);
         setProgress(0);
-        startCycle();
+        // Stop auto-cycling permanently once user manually interacts with tabs
+        if (intervalRef.current) clearInterval(intervalRef.current);
+        isPausedRef.current = true;
 
         // Trigger scale animation on tab switch
         const frame = frameRef.current;
@@ -750,12 +884,12 @@ function AppPreviewSection({ t }: { t: Translations }) {
                 </div>
 
                 {/* Tabs */}
-                <div className="flex sm:flex-wrap justify-start sm:justify-center gap-2 mb-8 overflow-x-auto pb-4 sm:pb-0 hide-scrollbar snap-x">
+                <div className="grid grid-cols-2 sm:flex sm:flex-wrap sm:justify-center gap-2 mb-8">
                     {previewTabs.map((tab, i) => (
                         <button
                             key={tab.id}
                             onClick={() => handleTabClick(i)}
-                            className={`relative px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 overflow-hidden whitespace-nowrap snap-center shrink-0 ${activeTab === i
+                            className={`relative px-4 sm:px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 overflow-hidden whitespace-nowrap ${activeTab === i
                                 ? "bg-muted dark:bg-white/10 text-foreground dark:text-white border border-border dark:border-white/20"
                                 : "text-muted-foreground hover:text-foreground dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 border border-transparent"
                                 }`}
@@ -772,11 +906,19 @@ function AppPreviewSection({ t }: { t: Translations }) {
                     ))}
                 </div>
 
+
                 {/* 3D Browser Mockup Wrapper */}
                 <div
                     className="scroll-reveal scroll-delay-2 landing-preview-wrapper max-w-5xl mx-auto"
                     onMouseMove={handleMouseMove}
-                    onMouseLeave={handleMouseLeave}
+                    onMouseLeave={() => {
+                        handleMouseLeave();
+                        // Resume auto-cycle only if user hasn't manually clicked a tab
+                        // We check intervalRef existence as a proxy for "is auto cycle active"
+                        if (intervalRef.current) {
+                            isPausedRef.current = false;
+                        }
+                    }}
                     onMouseEnter={() => {
                         isPausedRef.current = true;
                     }}
@@ -786,8 +928,7 @@ function AppPreviewSection({ t }: { t: Translations }) {
                     {/* Browser Frame */}
                     <div
                         ref={frameRef}
-                        className="landing-browser-frame transition-all duration-300 relative z-10"
-                        style={{ transform: 'perspective(1000px) rotateX(4deg) rotateY(0deg)' }}
+                        className="landing-browser-frame relative z-10"
                     >
                         {/* Fake Browser Chrome */}
                         <div className="h-12 bg-muted/50 dark:bg-[#1a1a1a] border-b border-border dark:border-white/5 flex items-center px-4 gap-4 transition-colors">
@@ -892,14 +1033,14 @@ function HowItWorksSection({ t }: { t: Translations }) {
                     {steps.map((s, i) => {
                         const Icon = s.icon;
                         return (
-                            <div key={s.step} className={`scroll-reveal scroll-delay-${i + 1} relative group`}>
+                            <div key={s.step} className={`scroll-reveal scroll-delay-${i + 1} relative group landing-step-card`}>
                                 {/* Connector line */}
                                 {i < steps.length - 1 && (
-                                    <div className="hidden md:block absolute top-12 left-[calc(50%+40px)] w-[calc(100%-80px)] h-px bg-gradient-to-r from-border to-transparent" />
+                                    <div className="hidden md:block absolute top-12 left-[calc(50%+40px)] w-[calc(100%-80px)] h-px bg-gradient-to-r from-violet-500/30 via-border to-transparent" />
                                 )}
 
                                 <div className="text-center">
-                                    <div className="relative inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-card border border-border mb-6 group-hover:border-primary/40 transition-all duration-300 shadow-sm">
+                                    <div className="landing-step-icon relative inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-card border border-border mb-6 group-hover:border-violet-500/40 transition-all duration-300 shadow-sm">
                                         <Icon className="w-10 h-10 text-violet-600 dark:text-violet-400" />
                                         <span className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-foreground dark:bg-white text-background dark:text-black text-xs font-bold flex items-center justify-center transition-colors">
                                             {s.step}
@@ -1116,6 +1257,8 @@ export function LandingPage() {
     return (
         <div className="landing-page">
             <AnimatedBackgroundLines />
+            
+            <div className="landing-grid-bg" />
 
             {/* Cursor-following spotlight */}
             <div ref={spotlightRef} className="landing-cursor-spotlight" />
@@ -1125,19 +1268,19 @@ export function LandingPage() {
             <div className="mt-8 mb-16">
                 <SocialProofSection t={t} />
             </div>
-            <hr className="landing-section-divider" />
+            <div className="landing-section-divider-gradient" />
             <ComparisonSection t={t} />
-            <hr className="landing-section-divider" />
+            <div className="landing-section-divider-gradient" />
             <FeaturesSection t={t} />
-            <hr className="landing-section-divider" />
+            <div className="landing-section-divider-gradient" />
             <AppPreviewSection t={t} />
-            <hr className="landing-section-divider" />
+            <div className="landing-section-divider-gradient" />
             <HowItWorksSection t={t} />
-            <hr className="landing-section-divider" />
+            <div className="landing-section-divider-gradient" />
             <TestimonialSection t={t} />
-            <hr className="landing-section-divider" />
+            <div className="landing-section-divider-gradient" />
             <FAQSection t={t} />
-            <hr className="landing-section-divider" />
+            <div className="landing-section-divider-gradient" />
             <PricingSection t={t} />
             <Footer t={t} />
         </div>
