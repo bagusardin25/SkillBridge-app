@@ -469,7 +469,7 @@ function HeroSection({ t }: { t: Translations }) {
                                 />
                                 <button
                                     type="submit"
-                                    className="landing-cta-glow inline-flex items-center gap-2 px-5 py-2.5 h-11 rounded-full bg-violet-600 hover:bg-violet-500 text-white font-bold text-sm transition-all duration-300 hover:scale-105 shrink-0"
+                                    className="inline-flex items-center gap-2 px-6 py-2.5 h-11 rounded-full bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-900 font-semibold text-sm transition-all duration-300 hover:scale-105 shadow-md hover:shadow-lg shrink-0"
                                 >
                                     <span className="hidden sm:inline">{t.hero.startJourney}</span>
                                     <span className="sm:hidden">{t.hero.start}</span>
@@ -1289,6 +1289,8 @@ export function LandingPage() {
     return (
         <div className="landing-page">
             <AnimatedBackgroundLines />
+            
+            <div className="landing-grid-bg" />
 
             {/* Cursor-following spotlight */}
             <div ref={spotlightRef} className="landing-cursor-spotlight" />
