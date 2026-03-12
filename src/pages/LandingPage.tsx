@@ -16,7 +16,9 @@ import {
     CheckCircle,
     Check,
     Globe,
-    Sun
+    Sun,
+    Menu,
+    X
 } from "lucide-react";
 import { StaticRoadmapVisual } from "@/components/landing/HeroRoadmapDemo";
 import { useState, useEffect, useRef, useCallback } from "react";
@@ -191,6 +193,7 @@ function useCursorGlow() {
 function Navbar({ t }: { t: Translations }) {
     const [scrolled, setScrolled] = useState(false);
     const [langOpen, setLangOpen] = useState(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const { isDarkMode, toggleTheme } = useRoadmapStore();
 
     useEffect(() => {
@@ -199,72 +202,195 @@ function Navbar({ t }: { t: Translations }) {
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
+    // Close mobile menu on resize to desktop
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth >= 768) setMobileMenuOpen(false);
+        };
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }, []);
+
+    // Lock body scroll when mobile menu is open
+    useEffect(() => {
+        if (mobileMenuOpen) {
+            document.body.style.overflow = "hidden";
+        } else {
+            document.body.style.overflow = "";
+        }
+        return () => { document.body.style.overflow = ""; };
+    }, [mobileMenuOpen]);
+
+    const mobileNavLinks = [
+        { href: "#features", label: t.nav.features, icon: Sparkles },
+        { href: "#preview", label: t.nav.preview, icon: BookOpen },
+        { href: "#how-it-works", label: t.nav.howItWorks, icon: Zap },
+        { href: "#faq", label: t.nav.faq, icon: MessageSquare },
+    ];
+
+    const handleMobileNavClick = (href: string) => {
+        setMobileMenuOpen(false);
+        // Small delay to let menu close animation play
+        setTimeout(() => {
+            const el = document.querySelector(href);
+            if (el) el.scrollIntoView({ behavior: "smooth" });
+        }, 200);
+    };
+
     return (
-        <nav
-            className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
-                ? "landing-nav-scrolled"
-                : "bg-transparent"
+        <>
+            <nav
+                className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
+                    ? "landing-nav-scrolled"
+                    : "bg-transparent"
+                    }`}
+            >
+                <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <Logo size={32} />
+                        <span className="text-xl font-bold text-foreground dark:text-white transition-colors">SkillBridge</span>
+                    </div>
+
+                    <div className="hidden md:flex items-center gap-8 text-sm text-muted-foreground dark:text-gray-300">
+                        <a href="#features" className="hover:text-foreground dark:hover:text-white transition-colors">
+                            {t.nav.features}
+                        </a>
+                        <a href="#preview" className="hover:text-foreground dark:hover:text-white transition-colors">
+                            {t.nav.preview}
+                        </a>
+                        <a href="#how-it-works" className="hover:text-foreground dark:hover:text-white transition-colors">
+                            {t.nav.howItWorks}
+                        </a>
+                        <a href="#faq" className="hover:text-foreground dark:hover:text-white transition-colors">
+                            {t.nav.faq}
+                        </a>
+                    </div>
+
+                    <div className="flex items-center gap-2 sm:gap-3">
+                        {/* Theme Toggle */}
+                        <button
+                            onClick={toggleTheme}
+                            className="text-muted-foreground dark:text-gray-300 hover:text-foreground dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 p-2 rounded-full transition-colors hidden sm:flex items-center justify-center"
+                            aria-label="Toggle theme"
+                        >
+                            {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                        </button>
+
+                        {/* Language Toggle */}
+                        <button
+                            onClick={() => setLangOpen(true)}
+                            className="text-muted-foreground dark:text-gray-300 hover:text-foreground dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 p-2 rounded-full transition-colors hidden sm:flex items-center justify-center"
+                            aria-label="Change language"
+                        >
+                            <Globe className="h-4 w-4" />
+                        </button>
+
+                        <Link
+                            to="/login"
+                            className="text-sm text-muted-foreground dark:text-gray-300 hover:text-foreground dark:hover:text-white transition-colors hidden sm:inline-block ml-2"
+                        >
+                            {t.nav.login}
+                        </Link>
+                        <Link
+                            to="/register"
+                            className="hidden sm:inline-flex items-center gap-2 px-5 py-2 rounded-full bg-foreground dark:bg-white text-background dark:text-black text-sm font-medium transition-all duration-300 hover:opacity-90 dark:hover:bg-gray-200"
+                        >
+                            {t.nav.getStarted}
+                            <ArrowRight className="w-3.5 h-3.5" />
+                        </Link>
+
+                        {/* Mobile Menu Toggle */}
+                        <button
+                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                            className="md:hidden text-muted-foreground dark:text-gray-300 hover:text-foreground dark:hover:text-white p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors ml-1"
+                            aria-label="Toggle mobile menu"
+                        >
+                            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                        </button>
+                    </div>
+                </div>
+                
+                {/* Language Dialog */}
+                <LanguageDialog open={langOpen} onOpenChange={setLangOpen} />
+            </nav>
+
+            {/* ─── Mobile Menu Overlay ───────────────────────────── */}
+            {/* Backdrop */}
+            <div
+                className={`fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity duration-300 md:hidden ${
+                    mobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
                 }`}
-        >
-            <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <Logo size={32} />
-                    <span className="text-xl font-bold text-foreground dark:text-white transition-colors">SkillBridge</span>
-                </div>
+                onClick={() => setMobileMenuOpen(false)}
+            />
 
-                <div className="hidden md:flex items-center gap-8 text-sm text-muted-foreground dark:text-gray-300">
-                    <a href="#features" className="hover:text-foreground dark:hover:text-white transition-colors">
-                        {t.nav.features}
-                    </a>
-                    <a href="#preview" className="hover:text-foreground dark:hover:text-white transition-colors">
-                        {t.nav.preview}
-                    </a>
-                    <a href="#how-it-works" className="hover:text-foreground dark:hover:text-white transition-colors">
-                        {t.nav.howItWorks}
-                    </a>
-                    <a href="#faq" className="hover:text-foreground dark:hover:text-white transition-colors">
-                        {t.nav.faq}
-                    </a>
-                </div>
+            {/* Menu Panel */}
+            <div
+                className={`fixed top-16 left-0 right-0 z-40 md:hidden transition-all duration-300 ease-out ${
+                    mobileMenuOpen
+                        ? "opacity-100 translate-y-0"
+                        : "opacity-0 -translate-y-4 pointer-events-none"
+                }`}
+            >
+                <div className="mx-4 mt-2 rounded-2xl bg-background/95 dark:bg-[#0a0a0a]/95 backdrop-blur-xl border border-border dark:border-white/10 shadow-2xl overflow-hidden transition-colors">
+                    {/* Quick Navigation Links */}
+                    <div className="p-3">
+                        <p className="px-3 pt-2 pb-3 text-xs font-semibold tracking-[0.15em] uppercase text-muted-foreground dark:text-gray-500 transition-colors">
+                            Quick Access
+                        </p>
+                        <div className="space-y-1">
+                            {mobileNavLinks.map((link, i) => {
+                                const Icon = link.icon;
+                                return (
+                                    <button
+                                        key={link.href}
+                                        onClick={() => handleMobileNavClick(link.href)}
+                                        className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left text-foreground dark:text-white hover:bg-violet-500/10 dark:hover:bg-violet-500/15 transition-all duration-200 group"
+                                        style={{ animationDelay: `${i * 50}ms` }}
+                                    >
+                                        <div className="w-9 h-9 rounded-lg bg-violet-500/10 dark:bg-violet-500/15 flex items-center justify-center group-hover:bg-violet-500/20 dark:group-hover:bg-violet-500/25 transition-colors">
+                                            <Icon className="w-4 h-4 text-violet-600 dark:text-violet-400" />
+                                        </div>
+                                        <span className="text-sm font-medium">{link.label}</span>
+                                        <ArrowRight className="w-3.5 h-3.5 ml-auto text-muted-foreground dark:text-gray-500 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
 
-                <div className="flex items-center gap-2 sm:gap-3">
-                    {/* Theme Toggle */}
-                    <button
-                        onClick={toggleTheme}
-                        className="text-muted-foreground dark:text-gray-300 hover:text-foreground dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 p-2 rounded-full transition-colors hidden sm:flex items-center justify-center"
-                        aria-label="Toggle theme"
-                    >
-                        {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                    </button>
+                    {/* Divider */}
+                    <div className="mx-4 h-px bg-border dark:bg-white/5 transition-colors" />
 
-                    {/* Language Toggle */}
-                    <button
-                        onClick={() => setLangOpen(true)}
-                        className="text-muted-foreground dark:text-gray-300 hover:text-foreground dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 p-2 rounded-full transition-colors hidden sm:flex items-center justify-center"
-                        aria-label="Change language"
-                    >
-                        <Globe className="h-4 w-4" />
-                    </button>
-
-                    <Link
-                        to="/login"
-                        className="text-sm text-muted-foreground dark:text-gray-300 hover:text-foreground dark:hover:text-white transition-colors hidden sm:inline-block ml-2"
-                    >
-                        {t.nav.login}
-                    </Link>
-                    <Link
-                        to="/register"
-                        className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-foreground dark:bg-white text-background dark:text-black text-sm font-medium transition-all duration-300 hover:opacity-90 dark:hover:bg-gray-200"
-                    >
-                        {t.nav.getStarted}
-                        <ArrowRight className="w-3.5 h-3.5" />
-                    </Link>
+                    {/* Utility Row: Theme, Language, Login */}
+                    <div className="p-3 flex items-center gap-2">
+                        <button
+                            onClick={() => { toggleTheme(); }}
+                            className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-muted-foreground dark:text-gray-300 hover:text-foreground dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                            aria-label="Toggle theme"
+                        >
+                            {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                            <span className="text-xs">{isDarkMode ? "Light" : "Dark"}</span>
+                        </button>
+                        <button
+                            onClick={() => { setMobileMenuOpen(false); setLangOpen(true); }}
+                            className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-muted-foreground dark:text-gray-300 hover:text-foreground dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                            aria-label="Change language"
+                        >
+                            <Globe className="h-4 w-4" />
+                            <span className="text-xs">Language</span>
+                        </button>
+                        <div className="flex-1" />
+                        <Link
+                            to="/login"
+                            onClick={() => setMobileMenuOpen(false)}
+                            className="px-4 py-2.5 text-sm font-medium text-muted-foreground dark:text-gray-300 hover:text-foreground dark:hover:text-white rounded-xl hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                        >
+                            {t.nav.login}
+                        </Link>
+                    </div>
                 </div>
             </div>
-            
-            {/* Language Dialog */}
-            <LanguageDialog open={langOpen} onOpenChange={setLangOpen} />
-        </nav>
+        </>
     );
 }
 
@@ -361,8 +487,8 @@ function HeroSection({ t }: { t: Translations }) {
             </div>
 
             {/* Scroll indicator */}
-            <a href="#features" className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce z-20 p-2 cursor-pointer text-muted-foreground hover:text-foreground dark:hover:text-white transition-colors" aria-label="Scroll to features">
-                <ChevronDown className="w-6 h-6" />
+            <a href="#features" className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 p-2 cursor-pointer text-muted-foreground hover:text-foreground dark:hover:text-white transition-colors" aria-label="Scroll to features">
+                <ChevronDown className="w-6 h-6 animate-bounce" />
             </a>
         </section>
     );
