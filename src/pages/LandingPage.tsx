@@ -919,8 +919,7 @@ function AppPreviewSection({ t }: { t: Translations }) {
                     {/* Browser Frame */}
                     <div
                         ref={frameRef}
-                        className="landing-browser-frame transition-all duration-300 relative z-10"
-                        style={{ transform: 'perspective(1000px) rotateX(4deg) rotateY(0deg)' }}
+                        className="landing-browser-frame relative z-10"
                     >
                         {/* Fake Browser Chrome */}
                         <div className="h-12 bg-muted/50 dark:bg-[#1a1a1a] border-b border-border dark:border-white/5 flex items-center px-4 gap-4 transition-colors">
