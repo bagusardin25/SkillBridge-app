@@ -882,12 +882,12 @@ function AppPreviewSection({ t }: { t: Translations }) {
                 </div>
 
                 {/* Tabs */}
-                <div className="flex sm:flex-wrap justify-start sm:justify-center gap-2 mb-8 overflow-x-auto pb-4 sm:pb-0 hide-scrollbar snap-x">
+                <div className="grid grid-cols-2 sm:flex sm:flex-wrap sm:justify-center gap-2 mb-8">
                     {previewTabs.map((tab, i) => (
                         <button
                             key={tab.id}
                             onClick={() => handleTabClick(i)}
-                            className={`relative px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 overflow-hidden whitespace-nowrap snap-center shrink-0 ${activeTab === i
+                            className={`relative px-4 sm:px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 overflow-hidden whitespace-nowrap ${activeTab === i
                                 ? "bg-muted dark:bg-white/10 text-foreground dark:text-white border border-border dark:border-white/20"
                                 : "text-muted-foreground hover:text-foreground dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 border border-transparent"
                                 }`}
@@ -903,6 +903,7 @@ function AppPreviewSection({ t }: { t: Translations }) {
                         </button>
                     ))}
                 </div>
+
 
                 {/* 3D Browser Mockup Wrapper */}
                 <div
