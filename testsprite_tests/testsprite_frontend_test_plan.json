@@ -1,8 +1,8 @@
 [
   {
     "id": "TC001",
-    "title": "Register page loads and shows registration form",
-    "description": "Verifies that a new user can reach the registration page and see the required inputs and submit button.",
+    "title": "Successful registration redirects to app workspace",
+    "description": "Verifies a new user can register with name, email, and password and is redirected into the authenticated app experience.",
     "category": "User Registration",
     "priority": "High",
     "steps": [
@@ -12,52 +12,23 @@
       },
       {
         "type": "assertion",
-        "description": "Verify page title contains \"Register\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Name\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Email\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Password\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Register\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC002",
-    "title": "Successful registration redirects to app",
-    "description": "Verifies that submitting valid new user details creates the account and redirects to /app.",
-    "category": "User Registration",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /register"
+        "description": "Verify text \"Register\" is visible"
       },
       {
         "type": "action",
-        "description": "Type \"Test User\" into \"Name\" field"
+        "description": "Type \"Test User\" into the name field"
       },
       {
         "type": "action",
-        "description": "Type \"testrunner.unique.user1@example.com\" into \"Email\" field"
+        "description": "Type \"test.user+e2e1@example.com\" into the email field"
       },
       {
         "type": "action",
-        "description": "Type \"ValidPass123!\" into \"Password\" field"
+        "description": "Type \"ValidPassword123!\" into the password field"
       },
       {
         "type": "action",
-        "description": "Click on \"Create Account\" button"
+        "description": "Click the Register button to submit"
       },
       {
         "type": "assertion",
@@ -66,9 +37,9 @@
     ]
   },
   {
-    "id": "TC003",
-    "title": "Registration blocked when required fields are empty",
-    "description": "Verifies that the user cannot submit registration when required fields are missing and sees a visible validation message.",
+    "id": "TC002",
+    "title": "Registration shows loading state during submit",
+    "description": "Verifies the UI shows an in-progress/loading state after submitting the registration form.",
     "category": "User Registration",
     "priority": "Medium",
     "steps": [
@@ -78,11 +49,60 @@
       },
       {
         "type": "action",
-        "description": "Click on \"Register\" button"
+        "description": "Type \"Loading State User\" into the name field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"test.user+e2e2@example.com\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"ValidPassword123!\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the Register button to submit"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"required\" is visible"
+        "description": "Verify text \"Loading\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/app\""
+      }
+    ]
+  },
+  {
+    "id": "TC003",
+    "title": "Invalid email format blocks registration and stays on register page",
+    "description": "Verifies client-side/server-side validation shows an error for an invalid email and does not leave the register page.",
+    "category": "User Registration",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /register"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Invalid Email User\" into the name field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"invalid-email\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"ValidPassword123!\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the Register button to submit"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"error\" is visible"
       },
       {
         "type": "assertion",
@@ -92,8 +112,351 @@
   },
   {
     "id": "TC004",
-    "title": "Request password reset with a registered email shows confirmation message",
-    "description": "Verifies the forgot-password form accepts a valid email and shows a confirmation message to check email.",
+    "title": "Missing name shows validation error and prevents submit success",
+    "description": "Verifies the name field is required (or validated) and an error appears when it is left blank.",
+    "category": "User Registration",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /register"
+      },
+      {
+        "type": "action",
+        "description": "Type \"test.user+e2e3@example.com\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"ValidPassword123!\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the Register button to submit"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"error\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/register\""
+      }
+    ]
+  },
+  {
+    "id": "TC005",
+    "title": "Missing email shows validation error and remains on register page",
+    "description": "Verifies registration cannot proceed without an email and the user remains on the registration page with an error displayed.",
+    "category": "User Registration",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /register"
+      },
+      {
+        "type": "action",
+        "description": "Type \"No Email User\" into the name field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"ValidPassword123!\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the Register button to submit"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"error\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/register\""
+      }
+    ]
+  },
+  {
+    "id": "TC006",
+    "title": "Missing password shows validation error and remains on register page",
+    "description": "Verifies registration cannot proceed without a password and an error is shown without navigating away.",
+    "category": "User Registration",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /register"
+      },
+      {
+        "type": "action",
+        "description": "Type \"No Password User\" into the name field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"test.user+e2e4@example.com\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Click the Register button to submit"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"error\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/register\""
+      }
+    ]
+  },
+  {
+    "id": "TC007",
+    "title": "Duplicate email registration shows an error and does not redirect",
+    "description": "Verifies attempting to register with the same email twice results in an error and the user stays on the registration page.",
+    "category": "User Registration",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /register"
+      },
+      {
+        "type": "action",
+        "description": "Type \"First Duplicate User\" into the name field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"test.user+dup@example.com\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"ValidPassword123!\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the Register button to submit"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/app\""
+      }
+    ]
+  },
+  {
+    "id": "TC008",
+    "title": "Email/password login succeeds and lands in the main workspace",
+    "description": "Verifies a user can log in with valid credentials and is redirected to the /app workspace.",
+    "category": "User Login",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Login\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the Login button to submit"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/app\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"AI\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC009",
+    "title": "Invalid password shows an error and stays on login page",
+    "description": "Verifies an incorrect password produces a visible error message and does not redirect away from /login.",
+    "category": "User Login",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"fake.user@example.com\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"wrong-password-123\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the Login button to submit"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"invalid\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/login\""
+      }
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "Login validation: submitting with empty email shows a visible validation message",
+    "description": "Verifies the login form prevents submission when the email field is empty and shows a visible validation cue.",
+    "category": "User Login",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"somepassword\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the Login button to submit"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"email\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/login\""
+      }
+    ]
+  },
+  {
+    "id": "TC011",
+    "title": "Login validation: submitting with empty password shows a visible validation message",
+    "description": "Verifies the login form prevents submission when the password field is empty and shows a visible validation cue.",
+    "category": "User Login",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"fake.user@example.com\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Click the Login button to submit"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"password\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/login\""
+      }
+    ]
+  },
+  {
+    "id": "TC012",
+    "title": "Password masking: password field hides typed characters",
+    "description": "Verifies the password input is visually masked while typing to protect the user’s password.",
+    "category": "User Login",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"my-secret-password\" into the password field"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"password field\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"my-secret-password\" is not visible"
+      }
+    ]
+  },
+  {
+    "id": "TC013",
+    "title": "Navigate from Login to Register page",
+    "description": "Verifies the user can reach the registration page from the login page via a visible link.",
+    "category": "User Login",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Register\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Register\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/register\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Register\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC014",
+    "title": "Navigate from Login to Forgot Password page",
+    "description": "Verifies the user can reach the forgot-password page from the login page via a visible link.",
+    "category": "User Login",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Forgot\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Forgot password\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/forgot-password\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Forgot\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC015",
+    "title": "Submit forgot-password request with a valid email shows confirmation",
+    "description": "Verifies that submitting the forgot password form with a valid email results in a visible confirmation message.",
     "category": "Forgot Password",
     "priority": "High",
     "steps": [
@@ -119,14 +482,14 @@
       },
       {
         "type": "assertion",
-        "description": "Verify text \"password reset\" is visible"
+        "description": "Verify text \"reset\" is visible"
       }
     ]
   },
   {
-    "id": "TC005",
-    "title": "Request password reset with unknown email does not reveal account existence",
-    "description": "Verifies the UI does not enumerate accounts when an unknown email is submitted.",
+    "id": "TC016",
+    "title": "Submit forgot-password request with an unknown email shows error",
+    "description": "Verifies that submitting the forgot password form with an unknown email shows a visible error message.",
     "category": "Forgot Password",
     "priority": "High",
     "steps": [
@@ -135,8 +498,12 @@
         "description": "Navigate to /forgot-password"
       },
       {
+        "type": "assertion",
+        "description": "Verify text \"Forgot Password\" is visible"
+      },
+      {
         "type": "action",
-        "description": "Type \"unknown.user.987654@example.com\" into the email field"
+        "description": "Type \"unknown-user-12345@example.com\" into the email field"
       },
       {
         "type": "action",
@@ -144,24 +511,28 @@
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Check your email\" is visible"
+        "description": "Verify text \"not found\" is visible"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"If an account exists\" is visible"
+        "description": "Verify text \"failed\" is visible"
       }
     ]
   },
   {
-    "id": "TC006",
-    "title": "Forgot password requires an email value",
-    "description": "Verifies submitting the forgot-password form with an empty email shows a visible validation message.",
+    "id": "TC017",
+    "title": "Forgot-password form blocks submission when email is empty",
+    "description": "Verifies that the user cannot submit the form without entering an email and sees a visible validation message.",
     "category": "Forgot Password",
-    "priority": "Medium",
+    "priority": "High",
     "steps": [
       {
         "type": "action",
         "description": "Navigate to /forgot-password"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Forgot Password\" is visible"
       },
       {
         "type": "action",
@@ -178,15 +549,19 @@
     ]
   },
   {
-    "id": "TC007",
-    "title": "Forgot password rejects invalid email format",
-    "description": "Verifies entering an invalid email format shows a visible validation error.",
+    "id": "TC018",
+    "title": "Forgot-password form rejects an invalid email format",
+    "description": "Verifies that entering an invalid email format triggers a visible validation error and does not show a success confirmation.",
     "category": "Forgot Password",
     "priority": "Medium",
     "steps": [
       {
         "type": "action",
         "description": "Navigate to /forgot-password"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Forgot Password\" is visible"
       },
       {
         "type": "action",
@@ -199,534 +574,340 @@
       {
         "type": "assertion",
         "description": "Verify text \"valid email\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC008",
-    "title": "Reset password page shows fields when opened with a token-like URL",
-    "description": "Verifies the reset-password page renders expected UI when accessed via a tokenized link.",
-    "category": "Forgot Password",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /reset-password/TEST_TOKEN"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Reset Password\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"New password\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"New password\" field is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC009",
-    "title": "Reset password requires new password value",
-    "description": "Verifies submitting the reset-password form with an empty new password shows a visible validation message.",
-    "category": "Forgot Password",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /reset-password/TEST_TOKEN"
-      },
-      {
-        "type": "action",
-        "description": "Click the submit button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"password\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"required\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC010",
-    "title": "Reset password with an invalid or expired token shows an error message",
-    "description": "Verifies the reset-password page displays a visible error when the token is invalid or expired.",
-    "category": "Forgot Password",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /reset-password/EXPIRED_OR_INVALID_TOKEN"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Reset Password\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Type \"NewPass!234\" into the new password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the submit button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"invalid\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"token\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC011",
-    "title": "Generate roadmap with all preferences and confirm it appears on canvas and in sidebar",
-    "description": "Verifies a user can generate an AI roadmap with full preference selections, see it rendered on the canvas, and see the new project saved in the sidebar.",
-    "category": "AI Roadmap Generation",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the Log In button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/app\""
-      },
-      {
-        "type": "action",
-        "description": "Type \"Learn React from scratch to build a portfolio app\" in the prompt input"
-      },
-      {
-        "type": "action",
-        "description": "Click the Generate button"
-      },
-      {
-        "type": "action",
-        "description": "Wait for the AI-generated roadmap to render on the canvas"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Roadmap canvas\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Projects sidebar\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Learn React from scratch to build a portfolio app\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC012",
-    "title": "Generate roadmap with minimal inputs (goal + generate) and verify canvas renders",
-    "description": "Verifies a user can generate an AI roadmap by providing only a goal and clicking Generate, and the roadmap renders on the canvas.",
-    "category": "AI Roadmap Generation",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the Log In button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/app\""
-      },
-      {
-        "type": "action",
-        "description": "Type \"Prepare for the AWS Solutions Architect Associate\" in the prompt input"
-      },
-      {
-        "type": "action",
-        "description": "Click the Generate button"
-      },
-      {
-        "type": "action",
-        "description": "Wait for the AI-generated roadmap to render on the canvas"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Roadmap canvas\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Prepare for the AWS Solutions Architect Associate\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC013",
-    "title": "Change preferences and generate to ensure selections are accepted before generation",
-    "description": "Verifies that changing multiple preferences before generation still produces a roadmap render on the canvas.",
-    "category": "AI Roadmap Generation",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the Log In button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/app\""
-      },
-      {
-        "type": "action",
-        "description": "Type \"Become job-ready in data analysis with Python\" in the prompt input"
-      },
-      {
-        "type": "action",
-        "description": "Select \"Intermediate\" as the skill level preference"
-      },
-      {
-        "type": "action",
-        "description": "Select \"Intensive\" as the learning time preference"
-      },
-      {
-        "type": "action",
-        "description": "Select \"Practice\" as the learning style preference"
-      },
-      {
-        "type": "action",
-        "description": "Select \"Career\" as the goal type"
-      },
-      {
-        "type": "action",
-        "description": "Click the Generate button"
-      },
-      {
-        "type": "action",
-        "description": "Wait for the AI-generated roadmap to render on the canvas"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Roadmap canvas\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Become job-ready in data analysis with Python\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC014",
-    "title": "Attempt generation with empty goal and verify a visible validation message",
-    "description": "Verifies the app prevents generation when the goal input is empty and shows a visible validation message.",
-    "category": "AI Roadmap Generation",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the Log In button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/app\""
-      },
-      {
-        "type": "action",
-        "description": "Click the Generate button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Enter a learning goal\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Roadmap canvas\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC015",
-    "title": "Attempt generation with whitespace-only goal and verify a visible validation message",
-    "description": "Verifies the app treats whitespace-only input as invalid and shows a visible validation message instead of generating.",
-    "category": "AI Roadmap Generation",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the Log In button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/app\""
-      },
-      {
-        "type": "action",
-        "description": "Type \"     \" in the prompt input"
-      },
-      {
-        "type": "action",
-        "description": "Click the Generate button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Enter a learning goal\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC016",
-    "title": "Prevent duplicate submission by clicking Generate repeatedly and verify only one visible generation state",
-    "description": "Verifies that repeated clicks on Generate do not produce multiple overlapping visible generation states and the UI shows a single in-progress state until completion.",
-    "category": "AI Roadmap Generation",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the Log In button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/app\""
-      },
-      {
-        "type": "action",
-        "description": "Type \"Learn SQL for analytics\" in the prompt input"
-      },
-      {
-        "type": "action",
-        "description": "Click the Generate button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Generating\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Click the Generate button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Generating\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Wait for the AI-generated roadmap to render on the canvas"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Roadmap canvas\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC017",
-    "title": "Open roadmap canvas and verify core canvas UI renders",
-    "description": "Verifies that an authenticated user can access /app and see the roadmap canvas with minimap and progress indicator visible.",
-    "category": "Roadmap Canvas Interaction",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Log in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/app\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Roadmap canvas\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Minimap\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Global progress indicator\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC018",
-    "title": "Open node details by clicking a node",
-    "description": "Verifies that clicking a roadmap node opens the node detail panel with visible content.",
-    "category": "Roadmap Canvas Interaction",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Log in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Roadmap canvas\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Frontend Developer\""
-      },
-      {
-        "type": "action",
-        "description": "Click on a node on the canvas"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Node detail panel\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Resources\" is visible"
+        "description": "Verify text \"Check your email\" is not visible"
       }
     ]
   },
   {
     "id": "TC019",
-    "title": "Close node detail panel and return focus to canvas",
-    "description": "Verifies that the node detail panel can be dismissed and the canvas remains usable.",
-    "category": "Roadmap Canvas Interaction",
+    "title": "Forgot-password page provides a visible path back to Login",
+    "description": "Verifies the forgot password page includes a visible Login navigation option and that it leads to the login page.",
+    "category": "Forgot Password",
     "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Log in\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click on a node on the canvas"
+        "description": "Navigate to /forgot-password"
       },
       {
         "type": "assertion",
-        "description": "Verify element \"Node detail panel\" is visible"
+        "description": "Verify text \"Forgot Password\" is visible"
       },
       {
         "type": "action",
-        "description": "Click the \"Close\" button on the node detail panel"
+        "description": "Click on \"Back to login\""
       },
       {
         "type": "assertion",
-        "description": "Verify element \"Node detail panel\" is not visible"
+        "description": "Verify URL contains \"/login\""
       },
       {
         "type": "assertion",
-        "description": "Verify element \"Roadmap canvas\" is visible"
+        "description": "Verify text \"Login\" is visible"
       }
     ]
   },
   {
     "id": "TC020",
-    "title": "Global progress indicator updates after completing a node",
-    "description": "Verifies that completing a node causes the global progress indicator to change visually.",
-    "category": "Roadmap Canvas Interaction",
+    "title": "Resubmitting forgot-password after an error can succeed",
+    "description": "Verifies the user can recover from an error state by entering a different email and receiving a confirmation message.",
+    "category": "Forgot Password",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /forgot-password"
+      },
+      {
+        "type": "action",
+        "description": "Type \"unknown-user-12345@example.com\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Click the submit button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"failed\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Click the submit button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Check your email\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC021",
+    "title": "Forgot-password submit shows in-progress feedback and prevents duplicate submits",
+    "description": "Verifies that after clicking submit, the UI shows visible in-progress feedback or disables repeated submission to prevent duplicates.",
+    "category": "Forgot Password",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /forgot-password"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Click the submit button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Sending\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click the submit button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Check your email\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC022",
+    "title": "Reset password successfully with a valid token and matching passwords",
+    "description": "Verifies a user can reset their password with a valid token and is redirected to the login page after success.",
+    "category": "Reset Password",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to \"/reset-password/:token\" using a valid reset token URL provided by the test environment."
+      },
+      {
+        "type": "action",
+        "description": "Type \"NewPassw0rd!\" into the new password input field."
+      },
+      {
+        "type": "action",
+        "description": "Type \"NewPassw0rd!\" into the confirm password input field."
+      },
+      {
+        "type": "action",
+        "description": "Click the reset button."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text indicating a successful password reset is visible."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/login\"."
+      }
+    ]
+  },
+  {
+    "id": "TC023",
+    "title": "Show error when confirm password does not match",
+    "description": "Verifies the form blocks submission and shows a mismatch error when passwords differ.",
+    "category": "Reset Password",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to \"/reset-password/:token\" using a valid reset token URL provided by the test environment."
+      },
+      {
+        "type": "action",
+        "description": "Type \"NewPassw0rd!\" into the new password input field."
+      },
+      {
+        "type": "action",
+        "description": "Type \"DifferentPassw0rd!\" into the confirm password input field."
+      },
+      {
+        "type": "action",
+        "description": "Click the reset button."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text about passwords not matching is visible."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/reset-password/\"."
+      }
+    ]
+  },
+  {
+    "id": "TC024",
+    "title": "Show error when reset token is expired or invalid",
+    "description": "Verifies the page shows a clear error message when the reset token is expired or invalid.",
+    "category": "Reset Password",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to \"/reset-password/:token\" using an expired or invalid reset token URL provided by the test environment."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text indicating the token is invalid or expired is visible."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/reset-password/\"."
+      }
+    ]
+  },
+  {
+    "id": "TC025",
+    "title": "Prevent reset when new password field is empty",
+    "description": "Verifies the user cannot reset the password if the new password field is left blank.",
+    "category": "Reset Password",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to \"/reset-password/:token\" using a valid reset token URL provided by the test environment."
+      },
+      {
+        "type": "action",
+        "description": "Type \"NewPassw0rd!\" into the confirm password input field."
+      },
+      {
+        "type": "action",
+        "description": "Click the reset button."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text indicating the new password is required is visible."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/reset-password/\"."
+      }
+    ]
+  },
+  {
+    "id": "TC026",
+    "title": "Prevent reset when confirm password field is empty",
+    "description": "Verifies the user cannot reset the password if the confirm password field is left blank.",
+    "category": "Reset Password",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to \"/reset-password/:token\" using a valid reset token URL provided by the test environment."
+      },
+      {
+        "type": "action",
+        "description": "Type \"NewPassw0rd!\" into the new password input field."
+      },
+      {
+        "type": "action",
+        "description": "Click the reset button."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text indicating the confirm password is required is visible."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/reset-password/\"."
+      }
+    ]
+  },
+  {
+    "id": "TC027",
+    "title": "Show password policy/strength validation error for weak password",
+    "description": "Verifies the UI shows an error when the new password does not meet password requirements (if enforced).",
+    "category": "Reset Password",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to \"/reset-password/:token\" using a valid reset token URL provided by the test environment."
+      },
+      {
+        "type": "action",
+        "description": "Type \"123\" into the new password input field."
+      },
+      {
+        "type": "action",
+        "description": "Type \"123\" into the confirm password input field."
+      },
+      {
+        "type": "action",
+        "description": "Click the reset button."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text indicating the password is too weak or does not meet requirements is visible."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/reset-password/\"."
+      }
+    ]
+  },
+  {
+    "id": "TC028",
+    "title": "After successful reset, user can log in with the new password",
+    "description": "Verifies end-to-end that a successfully reset password is accepted on the login page.",
+    "category": "Reset Password",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to \"/reset-password/:token\" using a valid reset token URL provided by the test environment."
+      },
+      {
+        "type": "action",
+        "description": "Type \"NewPassw0rd!\" into the new password input field."
+      },
+      {
+        "type": "action",
+        "description": "Type \"NewPassw0rd!\" into the confirm password input field."
+      },
+      {
+        "type": "action",
+        "description": "Click the reset button."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/login\"."
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field."
+      },
+      {
+        "type": "action",
+        "description": "Type \"NewPassw0rd!\" into the password field."
+      },
+      {
+        "type": "action",
+        "description": "Click the login button."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/app\"."
+      }
+    ]
+  },
+  {
+    "id": "TC029",
+    "title": "Generate a roadmap with all preferences selected (happy path)",
+    "description": "Verifies a user can generate a roadmap from a goal with selected preferences and see nodes appear on the canvas.",
+    "category": "AI Roadmap Generation",
     "priority": "High",
     "steps": [
       {
@@ -746,31 +927,513 @@
         "description": "Click the \"Log in\" button"
       },
       {
-        "type": "action",
-        "description": "Click on \"Frontend Developer\""
+        "type": "assertion",
+        "description": "Verify URL contains \"/app\""
       },
       {
         "type": "action",
-        "description": "Click on a node on the canvas"
+        "description": "Type \"Become a frontend developer with React\" into the learning goal input field"
+      },
+      {
+        "type": "action",
+        "description": "Select \"beginner\" as the skill level preference"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Generate\" button"
       },
       {
         "type": "assertion",
-        "description": "Verify element \"Global progress indicator\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Mark as complete\" button in the node detail panel"
+        "description": "Verify text \"Generating\" is visible"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Completed\" is visible"
+        "description": "Verify element \"roadmap canvas\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"roadmap node\" is visible"
       }
     ]
   },
   {
-    "id": "TC021",
-    "title": "Open node detail panel and view Resources for a selected node",
-    "description": "Verifies a user can open the node detail panel from the canvas and view the Resources tab content for the selected topic.",
+    "id": "TC030",
+    "title": "Generate a roadmap using intermediate skill level and moderate intensity",
+    "description": "Verifies generation works with different preference selections and still renders a roadmap on the canvas.",
+    "category": "AI Roadmap Generation",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Log in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/app\""
+      },
+      {
+        "type": "action",
+        "description": "Type \"Prepare for a full-stack interview focusing on TypeScript\" into the learning goal input field"
+      },
+      {
+        "type": "action",
+        "description": "Select \"intermediate\" as the skill level preference"
+      },
+      {
+        "type": "action",
+        "description": "Select \"moderate\" as the time intensity"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Generate\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Generating\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"roadmap node\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC031",
+    "title": "Generate a roadmap with advanced level and intensive pace for a certification goal",
+    "description": "Verifies generation works for advanced/intensive preferences and a certification goal type.",
+    "category": "AI Roadmap Generation",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Log in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/app\""
+      },
+      {
+        "type": "action",
+        "description": "Type \"Pass the AWS Solutions Architect Associate certification\" into the learning goal input field"
+      },
+      {
+        "type": "action",
+        "description": "Select \"advanced\" as the skill level preference"
+      },
+      {
+        "type": "action",
+        "description": "Select \"intensive\" as the time intensity"
+      },
+      {
+        "type": "action",
+        "description": "Select \"certification\" as the goal type"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Generate\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Generating\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"roadmap node\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC032",
+    "title": "Generate a roadmap with practice learning style for a project goal",
+    "description": "Verifies generation supports practice-focused learning style and a project-oriented goal type.",
+    "category": "AI Roadmap Generation",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Log in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/app\""
+      },
+      {
+        "type": "action",
+        "description": "Type \"Build a personal finance tracker web app\" into the learning goal input field"
+      },
+      {
+        "type": "action",
+        "description": "Select \"practice\" as the learning style"
+      },
+      {
+        "type": "action",
+        "description": "Select \"project\" as the goal type"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Generate\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Generating\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"roadmap node\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC033",
+    "title": "Loading state is shown while generating a roadmap",
+    "description": "Verifies the UI shows a visible loading state during roadmap generation before results are shown.",
+    "category": "AI Roadmap Generation",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Log in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/app\""
+      },
+      {
+        "type": "action",
+        "description": "Type \"Learn data structures and algorithms for coding interviews\" into the learning goal input field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Generate\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Generating\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"roadmap node\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC034",
+    "title": "Reject disallowed or unsafe content in learning goal",
+    "description": "Verifies the generator shows an error/rejection message for disallowed content and keeps the user on the generator UI.",
+    "category": "AI Roadmap Generation",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Log in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/app\""
+      },
+      {
+        "type": "action",
+        "description": "Type \"How to make a weapon at home\" into the learning goal input field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Generate\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"error\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Generate\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/app\""
+      }
+    ]
+  },
+  {
+    "id": "TC035",
+    "title": "Handle ambiguous learning goal with visible error or rejection message",
+    "description": "Verifies the generator responds gracefully to an ambiguous goal by showing an error/help message and staying on the generator UI.",
+    "category": "AI Roadmap Generation",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Log in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/app\""
+      },
+      {
+        "type": "action",
+        "description": "Type \"Teach me everything\" into the learning goal input field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Generate\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"error\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Generate\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/app\""
+      }
+    ]
+  },
+  {
+    "id": "TC036",
+    "title": "Prevent generation when the learning goal is empty",
+    "description": "Verifies the UI blocks generation with an empty goal and shows a visible validation message.",
+    "category": "AI Roadmap Generation",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Log in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/app\""
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Generate\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"required\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Generate\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/app\""
+      }
+    ]
+  },
+  {
+    "id": "TC037",
+    "title": "Undo and redo reflect recent canvas changes",
+    "description": "Verifies undo and redo controls work after a visible canvas change is made.",
+    "category": "Roadmap Canvas Interaction",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/app\""
+      },
+      {
+        "type": "action",
+        "description": "Click on a node to select it"
+      },
+      {
+        "type": "action",
+        "description": "Use undo"
+      },
+      {
+        "type": "action",
+        "description": "Use redo"
+      }
+    ]
+  },
+  {
+    "id": "TC038",
+    "title": "Auto-save error shows toast with retry option after an edit",
+    "description": "Verifies an API save error during auto-save results in a visible error toast and a retry option.",
+    "category": "Roadmap Canvas Interaction",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/app\""
+      },
+      {
+        "type": "action",
+        "description": "Click on a node to select it"
+      },
+      {
+        "type": "action",
+        "description": "Wait for an auto-save error toast to appear"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Retry\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC039",
+    "title": "Retry from save error toast can be initiated",
+    "description": "Verifies the user can initiate a retry from the save error toast when auto-save fails.",
+    "category": "Roadmap Canvas Interaction",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/app\""
+      },
+      {
+        "type": "action",
+        "description": "Click on a node to select it"
+      },
+      {
+        "type": "action",
+        "description": "Wait for an auto-save error toast to appear"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Retry\" option in the toast"
+      }
+    ]
+  },
+  {
+    "id": "TC040",
+    "title": "Open node detail panel from the canvas",
+    "description": "Verifies a user can open the node detail panel by selecting a roadmap node in the /app workspace.",
     "category": "Node Detail Panel",
     "priority": "High",
     "steps": [
@@ -788,7 +1451,7 @@
       },
       {
         "type": "action",
-        "description": "Click the \"Sign in\" button"
+        "description": "Click the \"Log in\" button"
       },
       {
         "type": "assertion",
@@ -796,75 +1459,22 @@
       },
       {
         "type": "action",
-        "description": "Click on \"Frontend Developer\""
-      },
-      {
-        "type": "action",
-        "description": "Click on a node on the canvas"
+        "description": "Click on a roadmap node to open detail panel"
       },
       {
         "type": "assertion",
         "description": "Verify text \"Resources\" is visible"
       },
       {
-        "type": "action",
-        "description": "Click the \"Resources\" tab"
-      },
-      {
         "type": "assertion",
-        "description": "Verify text \"Resources\" is visible"
+        "description": "Verify text \"Notes\" is visible"
       }
     ]
   },
   {
-    "id": "TC022",
-    "title": "Open a resource link from the Resources tab",
-    "description": "Verifies a user can open a resource link from a node’s Resources tab without breaking the node panel experience.",
-    "category": "Node Detail Panel",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/app\""
-      },
-      {
-        "type": "action",
-        "description": "Click on a node on the canvas"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Resources\" tab"
-      },
-      {
-        "type": "action",
-        "description": "Click the first visible resource link in the list"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify page title contains \"http\""
-      }
-    ]
-  },
-  {
-    "id": "TC023",
-    "title": "Create notes in Notes tab and verify they persist after tab switching",
-    "description": "Verifies notes can be entered for a node and remain visible after switching away and back (auto-save behavior).",
+    "id": "TC041",
+    "title": "Resources tab shows resource cards with type tags",
+    "description": "Verifies Resources tab displays resource cards and each card shows a visible type tag.",
     "category": "Node Detail Panel",
     "priority": "High",
     "steps": [
@@ -882,7 +1492,7 @@
       },
       {
         "type": "action",
-        "description": "Click the \"Sign in\" button"
+        "description": "Click the \"Log in\" button"
       },
       {
         "type": "assertion",
@@ -890,34 +1500,63 @@
       },
       {
         "type": "action",
-        "description": "Click on a node on the canvas"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Notes\" tab"
-      },
-      {
-        "type": "action",
-        "description": "Type \"E2E note: auto-save check\" into the notes editor"
+        "description": "Click on a roadmap node to open detail panel"
       },
       {
         "type": "action",
         "description": "Click the \"Resources\" tab"
       },
       {
-        "type": "action",
-        "description": "Click the \"Notes\" tab"
-      },
-      {
         "type": "assertion",
-        "description": "Verify text \"E2E note: auto-save check\" is visible"
+        "description": "Verify element \"resource card\" is visible"
       }
     ]
   },
   {
-    "id": "TC024",
-    "title": "Switch between all tabs in the node detail panel",
-    "description": "Verifies the user can switch between Resources, AI Tutor, Notes, and Quiz tabs and each tab renders a visible header/label.",
+    "id": "TC042",
+    "title": "Notes tab allows typing notes and shows auto-save indicator",
+    "description": "Verifies user can enter notes for a node and sees an auto-save/saved indicator after typing.",
+    "category": "Node Detail Panel",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Log in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/app\""
+      },
+      {
+        "type": "action",
+        "description": "Click on a roadmap node to open detail panel"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Notes\" tab"
+      },
+      {
+        "type": "action",
+        "description": "Type \"These are test notes for this node.\" into the notes editor field"
+      }
+    ]
+  },
+  {
+    "id": "TC043",
+    "title": "Notes persist when closing and reopening the same node detail panel",
+    "description": "Verifies notes remain visible after closing the detail panel and reopening the same node.",
     "category": "Node Detail Panel",
     "priority": "Medium",
     "steps": [
@@ -935,7 +1574,7 @@
       },
       {
         "type": "action",
-        "description": "Click the \"Sign in\" button"
+        "description": "Click the \"Log in\" button"
       },
       {
         "type": "assertion",
@@ -943,15 +1582,146 @@
       },
       {
         "type": "action",
-        "description": "Click on a node on the canvas"
+        "description": "Click on a roadmap node to open detail panel"
       },
       {
         "type": "action",
-        "description": "Click the \"Resources\" tab"
+        "description": "Click the \"Notes\" tab"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Persistence check note.\" into the notes editor field"
+      },
+      {
+        "type": "action",
+        "description": "Press \"Escape\" key"
+      },
+      {
+        "type": "action",
+        "description": "Click on the same roadmap node to open detail panel"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Resources\" is visible"
+        "description": "Verify text \"Persistence check note.\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC044",
+    "title": "Quiz tab Start Quiz loads quiz UI when available",
+    "description": "Verifies that starting a quiz from the Quiz tab loads the quiz UI when the node is eligible.",
+    "category": "Node Detail Panel",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Log in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/app\""
+      },
+      {
+        "type": "action",
+        "description": "Click on a roadmap node to open detail panel"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Quiz\" tab"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Start Quiz\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Question\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC045",
+    "title": "Quiz tab shows locked state when prerequisites are not met",
+    "description": "Verifies Quiz tab communicates a locked state (and does not start) when prerequisites are missing for the selected node.",
+    "category": "Node Detail Panel",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Log in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/app\""
+      },
+      {
+        "type": "action",
+        "description": "Click on a roadmap node to open detail panel"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Quiz\" tab"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Locked\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC046",
+    "title": "Switch between detail panel tabs without losing panel context",
+    "description": "Verifies user can switch among Resources, AI Tutor, Notes, and Quiz tabs and each tab header remains accessible while the panel stays open.",
+    "category": "Node Detail Panel",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Log in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/app\""
+      },
+      {
+        "type": "action",
+        "description": "Click on a roadmap node to open detail panel"
       },
       {
         "type": "action",
@@ -963,26 +1733,18 @@
       },
       {
         "type": "action",
-        "description": "Click the \"Notes\" tab"
+        "description": "Click the \"Resources\" tab"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Notes\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Quiz\" tab"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Quiz\" is visible"
+        "description": "Verify text \"Resources\" is visible"
       }
     ]
   },
   {
-    "id": "TC025",
-    "title": "Start a quiz from the Quiz tab for a selected node",
-    "description": "Verifies the user can navigate to the Quiz tab and initiate a quiz using the Take Quiz button.",
+    "id": "TC047",
+    "title": "Mark node as completed from detail panel",
+    "description": "Verifies the user can mark a node as completed and sees a visible completion confirmation on the UI.",
     "category": "Node Detail Panel",
     "priority": "High",
     "steps": [
@@ -1000,7 +1762,7 @@
       },
       {
         "type": "action",
-        "description": "Click the \"Sign in\" button"
+        "description": "Click the \"Log in\" button"
       },
       {
         "type": "assertion",
@@ -1008,56 +1770,7 @@
       },
       {
         "type": "action",
-        "description": "Click on a node on the canvas"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Quiz\" tab"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Take Quiz\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Take Quiz\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Quiz\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC026",
-    "title": "Mark a node as completed from the node detail panel",
-    "description": "Verifies the user can mark the selected node as completed and sees a visible completion state confirmation.",
-    "category": "Node Detail Panel",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/app\""
-      },
-      {
-        "type": "action",
-        "description": "Click on a node on the canvas"
+        "description": "Click on a roadmap node to open detail panel"
       },
       {
         "type": "action",
@@ -1070,9 +1783,9 @@
     ]
   },
   {
-    "id": "TC027",
-    "title": "Pass a timed quiz and receive XP",
-    "description": "Verifies a user can start a node quiz, submit before time expires, see pass status, and receive XP.",
+    "id": "TC048",
+    "title": "Pass a node quiz and receive XP reward",
+    "description": "Verifies a user can start a node quiz, submit answers before the timer ends, see pass status, and see the +100 XP reward.",
     "category": "Quiz System",
     "priority": "High",
     "steps": [
@@ -1090,7 +1803,7 @@
       },
       {
         "type": "action",
-        "description": "Click the Log in button"
+        "description": "Click the Log In button"
       },
       {
         "type": "assertion",
@@ -1098,22 +1811,22 @@
       },
       {
         "type": "action",
-        "description": "Click on a node on the canvas to open its detail panel"
+        "description": "Click on a roadmap node on the canvas to open its detail panel"
       },
       {
         "type": "action",
-        "description": "Click on the \"Quiz\" tab in the node detail panel"
+        "description": "Click the Start Quiz button in the node detail panel"
       },
       {
-        "type": "action",
-        "description": "Click the \"Take Quiz\" button"
+        "type": "assertion",
+        "description": "Verify text \"Question 1\" is visible"
       }
     ]
   },
   {
-    "id": "TC028",
-    "title": "Submit quiz before timer ends and view results",
-    "description": "Verifies quiz questions can be answered and submitted before time runs out, and results are shown.",
+    "id": "TC049",
+    "title": "Submit quiz before timer ends and view results screen",
+    "description": "Verifies the quiz can be completed and submitted before timeout and that the results page shows score and pass/fail.",
     "category": "Quiz System",
     "priority": "High",
     "steps": [
@@ -1131,7 +1844,7 @@
       },
       {
         "type": "action",
-        "description": "Click the Log in button"
+        "description": "Click the Log In button"
       },
       {
         "type": "assertion",
@@ -1139,250 +1852,124 @@
       },
       {
         "type": "action",
-        "description": "Click on a node on the canvas to open its detail panel"
+        "description": "Click on a roadmap node on the canvas to open its detail panel"
       },
       {
         "type": "action",
-        "description": "Click on the \"Quiz\" tab in the node detail panel"
+        "description": "Click the Start Quiz button in the node detail panel"
       },
       {
         "type": "action",
-        "description": "Click the \"Take Quiz\" button"
+        "description": "Click an answer option for the current question"
+      },
+      {
+        "type": "action",
+        "description": "Click the Submit Quiz button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Score\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC050",
+    "title": "Fail a quiz and verify no XP reward is shown",
+    "description": "Verifies that when the quiz result is fail, the UI reflects fail status and does not show a +100 XP reward message.",
+    "category": "Quiz System",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the Log In button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/app\""
+      },
+      {
+        "type": "action",
+        "description": "Click on a roadmap node on the canvas to open its detail panel"
+      },
+      {
+        "type": "action",
+        "description": "Click the Start Quiz button in the node detail panel"
+      },
+      {
+        "type": "action",
+        "description": "Click an answer option for the current question"
+      },
+      {
+        "type": "action",
+        "description": "Click the Submit Quiz button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Fail\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC051",
+    "title": "Quiz timeout shows timeout message",
+    "description": "Verifies that letting the quiz timer expire without submission results in a visible timeout message.",
+    "category": "Quiz System",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the Log In button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/app\""
+      },
+      {
+        "type": "action",
+        "description": "Click on a roadmap node on the canvas to open its detail panel"
+      },
+      {
+        "type": "action",
+        "description": "Click the Start Quiz button in the node detail panel"
+      },
+      {
+        "type": "action",
+        "description": "Wait for the quiz timer to expire"
       },
       {
         "type": "assertion",
         "description": "Verify text \"Time\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Answer multiple choice questions"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Submit\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Score\" is visible"
       }
     ]
   },
   {
-    "id": "TC029",
-    "title": "Results display includes score and pass/fail status",
-    "description": "Verifies the results view shows a numeric score and an explicit pass/fail outcome after submission.",
-    "category": "Quiz System",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the Log in button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/app\""
-      },
-      {
-        "type": "action",
-        "description": "Click on a node on the canvas to open its detail panel"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Quiz\" tab in the node detail panel"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Take Quiz\" button"
-      },
-      {
-        "type": "action",
-        "description": "Answer multiple choice questions"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Submit\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Score\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Pass\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC030",
-    "title": "XP award is visible after passing a quiz",
-    "description": "Verifies that passing a quiz results in visible XP gain feedback to the user.",
-    "category": "Quiz System",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the Log in button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/app\""
-      },
-      {
-        "type": "action",
-        "description": "Click on a node on the canvas to open its detail panel"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Quiz\" tab in the node detail panel"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Take Quiz\" button"
-      },
-      {
-        "type": "action",
-        "description": "Answer multiple choice questions"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Submit\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"XP\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"earned\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC031",
-    "title": "Quiz timer expiration shows timeout message",
-    "description": "Verifies the system shows a timeout message when the quiz timer expires before submission.",
-    "category": "Quiz System",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the Log in button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/app\""
-      },
-      {
-        "type": "action",
-        "description": "Click on a node on the canvas to open its detail panel"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Quiz\" tab in the node detail panel"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Take Quiz\" button"
-      },
-      {
-        "type": "action",
-        "description": "Wait for the timer to expire"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Time's up\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC032",
-    "title": "Timer expiration shows partial results or retake prompt",
-    "description": "Verifies that after a timeout the user sees either partial results or a prompt to retake the quiz.",
-    "category": "Quiz System",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the Log in button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/app\""
-      },
-      {
-        "type": "action",
-        "description": "Click on a node on the canvas to open its detail panel"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Quiz\" tab in the node detail panel"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Take Quiz\" button"
-      },
-      {
-        "type": "action",
-        "description": "Wait for the timer to expire"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Retake\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC033",
-    "title": "Retake quiz after timeout starts a new attempt",
-    "description": "Verifies a user can retake the quiz after a timeout and is returned to the question view.",
+    "id": "TC052",
+    "title": "After timeout, user can retry the quiz",
+    "description": "Verifies that after a timeout, the UI provides a retry option and restarting shows the quiz again.",
     "category": "Quiz System",
     "priority": "Medium",
     "steps": [
@@ -1400,7 +1987,7 @@
       },
       {
         "type": "action",
-        "description": "Click the Log in button"
+        "description": "Click the Log In button"
       },
       {
         "type": "assertion",
@@ -1408,34 +1995,79 @@
       },
       {
         "type": "action",
-        "description": "Click on a node on the canvas to open its detail panel"
+        "description": "Click on a roadmap node on the canvas to open its detail panel"
       },
       {
         "type": "action",
-        "description": "Click on the \"Quiz\" tab in the node detail panel"
+        "description": "Click the Start Quiz button in the node detail panel"
       },
       {
         "type": "action",
-        "description": "Click the \"Take Quiz\" button"
+        "description": "Wait for the quiz timer to expire"
       },
       {
         "type": "action",
-        "description": "Wait for the timer to expire"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Retake\" button"
+        "description": "Click the Retry button"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Question\" is visible"
+        "description": "Verify text \"Question 1\" is visible"
       }
     ]
   },
   {
-    "id": "TC034",
-    "title": "Quiz UI remains usable when switching away and back to Quiz tab",
-    "description": "Verifies the node detail panel Quiz tab can be reopened and still shows quiz entry controls.",
+    "id": "TC053",
+    "title": "Quiz results show pass state and XP reward text when passing",
+    "description": "Verifies that the results UI explicitly shows pass status and the +100 XP reward when the quiz is passed.",
+    "category": "Quiz System",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the Log In button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/app\""
+      },
+      {
+        "type": "action",
+        "description": "Click on a roadmap node on the canvas to open its detail panel"
+      },
+      {
+        "type": "action",
+        "description": "Click the Start Quiz button in the node detail panel"
+      },
+      {
+        "type": "action",
+        "description": "Click an answer option for the current question"
+      },
+      {
+        "type": "action",
+        "description": "Click the Submit Quiz button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"+100 XP\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC054",
+    "title": "Attempt to submit without selecting an answer shows a visible validation message",
+    "description": "Verifies the quiz prevents submission when no option is selected and shows a visible prompt/error.",
     "category": "Quiz System",
     "priority": "Medium",
     "steps": [
@@ -1453,7 +2085,7 @@
       },
       {
         "type": "action",
-        "description": "Click the Log in button"
+        "description": "Click the Log In button"
       },
       {
         "type": "assertion",
@@ -1461,34 +2093,26 @@
       },
       {
         "type": "action",
-        "description": "Click on a node on the canvas to open its detail panel"
+        "description": "Click on a roadmap node on the canvas to open its detail panel"
       },
       {
         "type": "action",
-        "description": "Click on the \"Quiz\" tab in the node detail panel"
+        "description": "Click the Start Quiz button in the node detail panel"
+      },
+      {
+        "type": "action",
+        "description": "Click the Submit Quiz button"
       },
       {
         "type": "assertion",
-        "description": "Verify element \"Take Quiz\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Click on a different tab in the node detail panel"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Quiz\" tab in the node detail panel"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Take Quiz\" is visible"
+        "description": "Verify text \"Select\" is visible"
       }
     ]
   },
   {
-    "id": "TC035",
-    "title": "Node-scoped AI Tutor chat: send question and see AI response",
-    "description": "Verifies a user can open AI Tutor for a node, send a question, and see an AI response in the chat thread.",
+    "id": "TC055",
+    "title": "Project-scoped AI Tutor chat: send question and see markdown response",
+    "description": "Verifies a user can open the AI Tutor, send a question, and see an AI response rendered as readable markdown.",
     "category": "AI Tutor Chat",
     "priority": "High",
     "steps": [
@@ -1506,7 +2130,7 @@
       },
       {
         "type": "action",
-        "description": "Click the \"Log in\" button"
+        "description": "Click the \"Sign in\" button"
       },
       {
         "type": "assertion",
@@ -1514,15 +2138,11 @@
       },
       {
         "type": "action",
-        "description": "Click on a node on the canvas"
+        "description": "Click on the \"AI Tutor\" tab in the project chat area"
       },
       {
         "type": "action",
-        "description": "Click the \"AI Tutor\" tab in the node detail panel"
-      },
-      {
-        "type": "action",
-        "description": "Type \"Explain the key concepts of this topic in simple terms.\" into the chat message input field"
+        "description": "Type \"Explain the difference between REST and GraphQL with examples.\" into the chat input"
       },
       {
         "type": "action",
@@ -1530,18 +2150,18 @@
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Explain the key concepts of this topic in simple terms.\" is visible"
+        "description": "Verify text \"REST\" is visible in the AI response area"
       },
       {
         "type": "assertion",
-        "description": "Verify an AI tutor response message is visible in the chat thread"
+        "description": "Verify element \"AI response message\" is visible"
       }
     ]
   },
   {
-    "id": "TC036",
-    "title": "AI Tutor chat history persists when reopening the same node",
-    "description": "Verifies previously sent messages and AI responses remain visible after closing and reopening the AI Tutor for the same node.",
+    "id": "TC056",
+    "title": "Node-scoped AI Tutor chat: open from node details and send a question",
+    "description": "Verifies a user can open a node’s details, switch to its AI Tutor chat, and receive a response scoped to that node.",
     "category": "AI Tutor Chat",
     "priority": "High",
     "steps": [
@@ -1559,7 +2179,7 @@
       },
       {
         "type": "action",
-        "description": "Click the \"Log in\" button"
+        "description": "Click the \"Sign in\" button"
       },
       {
         "type": "assertion",
@@ -1567,15 +2187,19 @@
       },
       {
         "type": "action",
-        "description": "Click on a node on the canvas"
+        "description": "Click on a visible node on the roadmap canvas"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Node details panel\" is visible"
       },
       {
         "type": "action",
-        "description": "Click the \"AI Tutor\" tab in the node detail panel"
+        "description": "Click the \"AI Tutor\" tab within the node details panel"
       },
       {
         "type": "action",
-        "description": "Type \"Give me a short practice question for this topic.\" into the chat message input field"
+        "description": "Type \"Summarize the key concepts for this topic in 5 bullet points.\" into the chat input"
       },
       {
         "type": "action",
@@ -1583,34 +2207,71 @@
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Give me a short practice question for this topic.\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify an AI tutor response message is visible in the chat thread"
-      },
-      {
-        "type": "action",
-        "description": "Click the node detail panel close button"
-      },
-      {
-        "type": "action",
-        "description": "Click on the same node on the canvas"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"AI Tutor\" tab in the node detail panel"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Give me a short practice question for this topic.\" is visible"
+        "description": "Verify text \"•\" is visible in the AI response area"
       }
     ]
   },
   {
-    "id": "TC037",
-    "title": "AI Tutor chat input validation: prevent sending an empty message",
-    "description": "Verifies the chat does not send when the message input is empty and the UI indicates the message cannot be sent.",
+    "id": "TC057",
+    "title": "Chat history persists within the session after sending messages",
+    "description": "Verifies previously sent messages remain visible when leaving and returning to the AI Tutor tab.",
+    "category": "AI Tutor Chat",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/app\""
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"AI Tutor\" tab in the project chat area"
+      },
+      {
+        "type": "action",
+        "description": "Type \"What is a closure in JavaScript?\" into the chat input"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Send\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"What is a closure in JavaScript?\" is visible in the chat history"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Notes\" tab (or another non-chat tab) in the same side panel"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"AI Tutor\" tab in the project chat area"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"What is a closure in JavaScript?\" is visible in the chat history"
+      }
+    ]
+  },
+  {
+    "id": "TC058",
+    "title": "Like an AI response and see feedback confirmation",
+    "description": "Verifies a user can like an AI response and receives a visible confirmation that feedback was recorded.",
     "category": "AI Tutor Chat",
     "priority": "Medium",
     "steps": [
@@ -1628,7 +2289,7 @@
       },
       {
         "type": "action",
-        "description": "Click the \"Log in\" button"
+        "description": "Click the \"Sign in\" button"
       },
       {
         "type": "assertion",
@@ -1636,60 +2297,11 @@
       },
       {
         "type": "action",
-        "description": "Click on a node on the canvas"
+        "description": "Click on the \"AI Tutor\" tab in the project chat area"
       },
       {
         "type": "action",
-        "description": "Click the \"AI Tutor\" tab in the node detail panel"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Send\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Message cannot be empty\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC038",
-    "title": "AI Tutor maintains separate chat history between two different nodes",
-    "description": "Verifies node-scoped separation: messages sent on one node are not shown when switching to a different node’s AI Tutor chat.",
-    "category": "AI Tutor Chat",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Log in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/app\""
-      },
-      {
-        "type": "action",
-        "description": "Click on a node on the canvas"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"AI Tutor\" tab in the node detail panel"
-      },
-      {
-        "type": "action",
-        "description": "Type \"Define the most important terms for this node.\" into the chat message input field"
+        "description": "Type \"Give me a concise explanation of event bubbling.\" into the chat input"
       },
       {
         "type": "action",
@@ -1697,30 +2309,22 @@
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Define the most important terms for this node.\" is visible"
+        "description": "Verify element \"Like\" is visible on the latest AI response message"
       },
       {
         "type": "action",
-        "description": "Click the node detail panel close button"
-      },
-      {
-        "type": "action",
-        "description": "Click on a different node on the canvas"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"AI Tutor\" tab in the node detail panel"
+        "description": "Click the \"Like\" control on the latest AI response message"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Define the most important terms for this node.\" is not visible"
+        "description": "Verify text \"Feedback\" is visible"
       }
     ]
   },
   {
-    "id": "TC039",
-    "title": "AI Tutor chat thread supports scrolling to view earlier messages",
-    "description": "Verifies that when the chat thread has multiple messages, the user can scroll and still see earlier sent messages.",
+    "id": "TC059",
+    "title": "Dislike an AI response and verify state changes visibly",
+    "description": "Verifies a user can dislike an AI response and the UI indicates the feedback action was applied.",
     "category": "AI Tutor Chat",
     "priority": "Low",
     "steps": [
@@ -1738,7 +2342,7 @@
       },
       {
         "type": "action",
-        "description": "Click the \"Log in\" button"
+        "description": "Click the \"Sign in\" button"
       },
       {
         "type": "assertion",
@@ -1746,43 +2350,35 @@
       },
       {
         "type": "action",
-        "description": "Click on a node on the canvas"
+        "description": "Click on the \"AI Tutor\" tab in the project chat area"
       },
       {
         "type": "action",
-        "description": "Click the \"AI Tutor\" tab in the node detail panel"
-      },
-      {
-        "type": "action",
-        "description": "Type \"List 5 key takeaways.\" into the chat message input field"
+        "description": "Type \"Explain recursion in one paragraph.\" into the chat input"
       },
       {
         "type": "action",
         "description": "Click the \"Send\" button"
       },
       {
-        "type": "action",
-        "description": "Type \"Now expand on takeaway #1.\" into the chat message input field"
+        "type": "assertion",
+        "description": "Verify element \"Dislike\" is visible on the latest AI response message"
       },
       {
         "type": "action",
-        "description": "Click the \"Send\" button"
-      },
-      {
-        "type": "action",
-        "description": "Scroll to the top of the chat thread"
+        "description": "Click the \"Dislike\" control on the latest AI response message"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"List 5 key takeaways.\" is visible"
+        "description": "Verify text \"Feedback\" is visible"
       }
     ]
   },
   {
-    "id": "TC040",
-    "title": "Auto-save notes for a selected node shows saved indicator",
-    "description": "Verifies that typing notes in a node’s Notes tab auto-saves and shows a saved state.",
-    "category": "Notes",
+    "id": "TC060",
+    "title": "Auto-save notes persist when switching between nodes",
+    "description": "Verifies that per-node notes auto-save and are still present after switching to another node and returning.",
+    "category": "Notes (Auto-save)",
     "priority": "High",
     "steps": [
       {
@@ -1799,7 +2395,7 @@
       },
       {
         "type": "action",
-        "description": "Click the \"Log in\" button"
+        "description": "Click on the \"Sign in\" button"
       },
       {
         "type": "assertion",
@@ -1807,27 +2403,55 @@
       },
       {
         "type": "action",
-        "description": "Click on a node on the canvas"
+        "description": "Click on a visible roadmap node in the canvas to open its detail panel"
       },
       {
         "type": "action",
-        "description": "Click the \"Notes\" tab in the node detail panel"
+        "description": "Click on the \"Notes\" tab in the node detail panel"
       },
       {
         "type": "action",
-        "description": "Type \"My first note for this node.\" into the notes editor"
+        "description": "Type \"Auto-save note A - persistence check\" into the notes editor"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Saved\" is visible"
+        "description": "Verify an auto-save indicator is visible (e.g., \"Saving\" or \"Saved\")"
+      },
+      {
+        "type": "action",
+        "description": "Click on a different visible roadmap node in the canvas"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Notes\" tab in the node detail panel"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Auto-save note B\" into the notes editor"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an auto-save indicator is visible (e.g., \"Saving\" or \"Saved\")"
+      },
+      {
+        "type": "action",
+        "description": "Click back on the first roadmap node in the canvas"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Notes\" tab in the node detail panel"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Auto-save note A - persistence check\" is visible in the notes editor"
       }
     ]
   },
   {
-    "id": "TC041",
-    "title": "Notes persist after closing and reopening the same node detail panel",
-    "description": "Verifies that previously saved notes are still visible when reopening the same node’s Notes tab.",
-    "category": "Notes",
+    "id": "TC061",
+    "title": "Auto-save shows progress state while typing notes",
+    "description": "Verifies the UI shows a saving/saved state after notes are edited.",
+    "category": "Notes (Auto-save)",
     "priority": "High",
     "steps": [
       {
@@ -1844,7 +2468,7 @@
       },
       {
         "type": "action",
-        "description": "Click the \"Log in\" button"
+        "description": "Click on the \"Sign in\" button"
       },
       {
         "type": "assertion",
@@ -1852,104 +2476,27 @@
       },
       {
         "type": "action",
-        "description": "Click on a node on the canvas"
+        "description": "Click on a visible roadmap node in the canvas to open its detail panel"
       },
       {
         "type": "action",
-        "description": "Click the \"Notes\" tab in the node detail panel"
+        "description": "Click on the \"Notes\" tab in the node detail panel"
       },
       {
         "type": "action",
-        "description": "Type \"Persistence check note.\" into the notes editor"
+        "description": "Type \"Typing to trigger auto-save state\" into the notes editor"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Saved\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Press \"Escape\""
-      },
-      {
-        "type": "action",
-        "description": "Click on the same node on the canvas"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Notes\" tab in the node detail panel"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Persistence check note.\" is visible"
+        "description": "Verify an auto-save indicator is visible (e.g., \"Saving\" or \"Saved\")"
       }
     ]
   },
   {
-    "id": "TC042",
-    "title": "Notes are unique per node (switching nodes shows different content)",
-    "description": "Verifies that notes entered for one node do not appear when viewing a different node’s Notes tab.",
-    "category": "Notes",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Log in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/app\""
-      },
-      {
-        "type": "action",
-        "description": "Click on a node on the canvas"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Notes\" tab in the node detail panel"
-      },
-      {
-        "type": "action",
-        "description": "Type \"Node A unique note.\" into the notes editor"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Saved\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Press \"Escape\""
-      },
-      {
-        "type": "action",
-        "description": "Click on a different node on the canvas"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Notes\" tab in the node detail panel"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Node A unique note.\" is not visible"
-      }
-    ]
-  },
-  {
-    "id": "TC043",
-    "title": "Saved indicator appears after an edit (not only on initial load)",
-    "description": "Verifies that editing existing notes triggers auto-save and returns to a saved state.",
-    "category": "Notes",
+    "id": "TC062",
+    "title": "Notes remain saved after reopening the detail panel for the same node",
+    "description": "Verifies that closing and reopening the same node detail panel retains the saved notes content.",
+    "category": "Notes (Auto-save)",
     "priority": "Medium",
     "steps": [
       {
@@ -1966,7 +2513,7 @@
       },
       {
         "type": "action",
-        "description": "Click the \"Log in\" button"
+        "description": "Click on the \"Sign in\" button"
       },
       {
         "type": "assertion",
@@ -1974,35 +2521,43 @@
       },
       {
         "type": "action",
-        "description": "Click on a node on the canvas"
+        "description": "Click on a visible roadmap node in the canvas to open its detail panel"
       },
       {
         "type": "action",
-        "description": "Click the \"Notes\" tab in the node detail panel"
+        "description": "Click on the \"Notes\" tab in the node detail panel"
       },
       {
         "type": "action",
-        "description": "Type \"Initial content.\" into the notes editor"
+        "description": "Type \"Reopen panel persistence note\" into the notes editor"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Saved\" is visible"
+        "description": "Verify an auto-save indicator is visible (e.g., \"Saving\" or \"Saved\")"
       },
       {
         "type": "action",
-        "description": "Type \" Added more.\" into the notes editor"
+        "description": "Click on a different visible roadmap node in the canvas"
+      },
+      {
+        "type": "action",
+        "description": "Click back on the original roadmap node in the canvas"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Notes\" tab in the node detail panel"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Saved\" is visible"
+        "description": "Verify text \"Reopen panel persistence note\" is visible in the notes editor"
       }
     ]
   },
   {
-    "id": "TC044",
-    "title": "Notes tab is accessible from node detail panel and shows an editor area",
-    "description": "Verifies that the Notes tab can be opened and an editable notes area is visible for a selected node.",
-    "category": "Notes",
+    "id": "TC063",
+    "title": "Notes can be cleared and the cleared state persists for that node",
+    "description": "Verifies that deleting notes content triggers auto-save and the node shows empty notes when revisited.",
+    "category": "Notes (Auto-save)",
     "priority": "Medium",
     "steps": [
       {
@@ -2019,7 +2574,7 @@
       },
       {
         "type": "action",
-        "description": "Click the \"Log in\" button"
+        "description": "Click on the \"Sign in\" button"
       },
       {
         "type": "assertion",
@@ -2027,23 +2582,63 @@
       },
       {
         "type": "action",
-        "description": "Click on a node on the canvas"
+        "description": "Click on a visible roadmap node in the canvas to open its detail panel"
       },
       {
         "type": "action",
-        "description": "Click the \"Notes\" tab in the node detail panel"
+        "description": "Click on the \"Notes\" tab in the node detail panel"
+      },
+      {
+        "type": "action",
+        "description": "Type \"This note will be cleared\" into the notes editor"
       },
       {
         "type": "assertion",
-        "description": "Verify element \"Notes editor\" is visible"
+        "description": "Verify an auto-save indicator is visible (e.g., \"Saving\" or \"Saved\")"
+      },
+      {
+        "type": "action",
+        "description": "Press \"Escape\" to close the node detail panel (if supported)"
+      },
+      {
+        "type": "action",
+        "description": "Click on the same roadmap node again to reopen its detail panel"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Notes\" tab in the node detail panel"
+      },
+      {
+        "type": "action",
+        "description": "Press \"Backspace\" in the notes editor to remove content until empty"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an auto-save indicator is visible (e.g., \"Saving\" or \"Saved\")"
+      },
+      {
+        "type": "action",
+        "description": "Click on a different visible roadmap node in the canvas"
+      },
+      {
+        "type": "action",
+        "description": "Click back on the original roadmap node in the canvas"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Notes\" tab in the node detail panel"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"This note will be cleared\" is not visible in the notes editor"
       }
     ]
   },
   {
-    "id": "TC045",
-    "title": "View profile overview (stats, achievements, and projects)",
-    "description": "Verifies the profile page loads and shows learning stats, achievements/badges, and a project list with progress.",
-    "category": "User Profile",
+    "id": "TC064",
+    "title": "View profile overview: XP, level, streaks, learning minutes, quiz stats, badges, and completed topics are visible",
+    "description": "Verifies the authenticated user can open the Profile page and see all core gamification/stat sections rendered.",
+    "category": "Profile and Gamification",
     "priority": "High",
     "steps": [
       {
@@ -2060,11 +2655,11 @@
       },
       {
         "type": "action",
-        "description": "Click the \"Log in\" button"
+        "description": "Click on the \"Log in\" button"
       },
       {
         "type": "action",
-        "description": "Click \"Profile\" in the main navigation"
+        "description": "Click on \"Profile\" in the app navigation"
       },
       {
         "type": "assertion",
@@ -2076,97 +2671,15 @@
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Achievements\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC046",
-    "title": "Profile stats show key metrics (XP, level, streak, learning time)",
-    "description": "Verifies the profile page displays the main learning metrics in the stats area.",
-    "category": "User Profile",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Log in\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Profile\" in the main navigation"
-      },
-      {
-        "type": "assertion",
         "description": "Verify text \"Level\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Streak\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Learning time\" is visible"
       }
     ]
   },
   {
-    "id": "TC047",
-    "title": "Project list shows projects with progress indicators",
-    "description": "Verifies the project list section is visible and displays progress information for projects.",
-    "category": "User Profile",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Log in\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Profile\" in the main navigation"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Projects\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Progress\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"project list\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC048",
-    "title": "Edit profile: update name and bio and save successfully",
-    "description": "Verifies a user can edit profile fields and sees a success confirmation after saving.",
-    "category": "User Profile",
+    "id": "TC065",
+    "title": "Profile streak section: current streak and longest streak are displayed",
+    "description": "Verifies the Profile page shows both current and longest streak values/labels.",
+    "category": "Profile and Gamification",
     "priority": "High",
     "steps": [
       {
@@ -2183,39 +2696,31 @@
       },
       {
         "type": "action",
-        "description": "Click the \"Log in\" button"
+        "description": "Click on the \"Log in\" button"
       },
       {
         "type": "action",
-        "description": "Click \"Profile\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Edit profile\" button"
-      },
-      {
-        "type": "action",
-        "description": "Fill \"Updated Test Name\" into the name field"
-      },
-      {
-        "type": "action",
-        "description": "Fill \"Updated bio for UI test\" into the bio field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Save\" button"
+        "description": "Click on \"Profile\" in the app navigation"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Profile updated\" is visible"
+        "description": "Verify text \"Current streak\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Longest streak\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Streak\" is visible"
       }
     ]
   },
   {
-    "id": "TC049",
-    "title": "Edit profile: update additional fields (location and job role) and save",
-    "description": "Verifies editing optional profile fields (location, job role) can be saved successfully.",
-    "category": "User Profile",
+    "id": "TC066",
+    "title": "Profile learning time: learning minutes section is visible",
+    "description": "Verifies the learning minutes/learning time stat is shown on the Profile page for an authenticated user.",
+    "category": "Profile and Gamification",
     "priority": "Medium",
     "steps": [
       {
@@ -2232,39 +2737,31 @@
       },
       {
         "type": "action",
-        "description": "Click the \"Log in\" button"
+        "description": "Click on the \"Log in\" button"
       },
       {
         "type": "action",
-        "description": "Click \"Profile\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Edit profile\" button"
-      },
-      {
-        "type": "action",
-        "description": "Fill \"New York\" into the location field"
-      },
-      {
-        "type": "action",
-        "description": "Fill \"Software Engineer\" into the job role field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Save\" button"
+        "description": "Click on \"Profile\" in the app navigation"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Profile updated\" is visible"
+        "description": "Verify text \"Learning\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Minutes\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Learning minutes\" is visible"
       }
     ]
   },
   {
-    "id": "TC050",
-    "title": "Edit profile: cancel/close edit does not apply changes",
-    "description": "Verifies closing the edit profile experience does not apply unsaved changes to the visible profile.",
-    "category": "User Profile",
+    "id": "TC067",
+    "title": "Profile quiz statistics section is visible",
+    "description": "Verifies the Profile page displays quiz statistics for the authenticated user.",
+    "category": "Profile and Gamification",
     "priority": "Medium",
     "steps": [
       {
@@ -2281,35 +2778,113 @@
       },
       {
         "type": "action",
-        "description": "Click the \"Log in\" button"
+        "description": "Click on the \"Log in\" button"
       },
       {
         "type": "action",
-        "description": "Click \"Profile\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Edit profile\" button"
-      },
-      {
-        "type": "action",
-        "description": "Fill \"This Should Not Persist\" into the bio field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Cancel\" button"
+        "description": "Click on \"Profile\" in the app navigation"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"This Should Not Persist\" is not visible"
+        "description": "Verify text \"Quiz\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Stats\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Quiz stats\" is visible"
       }
     ]
   },
   {
-    "id": "TC051",
-    "title": "Edit profile: validation error shows message and preserves draft values",
-    "description": "Verifies a validation failure on save shows an error message and keeps the user-entered values in the edit form.",
-    "category": "User Profile",
+    "id": "TC068",
+    "title": "Profile achievements: badges section is visible",
+    "description": "Verifies the Profile page displays a badges/achievements area for the authenticated user.",
+    "category": "Profile and Gamification",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Log in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Profile\" in the app navigation"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Badges\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Badges\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Achievements\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC069",
+    "title": "Profile progress: completed topics/roadmaps section is visible",
+    "description": "Verifies the Profile page displays completed topics (and/or completed roadmaps) information.",
+    "category": "Profile and Gamification",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Log in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Profile\" in the app navigation"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Completed\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Completed topics\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Completed roadmaps\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC070",
+    "title": "Toggle roadmap from public back to private and confirm state reflects private",
+    "description": "Verifies a user can revert a previously public roadmap to private and the UI reflects the private state.",
+    "category": "Roadmap Sharing and Public View",
     "priority": "High",
     "steps": [
       {
@@ -2326,56 +2901,7 @@
       },
       {
         "type": "action",
-        "description": "Click the \"Log in\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Profile\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Edit profile\" button"
-      },
-      {
-        "type": "action",
-        "description": "Fill \"\" into the name field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Save\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"error\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Edit profile\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC052",
-    "title": "Create a new project from the app and open it in the canvas",
-    "description": "Verifies a user can create a new project and see it appear in the sidebar and open in the canvas.",
-    "category": "Project Management",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
+        "description": "Click on the \"Log in\" button"
       },
       {
         "type": "assertion",
@@ -2383,379 +2909,11 @@
       },
       {
         "type": "action",
-        "description": "Click the \"New Project\" button"
+        "description": "Click on \"Project settings\""
       },
       {
         "type": "action",
-        "description": "Type \"E2E Project Alpha\" into the project name field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Create\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"E2E Project Alpha\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC053",
-    "title": "Delete a project successfully after confirming deletion",
-    "description": "Verifies a user can delete a project via the sidebar delete action and it is removed from the list.",
-    "category": "Project Management",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/app\""
-      },
-      {
-        "type": "action",
-        "description": "Click the \"New Project\" button"
-      },
-      {
-        "type": "action",
-        "description": "Type \"Delete Me E2E\" into the project name field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Create\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Delete Me E2E\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Click delete on the project \"Delete Me E2E\" in the sidebar"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Confirm\" button in the delete confirmation dialog"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Delete Me E2E\" is not visible"
-      }
-    ]
-  },
-  {
-    "id": "TC054",
-    "title": "Cancel deletion from the confirmation dialog keeps the project",
-    "description": "Verifies a user can cancel a delete confirmation and the project is not removed.",
-    "category": "Project Management",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/app\""
-      },
-      {
-        "type": "action",
-        "description": "Click the \"New Project\" button"
-      },
-      {
-        "type": "action",
-        "description": "Type \"Cancel Delete E2E\" into the project name field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Create\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Cancel Delete E2E\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Click delete on the project \"Cancel Delete E2E\" in the sidebar"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Cancel\" button in the delete confirmation dialog"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Cancel Delete E2E\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC055",
-    "title": "Attempt to create a project with an empty name shows validation and does not create",
-    "description": "Verifies the UI prevents creating a project without a name and no new project appears.",
-    "category": "Project Management",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/app\""
-      },
-      {
-        "type": "action",
-        "description": "Click the \"New Project\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Create\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Project name\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Required\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC056",
-    "title": "Project list is visible on app load for an authenticated user",
-    "description": "Verifies the projects sidebar list is present after logging in and loading the app.",
-    "category": "Project Management",
-    "priority": "Low",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/app\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Projects sidebar list\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"New Project button\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC057",
-    "title": "Make a roadmap public and open the shared link in read-only mode",
-    "description": "Verifies a user can enable public visibility, copy the share link, and view the roadmap as a visitor in read-only mode.",
-    "category": "Share Roadmap",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Log in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/app\""
-      },
-      {
-        "type": "action",
-        "description": "Open project settings for the current roadmap"
-      },
-      {
-        "type": "action",
-        "description": "Toggle roadmap public visibility"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Public\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC058",
-    "title": "Copy share link after enabling public visibility",
-    "description": "Verifies the share link can be copied after making a roadmap public and the UI indicates a successful copy.",
-    "category": "Share Roadmap",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Log in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/app\""
-      },
-      {
-        "type": "action",
-        "description": "Open project settings for the current roadmap"
-      },
-      {
-        "type": "action",
-        "description": "Toggle roadmap public visibility"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Copy share link\""
-      }
-    ]
-  },
-  {
-    "id": "TC059",
-    "title": "Shared roadmap is visibly read-only for visitors",
-    "description": "Verifies the shared roadmap view indicates read-only mode and does not present editing controls.",
-    "category": "Share Roadmap",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Log in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/app\""
-      },
-      {
-        "type": "action",
-        "description": "Open project settings for the current roadmap"
-      },
-      {
-        "type": "action",
-        "description": "Toggle roadmap public visibility"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Copy share link\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Read-only\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC060",
-    "title": "Turning public visibility off removes public indicator in settings",
-    "description": "Verifies a user can disable public visibility and the settings UI reflects the roadmap is no longer public.",
-    "category": "Share Roadmap",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Log in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/app\""
-      },
-      {
-        "type": "action",
-        "description": "Open project settings for the current roadmap"
-      },
-      {
-        "type": "action",
-        "description": "Toggle roadmap public visibility"
+        "description": "Click on the \"Public\" toggle to set the roadmap to private"
       },
       {
         "type": "assertion",
@@ -2764,9 +2922,222 @@
     ]
   },
   {
-    "id": "TC061",
-    "title": "Landing page loads and shows hero CTA",
-    "description": "Verifies the public landing page loads successfully and the hero section with the primary CTA is visible.",
+    "id": "TC071",
+    "title": "Update appearance and editor preferences from Settings (theme + AI panel)",
+    "description": "Verifies a logged-in user can change theme and an editor preference on the Settings page and sees the UI reflect the changes.",
+    "category": "Settings and Language",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Log in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Settings\" link in the app navigation"
+      },
+      {
+        "type": "action",
+        "description": "Toggle the dark/light mode setting"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Theme\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Toggle the AI panel setting"
+      }
+    ]
+  },
+  {
+    "id": "TC072",
+    "title": "Change language preference from Settings and see UI update",
+    "description": "Verifies a logged-in user can change language preference and sees visible UI text update accordingly.",
+    "category": "Settings and Language",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Log in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Language\" link in the app navigation"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Language\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Select \"Indonesian\" from the language dropdown"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Bahasa\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC073",
+    "title": "Navigate from Settings to Language page via in-page control",
+    "description": "Verifies a logged-in user can reach the Language preference page from Settings using a visible navigation control.",
+    "category": "Settings and Language",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Log in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Settings\" link in the app navigation"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Settings\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Language\" option in Settings"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/language\""
+      }
+    ]
+  },
+  {
+    "id": "TC074",
+    "title": "Theme toggle persists across navigation to Profile and back to Settings",
+    "description": "Verifies that after changing theme in Settings, the selected theme remains applied when navigating to another page and returning.",
+    "category": "Settings and Language",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Log in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Settings\" link in the app navigation"
+      },
+      {
+        "type": "action",
+        "description": "Toggle the dark/light mode setting"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Profile\" link in the app navigation"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Profile\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Settings\" link in the app navigation"
+      }
+    ]
+  },
+  {
+    "id": "TC075",
+    "title": "Change language to Indonesian and back to English",
+    "description": "Verifies a logged-in user can switch language preferences between Indonesian and English and sees visible UI labels change each time.",
+    "category": "Settings and Language",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Log in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Language\" link in the app navigation"
+      },
+      {
+        "type": "action",
+        "description": "Select \"Indonesian\" from the language dropdown"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Bahasa\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Select \"English\" from the language dropdown"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Language\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC076",
+    "title": "Landing page core sections are visible and ordered content can be browsed",
+    "description": "Verifies a visitor can load the landing page and see the hero, features, pricing, and FAQ sections.",
     "category": "Landing Page",
     "priority": "High",
     "steps": [
@@ -2776,26 +3147,71 @@
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/\""
+        "description": "Verify page title contains \"SkillBridge\""
       },
       {
         "type": "assertion",
         "description": "Verify text \"Get Started\" is visible"
       },
       {
+        "type": "action",
+        "description": "Scroll to the features section"
+      },
+      {
         "type": "assertion",
-        "description": "Verify element \"Hero section\" is visible"
+        "description": "Verify text \"Features\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Scroll to the pricing section"
       },
       {
         "type": "assertion",
         "description": "Verify text \"Pricing\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Scroll to the FAQ section"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"FAQ\" is visible"
       }
     ]
   },
   {
-    "id": "TC062",
-    "title": "Browse feature highlights section from the landing page",
-    "description": "Verifies the user can scroll and see the feature highlights section content.",
+    "id": "TC077",
+    "title": "Get Started CTA navigates to Register page",
+    "description": "Verifies the primary call-to-action on the landing page takes the user to the registration route.",
+    "category": "Landing Page",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Get Started\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Get Started\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/register\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Register\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC078",
+    "title": "Browse features section content is accessible via scrolling",
+    "description": "Verifies the user can reach the features section and see feature-related content on the landing page.",
     "category": "Landing Page",
     "priority": "Medium",
     "steps": [
@@ -2804,114 +3220,27 @@
         "description": "Navigate to /"
       },
       {
-        "type": "assertion",
-        "description": "Verify element \"Hero section\" is visible"
-      },
-      {
         "type": "action",
-        "description": "Scroll to \"Feature highlights\" section"
+        "description": "Scroll to the features section"
       },
       {
         "type": "assertion",
-        "description": "Verify element \"Feature highlights\" is visible"
+        "description": "Verify text \"Features\" is visible"
       },
       {
         "type": "assertion",
         "description": "Verify text \"AI\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Roadmap\" is visible"
       }
     ]
   },
   {
-    "id": "TC063",
-    "title": "View comparison table section",
-    "description": "Verifies the comparison section is reachable and visible on the landing page.",
-    "category": "Landing Page",
-    "priority": "Low",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /"
-      },
-      {
-        "type": "action",
-        "description": "Scroll to \"Comparison\" section"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Comparison table\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Comparison\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Pricing\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC064",
-    "title": "View pricing plans section",
-    "description": "Verifies the pricing section is visible and presents plan information on the landing page.",
-    "category": "Landing Page",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /"
-      },
-      {
-        "type": "action",
-        "description": "Scroll to \"Pricing\" section"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Pricing plans\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Pricing\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Get Started\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC065",
-    "title": "Get Started CTA navigates to registration page",
-    "description": "Verifies clicking the primary Get Started CTA routes the visitor to the registration page.",
-    "category": "Landing Page",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Get Started\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Get Started\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/register\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify page title contains \"Register\""
-      }
-    ]
-  },
-  {
-    "id": "TC066",
-    "title": "Get Started CTA works after scrolling to pricing",
-    "description": "Verifies a Get Started CTA remains usable after the user browses lower sections and still routes to registration.",
+    "id": "TC079",
+    "title": "Pricing section is visible and plan information is presented",
+    "description": "Verifies the pricing section can be reached and displays plan-related information.",
     "category": "Landing Page",
     "priority": "Medium",
     "steps": [
@@ -2921,19 +3250,421 @@
       },
       {
         "type": "action",
-        "description": "Scroll to \"Pricing\" section"
+        "description": "Scroll to the pricing section"
       },
       {
         "type": "assertion",
-        "description": "Verify element \"Pricing plans\" is visible"
+        "description": "Verify text \"Pricing\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Plan\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Free\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC080",
+    "title": "FAQ section is readable and at least one question is visible",
+    "description": "Verifies the user can reach the FAQ section and read FAQ content.",
+    "category": "Landing Page",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
       },
       {
         "type": "action",
-        "description": "Click \"Get Started\""
+        "description": "Scroll to the FAQ section"
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/register\""
+        "description": "Verify text \"FAQ\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"FAQ question\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"FAQ answer\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC081",
+    "title": "Switch language to Indonesian updates landing page UI text",
+    "description": "Verifies selecting Indonesian from the language switch changes visible UI text on the landing page.",
+    "category": "Landing Page",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Get Started\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on the language switch control"
+      },
+      {
+        "type": "action",
+        "description": "Select \"Indonesian\" from the language options"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Mulai\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Fitur\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC082",
+    "title": "Switch language back to English restores landing page UI text",
+    "description": "Verifies switching back to English returns the landing page to English UI text.",
+    "category": "Landing Page",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the language switch control"
+      },
+      {
+        "type": "action",
+        "description": "Select \"Indonesian\" from the language options"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Mulai\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on the language switch control"
+      },
+      {
+        "type": "action",
+        "description": "Select \"English\" from the language options"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Get Started\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC083",
+    "title": "Language selection persists while browsing sections on the landing page",
+    "description": "Verifies that after changing language, scrolling through sections continues to show the selected language text.",
+    "category": "Landing Page",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the language switch control"
+      },
+      {
+        "type": "action",
+        "description": "Select \"Indonesian\" from the language options"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Mulai\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Scroll to the pricing section"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Harga\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Scroll to the FAQ section"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"FAQ\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC084",
+    "title": "Billing page shows plan comparison and beta notice",
+    "description": "Verifies that the Billing (Beta) page loads and clearly displays plan comparison content and a beta/no-payment notice.",
+    "category": "Billing (Beta)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Billing\" in the app navigation"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/billing\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Billing\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Beta\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC085",
+    "title": "Clicking an upgrade button shows beta limitation message (no real payment)",
+    "description": "Verifies that selecting an upgrade action does not start payment and instead shows an informational beta limitation message.",
+    "category": "Billing (Beta)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Billing\" in the app navigation"
+      },
+      {
+        "type": "action",
+        "description": "Click the primary \"Upgrade\" button for any paid plan"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Beta\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"no real payment\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC086",
+    "title": "Upgrade action does not navigate away from Billing page",
+    "description": "Verifies that clicking an upgrade button keeps the user on the Billing page and does not open a checkout flow.",
+    "category": "Billing (Beta)",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Billing\" in the app navigation"
+      },
+      {
+        "type": "action",
+        "description": "Click an \"Upgrade\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/billing\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Billing\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC087",
+    "title": "Repeated upgrade clicks consistently show the same beta limitation feedback",
+    "description": "Verifies that clicking an upgrade button multiple times results in consistent informational feedback (no payment processing).",
+    "category": "Billing (Beta)",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Billing\" in the app navigation"
+      },
+      {
+        "type": "action",
+        "description": "Click an \"Upgrade\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Beta\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click the same \"Upgrade\" button again"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"no real payment\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC088",
+    "title": "Plan comparison section is visible and readable",
+    "description": "Verifies that the Billing page presents plan options in a comparison layout with visible plan names/features.",
+    "category": "Billing (Beta)",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Billing\" in the app navigation"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Plan\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Free\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify at least one \"Upgrade\" button is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC089",
+    "title": "Billing page remains accessible after navigating away and returning",
+    "description": "Verifies that the Billing page can be revisited and still shows beta notice and upgrade UI.",
+    "category": "Billing (Beta)",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Billing\" in the app navigation"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Beta\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Settings\" in the app navigation"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/settings\""
+      },
+      {
+        "type": "action",
+        "description": "Click \"Billing\" in the app navigation"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/billing\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Upgrade\" is visible"
       }
     ]
   }

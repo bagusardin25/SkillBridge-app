@@ -1,0 +1,52 @@
+[
+  {
+    "id": "TC001",
+    "title": "post api auth register with valid data",
+    "description": "Test user registration with valid email and password, expect 201 response with JWT token and user id."
+  },
+  {
+    "id": "TC002",
+    "title": "post api auth login with valid credentials",
+    "description": "Test user login with valid credentials, expect 200 response with JWT token."
+  },
+  {
+    "id": "TC003",
+    "title": "get api auth me with valid jwt",
+    "description": "Test fetching current user profile with valid JWT token, expect 200 response with user profile data."
+  },
+  {
+    "id": "TC004",
+    "title": "post api project create with authorization",
+    "description": "Test creating a new project with valid JWT authorization and valid project data, expect 201 response with created project id."
+  },
+  {
+    "id": "TC005",
+    "title": "get api project list with authorization",
+    "description": "Test listing user projects with valid JWT authorization, expect 200 response with list of projects."
+  },
+  {
+    "id": "TC006",
+    "title": "post api roadmap generate with valid prompt",
+    "description": "Test generating a roadmap using AI with valid JWT authorization and valid prompt data, expect 200 response with generated roadmap JSON."
+  },
+  {
+    "id": "TC007",
+    "title": "post api quiz generate with authorization",
+    "description": "Test generating quiz questions for a roadmap node with valid JWT authorization, expect 200 response with quiz questions and metadata."
+  },
+  {
+    "id": "TC008",
+    "title": "post api chat send message with authorization",
+    "description": "Test sending a message to AI chat tutor with valid JWT authorization and valid projectId and message, expect 200 response with AI response and message id."
+  },
+  {
+    "id": "TC009",
+    "title": "get api profile user stats with authorization",
+    "description": "Test fetching user profile and stats with valid JWT authorization, expect 200 response with user stats including XP, streak, and learning minutes."
+  },
+  {
+    "id": "TC010",
+    "title": "post api profile user add xp with valid data",
+    "description": "Test awarding XP to user with valid JWT authorization and positive XP value, expect 200 response with updated XP and possible level-up metadata."
+  }
+]
