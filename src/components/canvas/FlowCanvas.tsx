@@ -274,6 +274,7 @@ export function FlowCanvas() {
         if (!isAiPanelOpen) {
             toggleAiPanel();
         }
+        setHideTemplateSelector(true);
     };
 
     // Handle template selection
@@ -285,6 +286,7 @@ export function FlowCanvas() {
                 data: {
                     description: n.data.description,
                     resources: n.data.resources,
+                    videos: n.data.videos,
                 }
             })),
             edges: template.roadmap.edges,
