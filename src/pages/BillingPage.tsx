@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { useAppLanguage } from "@/contexts/LanguageContext";
 import {
     X,
     Check,
@@ -18,63 +19,64 @@ import {
     Loader2,
 } from "lucide-react";
 
-const PLANS = [
-    {
-        id: "FREE",
-        name: "Free",
-        price: "Rp 0",
-        period: "forever",
-        description: "Perfect for getting started",
-        icon: Zap,
-        features: [
-            "Up to 3 projects",
-            "Basic AI roadmap generation",
-            "Quiz system",
-            "Community support",
-        ],
-        highlighted: false,
-    },
-    {
-        id: "PRO",
-        name: "Pro",
-        price: "Rp 99.000",
-        period: "/month",
-        description: "For serious learners",
-        icon: Crown,
-        features: [
-            "Unlimited projects",
-            "Priority AI generation",
-            "Advanced analytics",
-            "Export to PDF",
-            "Email support",
-            "No ads",
-        ],
-        highlighted: true,
-    },
-    {
-        id: "ENTERPRISE",
-        name: "Enterprise",
-        price: "Custom",
-        period: "",
-        description: "For teams & organizations",
-        icon: Building2,
-        features: [
-            "Everything in Pro",
-            "Team collaboration",
-            "Custom integrations",
-            "SSO authentication",
-            "Dedicated support",
-            "Custom branding",
-        ],
-        highlighted: false,
-    },
-];
-
 export function BillingPage() {
     const navigate = useNavigate();
     const { user } = useAuthStore();
+    const { t } = useAppLanguage();
     const [profileData, setProfileData] = useState<ProfileResponse | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+
+    const PLANS = [
+        {
+            id: "FREE",
+            name: t.billing.freeName,
+            price: t.billing.freePrice,
+            period: t.billing.freePeriod,
+            description: t.billing.freeDescription,
+            icon: Zap,
+            features: [
+                t.billing.freeFeature1,
+                t.billing.freeFeature2,
+                t.billing.freeFeature3,
+                t.billing.freeFeature4,
+            ],
+            highlighted: false,
+        },
+        {
+            id: "PRO",
+            name: t.billing.proName,
+            price: t.billing.proPrice,
+            period: t.billing.proPeriod,
+            description: t.billing.proDescription,
+            icon: Crown,
+            features: [
+                t.billing.proFeature1,
+                t.billing.proFeature2,
+                t.billing.proFeature3,
+                t.billing.proFeature4,
+                t.billing.proFeature5,
+                t.billing.proFeature6,
+            ],
+            highlighted: true,
+        },
+        {
+            id: "ENTERPRISE",
+            name: t.billing.enterpriseName,
+            price: t.billing.enterprisePrice,
+            period: "",
+            description: t.billing.enterpriseDescription,
+            icon: Building2,
+            features: [
+                t.billing.enterpriseFeature1,
+                t.billing.enterpriseFeature2,
+                t.billing.enterpriseFeature3,
+                t.billing.enterpriseFeature4,
+                t.billing.enterpriseFeature5,
+                t.billing.enterpriseFeature6,
+            ],
+            highlighted: false,
+        },
+    ];
 
     useEffect(() => {
         const fetchData = async () => {
@@ -93,9 +95,9 @@ export function BillingPage() {
 
     const handleUpgrade = (planId: string) => {
         if (planId === "ENTERPRISE") {
-            toast.info("Hubungi kami di support@skillbridge.id untuk paket Enterprise");
+            toast.info(t.billing.toastEnterprise);
         } else if (planId === "PRO") {
-            toast.info("Fitur pembayaran akan segera tersedia!");
+            toast.info(t.billing.toastPaymentSoon);
         }
     };
 
@@ -105,7 +107,7 @@ export function BillingPage() {
         <div className="fixed inset-0 z-50 bg-background overflow-y-auto animate-in fade-in duration-300">
             {/* Header */}
             <div className="sticky top-0 z-[60] h-14 border-b bg-background flex items-center justify-between px-4">
-                <h1 className="text-lg font-semibold">Billing</h1>
+                <h1 className="text-lg font-semibold">{t.billing.title}</h1>
                 <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
                     <X className="h-5 w-5" />
                 </Button>
@@ -118,8 +120,8 @@ export function BillingPage() {
                     <CardHeader>
                         <div className="flex items-center justify-between">
                             <div>
-                                <CardTitle className="text-xl">Current Plan</CardTitle>
-                                <CardDescription>Your active subscription</CardDescription>
+                                <CardTitle className="text-xl">{t.billing.currentPlan}</CardTitle>
+                                <CardDescription>{t.billing.activeSubscription}</CardDescription>
                             </div>
                             <Badge 
                                 variant="secondary" 
@@ -142,22 +144,22 @@ export function BillingPage() {
                                 <div className="text-center p-3 bg-background rounded-lg">
                                     <FolderOpen className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
                                     <p className="text-2xl font-bold">{profileData.stats.totalProjects}</p>
-                                    <p className="text-xs text-muted-foreground">Projects</p>
+                                    <p className="text-xs text-muted-foreground">{t.billing.projects}</p>
                                 </div>
                                 <div className="text-center p-3 bg-background rounded-lg">
                                     <GraduationCap className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
                                     <p className="text-2xl font-bold">{profileData.stats.totalQuizzesPassed}</p>
-                                    <p className="text-xs text-muted-foreground">Quizzes Passed</p>
+                                    <p className="text-xs text-muted-foreground">{t.billing.quizzesPassed}</p>
                                 </div>
                                 <div className="text-center p-3 bg-background rounded-lg">
                                     <Zap className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
                                     <p className="text-2xl font-bold">{profileData.user.xp}</p>
-                                    <p className="text-xs text-muted-foreground">Total XP</p>
+                                    <p className="text-xs text-muted-foreground">{t.billing.totalXp}</p>
                                 </div>
                                 <div className="text-center p-3 bg-background rounded-lg">
                                     <Crown className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
                                     <p className="text-2xl font-bold">Lv.{profileData.user.level}</p>
-                                    <p className="text-xs text-muted-foreground">Level</p>
+                                    <p className="text-xs text-muted-foreground">{t.billing.level}</p>
                                 </div>
                             </div>
                         </CardContent>
@@ -171,16 +173,13 @@ export function BillingPage() {
 
                 {/* Beta Notice */}
                 <div className="p-4 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400">
-                    <p className="text-sm font-medium">🚧 Fitur Dalam Pengembangan</p>
-                    <p className="text-sm mt-1">
-                        Sistem pembayaran dan upgrade plan belum tersedia. 
-                        Saat ini semua pengguna dapat mengakses fitur Pro secara gratis selama masa beta.
-                    </p>
+                    <p className="text-sm font-medium">{t.billing.betaTitle}</p>
+                    <p className="text-sm mt-1">{t.billing.betaDescription}</p>
                 </div>
 
                 {/* Plans */}
                 <div>
-                    <h2 className="text-xl font-semibold mb-4">Available Plans</h2>
+                    <h2 className="text-xl font-semibold mb-4">{t.billing.availablePlans}</h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {PLANS.map((plan) => {
                             const Icon = plan.icon;
@@ -198,7 +197,7 @@ export function BillingPage() {
                                     {plan.highlighted && (
                                         <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                                             <Badge className="bg-primary text-primary-foreground">
-                                                Most Popular
+                                                {t.billing.mostPopular}
                                             </Badge>
                                         </div>
                                     )}
@@ -242,7 +241,7 @@ export function BillingPage() {
                                             disabled={isCurrentPlan}
                                             onClick={() => handleUpgrade(plan.id)}
                                         >
-                                            {isCurrentPlan ? "Current Plan" : plan.id === "ENTERPRISE" ? "Contact Sales" : "Upgrade"}
+                                            {isCurrentPlan ? t.billing.currentPlanBtn : plan.id === "ENTERPRISE" ? t.billing.contactSales : t.billing.upgrade}
                                         </Button>
                                     </CardFooter>
                                 </Card>
@@ -254,26 +253,20 @@ export function BillingPage() {
                 {/* FAQ */}
                 <Card>
                     <CardHeader>
-                        <CardTitle>Frequently Asked Questions</CardTitle>
+                        <CardTitle>{t.billing.faqTitle}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div>
-                            <p className="font-medium">Bagaimana cara upgrade ke Pro?</p>
-                            <p className="text-sm text-muted-foreground">
-                                Fitur pembayaran akan segera tersedia. Saat ini semua fitur Pro dapat diakses secara gratis selama masa beta.
-                            </p>
+                            <p className="font-medium">{t.billing.faq1Question}</p>
+                            <p className="text-sm text-muted-foreground">{t.billing.faq1Answer}</p>
                         </div>
                         <div>
-                            <p className="font-medium">Apakah ada trial untuk Pro?</p>
-                            <p className="text-sm text-muted-foreground">
-                                Ya! Selama masa beta, semua pengguna mendapatkan akses ke fitur Pro secara gratis.
-                            </p>
+                            <p className="font-medium">{t.billing.faq2Question}</p>
+                            <p className="text-sm text-muted-foreground">{t.billing.faq2Answer}</p>
                         </div>
                         <div>
-                            <p className="font-medium">Bagaimana dengan Enterprise?</p>
-                            <p className="text-sm text-muted-foreground">
-                                Hubungi tim kami di support@skillbridge.id untuk mendiskusikan kebutuhan tim atau organisasi Anda.
-                            </p>
+                            <p className="font-medium">{t.billing.faq3Question}</p>
+                            <p className="text-sm text-muted-foreground">{t.billing.faq3Answer}</p>
                         </div>
                     </CardContent>
                 </Card>

@@ -254,6 +254,61 @@ export interface AppTranslations {
     getExplanation: string;
     trySuggestions: string;
   };
+
+  // BillingPage
+  billing: {
+    title: string;
+    currentPlan: string;
+    activeSubscription: string;
+    projects: string;
+    quizzesPassed: string;
+    totalXp: string;
+    level: string;
+    betaTitle: string;
+    betaDescription: string;
+    availablePlans: string;
+    mostPopular: string;
+    currentPlanBtn: string;
+    contactSales: string;
+    upgrade: string;
+    faqTitle: string;
+    faq1Question: string;
+    faq1Answer: string;
+    faq2Question: string;
+    faq2Answer: string;
+    faq3Question: string;
+    faq3Answer: string;
+    toastEnterprise: string;
+    toastPaymentSoon: string;
+    // Plan details
+    freeName: string;
+    freePrice: string;
+    freePeriod: string;
+    freeDescription: string;
+    freeFeature1: string;
+    freeFeature2: string;
+    freeFeature3: string;
+    freeFeature4: string;
+    proName: string;
+    proPrice: string;
+    proPeriod: string;
+    proDescription: string;
+    proFeature1: string;
+    proFeature2: string;
+    proFeature3: string;
+    proFeature4: string;
+    proFeature5: string;
+    proFeature6: string;
+    enterpriseName: string;
+    enterprisePrice: string;
+    enterpriseDescription: string;
+    enterpriseFeature1: string;
+    enterpriseFeature2: string;
+    enterpriseFeature3: string;
+    enterpriseFeature4: string;
+    enterpriseFeature5: string;
+    enterpriseFeature6: string;
+  };
 }
 
 const en: AppTranslations = {
@@ -503,6 +558,59 @@ const en: AppTranslations = {
     getExplanation: "Get personalized explanations, code examples, and specific guidance.",
     trySuggestions: "Try asking:",
   },
+
+  billing: {
+    title: "Billing",
+    currentPlan: "Current Plan",
+    activeSubscription: "Your active subscription",
+    projects: "Projects",
+    quizzesPassed: "Quizzes Passed",
+    totalXp: "Total XP",
+    level: "Level",
+    betaTitle: "🚧 Feature In Development",
+    betaDescription: "The payment system and plan upgrades are not yet available. Currently, all users can access Pro features for free during the beta period.",
+    availablePlans: "Available Plans",
+    mostPopular: "Most Popular",
+    currentPlanBtn: "Current Plan",
+    contactSales: "Contact Sales",
+    upgrade: "Upgrade",
+    faqTitle: "Frequently Asked Questions",
+    faq1Question: "How do I upgrade to Pro?",
+    faq1Answer: "The payment feature will be available soon. Currently, all Pro features can be accessed for free during the beta period.",
+    faq2Question: "Is there a trial for Pro?",
+    faq2Answer: "Yes! During the beta period, all users get access to Pro features for free.",
+    faq3Question: "What about Enterprise?",
+    faq3Answer: "Contact our team at support@skillbridge.id to discuss your team or organization's needs.",
+    toastEnterprise: "Contact us at support@skillbridge.id for the Enterprise plan",
+    toastPaymentSoon: "The payment feature will be available soon!",
+    freeName: "Free",
+    freePrice: "$0",
+    freePeriod: "forever",
+    freeDescription: "Perfect for getting started",
+    freeFeature1: "Up to 3 projects",
+    freeFeature2: "Basic AI roadmap generation",
+    freeFeature3: "Quiz system",
+    freeFeature4: "Community support",
+    proName: "Pro",
+    proPrice: "$9.99",
+    proPeriod: "/month",
+    proDescription: "For serious learners",
+    proFeature1: "Unlimited projects",
+    proFeature2: "Priority AI generation",
+    proFeature3: "Advanced analytics",
+    proFeature4: "Export to PDF",
+    proFeature5: "Email support",
+    proFeature6: "No ads",
+    enterpriseName: "Enterprise",
+    enterprisePrice: "Custom",
+    enterpriseDescription: "For teams & organizations",
+    enterpriseFeature1: "Everything in Pro",
+    enterpriseFeature2: "Team collaboration",
+    enterpriseFeature3: "Custom integrations",
+    enterpriseFeature4: "SSO authentication",
+    enterpriseFeature5: "Dedicated support",
+    enterpriseFeature6: "Custom branding",
+  },
 };
 
 const id: AppTranslations = {
@@ -751,6 +859,59 @@ const id: AppTranslations = {
     askAiAbout: "Tanya AI tentang",
     getExplanation: "Dapatkan penjelasan terpersonalisasi, contoh kode, dan panduan spesifik.",
     trySuggestions: "Coba tanyakan:",
+  },
+
+  billing: {
+    title: "Tagihan",
+    currentPlan: "Paket Saat Ini",
+    activeSubscription: "Langganan aktif Anda",
+    projects: "Proyek",
+    quizzesPassed: "Quiz Lulus",
+    totalXp: "Total XP",
+    level: "Level",
+    betaTitle: "🚧 Fitur Dalam Pengembangan",
+    betaDescription: "Sistem pembayaran dan upgrade plan belum tersedia. Saat ini semua pengguna dapat mengakses fitur Pro secara gratis selama masa beta.",
+    availablePlans: "Paket Tersedia",
+    mostPopular: "Paling Populer",
+    currentPlanBtn: "Paket Saat Ini",
+    contactSales: "Hubungi Sales",
+    upgrade: "Upgrade",
+    faqTitle: "Pertanyaan yang Sering Diajukan",
+    faq1Question: "Bagaimana cara upgrade ke Pro?",
+    faq1Answer: "Fitur pembayaran akan segera tersedia. Saat ini semua fitur Pro dapat diakses secara gratis selama masa beta.",
+    faq2Question: "Apakah ada trial untuk Pro?",
+    faq2Answer: "Ya! Selama masa beta, semua pengguna mendapatkan akses ke fitur Pro secara gratis.",
+    faq3Question: "Bagaimana dengan Enterprise?",
+    faq3Answer: "Hubungi tim kami di support@skillbridge.id untuk mendiskusikan kebutuhan tim atau organisasi Anda.",
+    toastEnterprise: "Hubungi kami di support@skillbridge.id untuk paket Enterprise",
+    toastPaymentSoon: "Fitur pembayaran akan segera tersedia!",
+    freeName: "Free",
+    freePrice: "Rp 0",
+    freePeriod: "selamanya",
+    freeDescription: "Cocok untuk memulai",
+    freeFeature1: "Hingga 3 proyek",
+    freeFeature2: "Generasi roadmap AI dasar",
+    freeFeature3: "Sistem quiz",
+    freeFeature4: "Dukungan komunitas",
+    proName: "Pro",
+    proPrice: "Rp 99.000",
+    proPeriod: "/bulan",
+    proDescription: "Untuk pelajar serius",
+    proFeature1: "Proyek tanpa batas",
+    proFeature2: "Prioritas generasi AI",
+    proFeature3: "Analitik lanjutan",
+    proFeature4: "Ekspor ke PDF",
+    proFeature5: "Dukungan email",
+    proFeature6: "Tanpa iklan",
+    enterpriseName: "Enterprise",
+    enterprisePrice: "Kustom",
+    enterpriseDescription: "Untuk tim & organisasi",
+    enterpriseFeature1: "Semua fitur Pro",
+    enterpriseFeature2: "Kolaborasi tim",
+    enterpriseFeature3: "Integrasi kustom",
+    enterpriseFeature4: "Autentikasi SSO",
+    enterpriseFeature5: "Dukungan khusus",
+    enterpriseFeature6: "Branding kustom",
   },
 };
 
