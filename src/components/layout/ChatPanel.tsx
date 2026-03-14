@@ -5,7 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, Bot, Sparkles, Trash2, Settings2, ChevronDown, Copy, Check, RefreshCw, ThumbsUp, ThumbsDown, Square, X } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { generateRoadmap, createProject, extractTopicFromPrompt, saveChatMessage, getChatHistory, sendGeneralChatMessage, clearChatHistory } from "@/lib/api";
+import { generateRoadmap, createProject, extractTopicFromPrompt, saveChatMessage, getChatHistory, sendGeneralChatMessage, clearChatHistory, getRoadmap } from "@/lib/api";
 import type { RoadmapPreferences } from "@/lib/api";
 import { convertToReactFlowNodes, isRoadmapRequest } from "@/lib/layoutUtils";
 import { useRoadmapStore } from "@/store/useRoadmapStore";
@@ -405,6 +405,40 @@ export function ChatPanel() {
 
                         setNodes([...displayedNodes]);
                         setEdges([...displayedEdges]);
+                    }
+
+                    // Poll for enriched resources after background enrichment finishes
+                    if (roadmap.id) {
+                        const enrichRoadmapId = roadmap.id;
+                        setTimeout(async () => {
+                            try {
+                                const enrichedRoadmap = await getRoadmap(enrichRoadmapId);
+                                if (enrichedRoadmap.nodes && Array.isArray(enrichedRoadmap.nodes)) {
+                                    const currentNodes = useRoadmapStore.getState().nodes;
+                                    const updatedNodes = currentNodes.map(node => {
+                                        const enrichedNode = (enrichedRoadmap.nodes as any[]).find(
+                                            (n: any) => n.id === node.id
+                                        );
+                                        if (enrichedNode?.data) {
+                                            return {
+                                                ...node,
+                                                data: {
+                                                    ...node.data,
+                                                    videos: enrichedNode.data.videos || node.data.videos || [],
+                                                    articles: enrichedNode.data.articles || node.data.articles || [],
+                                                    resources: enrichedNode.data.resources || node.data.resources || [],
+                                                },
+                                            };
+                                        }
+                                        return node;
+                                    });
+                                    setNodes(updatedNodes as any);
+                                    console.log("✅ Enriched resources loaded from DB");
+                                }
+                            } catch (e) {
+                                console.warn("Failed to fetch enriched resources:", e);
+                            }
+                        }, 12000); // 12s — enough for background enrichment
                     }
 
                     // Show success message with streaming effect

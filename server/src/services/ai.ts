@@ -209,16 +209,17 @@ EDGE RULES:
 - NO branch edges
 
 QUALITY REQUIREMENTS:
-1. RESOURCES - Use TOPIC KEYWORDS instead of actual URLs:
-   - For resources array, provide 1-2 official documentation URLs that you are CONFIDENT exist:
+1. RESOURCES - STRICT URL RULES (CRITICAL):
+   - ONLY provide official documentation URLs you are ABSOLUTELY CERTAIN exist:
      - React: "https://react.dev/learn"
      - MDN: "https://developer.mozilla.org/en-US/docs/..."
      - Python: "https://docs.python.org/3/tutorial/"
      - Node.js: "https://nodejs.org/en/learn"
      - roadmap.sh: "https://roadmap.sh/..."
-   - ONLY include URLs you are 100% sure exist. If unsure, leave resources as empty array []
-   - Do NOT include YouTube URLs — videos will be added automatically
-   - Do NOT invent or guess URLs
+   - If you are NOT 100% CERTAIN a URL exists, use an EMPTY array: []
+   - NEVER include YouTube URLs — videos will be fetched automatically via YouTube API
+   - NEVER invent, guess, or hallucinate URLs — broken links damage user trust
+   - It is ALWAYS better to return an empty resources array [] than a fake or guessed URL
 
 2. Each description MUST be MAX 8 WORDS - a short summary, NOT a paragraph. Example: "${descExample}"
 3. Include REALISTIC estimatedTime for each node based on complexity:
