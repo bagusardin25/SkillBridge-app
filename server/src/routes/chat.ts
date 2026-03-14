@@ -78,7 +78,7 @@ router.post("/save", async (req, res) => {
 // POST /api/chat - Chat with AI
 router.post("/", async (req, res) => {
   try {
-    const { message, context, projectId, nodeId } = req.body;
+    const { message, context, projectId, nodeId, language } = req.body;
 
     if (!message) {
       return res.status(400).json({ error: "Message is required" });
@@ -112,7 +112,7 @@ router.post("/", async (req, res) => {
       }
     }
 
-    const reply = await chatWithAI(message, normalizedContext);
+    const reply = await chatWithAI(message, normalizedContext, language);
 
     // Save AI reply to database if projectId is provided
     if (projectId) {

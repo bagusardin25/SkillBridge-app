@@ -196,7 +196,7 @@ export function ChatPanel() {
         incrementProjectsVersion,
     } = useRoadmapStore();
     const { user } = useAuthStore();
-    const { t } = useAppLanguage();
+    const { t, language } = useAppLanguage();
     const hasHandledTopic = useRef(false);
     const isCreatingProject = useRef(false);
 
@@ -354,7 +354,7 @@ export function ChatPanel() {
                 ]);
 
                 // Generate roadmap using AI (pass projectId and preferences to save to DB)
-                const roadmap = await generateRoadmap(userMessage, projectId || undefined, preferences);
+                const roadmap = await generateRoadmap(userMessage, projectId || undefined, preferences, language);
 
                 // Check if AI returned a chat response instead of roadmap
                 if ((roadmap as any).type === "chat") {
@@ -463,7 +463,7 @@ export function ChatPanel() {
                     role: m.role,
                     content: m.content,
                 }));
-                const data = await sendGeneralChatMessage(userMessage, projectId, context);
+                const data = await sendGeneralChatMessage(userMessage, projectId, context, language);
 
                 const messageId = (Date.now() + 1).toString();
                 const newAiMessage: Message = {
@@ -554,7 +554,7 @@ export function ChatPanel() {
             <div className="h-14 px-4 border-b flex items-center justify-between bg-muted/10">
                 <div className="flex items-center gap-3">
                     <div className="relative">
-                        <div className="h-8 w-8 rounded-full bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
+                        <div className="h-8 w-8 rounded-full bg-black dark:bg-neutral-900 border border-neutral-800 flex items-center justify-center shadow-sm">
                             <Bot className="h-5 w-5 text-white" />
                         </div>
                         <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 border-2 border-background"></span>
@@ -764,7 +764,7 @@ export function ChatPanel() {
                                     )}
                                 >
                                     {msg.role === "assistant" ? (
-                                        <div className="h-8 w-8 rounded-full bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center flex-shrink-0 shadow-lg shadow-violet-500/20">
+                                        <div className="h-8 w-8 rounded-full bg-black dark:bg-neutral-900 border border-neutral-800 flex items-center justify-center flex-shrink-0 shadow-sm">
                                             <Bot className="h-4 w-4 text-white" />
                                         </div>
                                     ) : (
@@ -892,7 +892,7 @@ export function ChatPanel() {
                     )}
                     {isLoading && (
                         <div className="flex gap-3 max-w-[90%]">
-                            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center flex-shrink-0 shadow-lg shadow-violet-500/20">
+                            <div className="h-8 w-8 rounded-full bg-black dark:bg-neutral-900 border border-neutral-800 flex items-center justify-center flex-shrink-0 shadow-sm">
                                 <Sparkles className="h-4 w-4 text-white animate-pulse" />
                             </div>
                             <div className="bg-muted/80 backdrop-blur-sm rounded-2xl rounded-tl-sm p-4 flex flex-col gap-2 min-w-[120px] shadow-sm border border-border/50">

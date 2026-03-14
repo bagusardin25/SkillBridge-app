@@ -407,17 +407,17 @@ export function Header() {
                 {/* AI Panel Toggle - Mobile: Only show when panel is closed and detail isn't open */}
                 {!isAiPanelOpen && !isDetailPanelOpen && (
                     <Button
-                        variant="default"
+                        variant="outline"
                         size="icon"
                         onClick={toggleAiPanel}
-                        className="sm:hidden h-9 w-9 shadow-sm"
+                        className="sm:hidden h-9 w-9 shadow-sm bg-black dark:bg-neutral-900 text-white hover:bg-neutral-800 dark:hover:bg-neutral-800 hover:text-white border-transparent"
                     >
                         <MessageSquare className="h-4 w-4" />
                     </Button>
                 )}
                 {/* Desktop: With text */}
                 <Button
-                    variant={(isAiPanelOpen || isDetailPanelOpen) ? "secondary" : "default"}
+                    variant={(isAiPanelOpen || isDetailPanelOpen) ? "secondary" : "outline"}
                     size="sm"
                     onClick={() => {
                         if (isDetailPanelOpen && !isAiPanelOpen) {
@@ -431,7 +431,7 @@ export function Header() {
                             }
                         }
                     }}
-                    className={`hidden sm:flex ${!(isAiPanelOpen || isDetailPanelOpen) ? "shadow-sm" : ""}`}
+                    className={`hidden sm:flex ${!(isAiPanelOpen || isDetailPanelOpen) ? "shadow-sm bg-black dark:bg-neutral-900 text-white hover:bg-neutral-800 dark:hover:bg-neutral-800 hover:text-white border-transparent" : ""}`}
                 >
                     {(isAiPanelOpen || isDetailPanelOpen) ? (
                         <PanelRightClose className="h-4 w-4 mr-2" />

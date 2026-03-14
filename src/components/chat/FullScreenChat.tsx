@@ -26,21 +26,22 @@ import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { cn } from "@/lib/utils";
+import { useAppLanguage } from "@/contexts/LanguageContext";
 
 const THINKING_DELAY = 500;
 
 // Format relative timestamp
-function formatRelativeTime(dateStr: string): string {
+function formatRelativeTime(dateStr: string, language: string): string {
     const date = new Date(dateStr);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMin = Math.floor(diffMs / 60000);
 
-    if (diffMin < 1) return "Baru saja";
-    if (diffMin < 60) return `${diffMin}m lalu`;
+    if (diffMin < 1) return language === "en" ? "Just now" : "Baru saja";
+    if (diffMin < 60) return language === "en" ? `${diffMin}m ago` : `${diffMin}m lalu`;
     const diffHr = Math.floor(diffMin / 60);
-    if (diffHr < 24) return `${diffHr}j lalu`;
-    return date.toLocaleDateString("id-ID", { day: "numeric", month: "short" });
+    if (diffHr < 24) return language === "en" ? `${diffHr}h ago` : `${diffHr}j lalu`;
+    return date.toLocaleDateString(language === "en" ? "en-US" : "id-ID", { day: "numeric", month: "short" });
 }
 
 // Markdown renderer with syntax highlighting
@@ -233,6 +234,7 @@ export function FullScreenChat({
     onClose,
 }: FullScreenChatProps) {
     const { currentProjectId } = useRoadmapStore();
+    const { t, language } = useAppLanguage();
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -250,12 +252,12 @@ export function FullScreenChat({
     }, [streamingMessageId]);
 
     const suggestedQuestions = [
-        `Apa itu ${topic}?`,
-        `Gimana cara mulai belajar ${topic}?`,
-        `Berikan contoh kode untuk ${topic}`,
-        `Kesalahan pemula saat belajar ${topic}?`,
-        `Best practices untuk ${topic}?`,
-        `Topik selanjutnya setelah ${topic}?`,
+        t.fullScreenChat.suggestedQ1.replace("{topic}", topic),
+        t.fullScreenChat.suggestedQ2.replace("{topic}", topic),
+        t.fullScreenChat.suggestedQ3.replace("{topic}", topic),
+        t.fullScreenChat.suggestedQ4.replace("{topic}", topic),
+        t.fullScreenChat.suggestedQ5.replace("{topic}", topic),
+        t.fullScreenChat.suggestedQ6.replace("{topic}", topic),
     ];
 
     // All resources combined
@@ -275,7 +277,9 @@ export function FullScreenChat({
         projectId: currentProjectId || "",
         nodeId,
         role: "assistant",
-        content: `Hai! 👋 Aku AI Tutor-mu untuk topik **${topic}**.\n\n${description ? `${description}\n\n` : ''}Aku siap membantu kamu memahami materi ini. Kamu bisa:\n- Bertanya apa saja tentang topik ini\n- Minta contoh kode atau penjelasan\n- Diskusi tentang konsep yang belum dipahami\n\nMau mulai dari mana? 😊`,
+        content: t.fullScreenChat.welcomeMessage
+            .replace("{topic}", topic)
+            .replace("{description}", description ? `${description}\n\n` : ''),
         createdAt: new Date().toISOString(),
     };
 
@@ -371,14 +375,15 @@ export function FullScreenChat({
 
             context.unshift({
                 role: "system",
-                content: `You are an AI tutor helping the user learn about "${topic}". ${description ? `Context: ${description}` : ''} Be concise and helpful. Use code examples when relevant. Answer in the same language the user uses. Format your responses with markdown for readability.`,
+                content: `You are an AI tutor helping the user learn about "${topic}". ${description ? `Context: ${description}` : ''} Be concise and helpful. Use code examples when relevant. Format your responses with markdown for readability. ${language === "en" ? "ALWAYS respond in English." : "ALWAYS respond in Indonesian (Bahasa Indonesia)."}`,
             });
 
             const { reply } = await sendNodeChatMessage(
                 currentProjectId,
                 nodeId,
                 message.trim(),
-                context
+                context,
+                language
             );
 
             const aiMessage: ChatMessage = {
@@ -393,7 +398,7 @@ export function FullScreenChat({
             setStreamingMessageId(aiMessage.id);
             setMessages(prev => [...prev, aiMessage]);
         } catch {
-            toast.error("Gagal mendapatkan respons AI");
+            toast.error(t.fullScreenChat.failedResponse);
             setMessages(prev => prev.filter(m => m.id !== userMessage.id));
         } finally {
             setIsSending(false);
@@ -432,7 +437,7 @@ export function FullScreenChat({
         } catch (error) {
             console.error("Failed to clear node chat history:", error);
         }
-        toast.success("Riwayat percakapan dibersihkan");
+        toast.success(t.fullScreenChat.chatCleared);
     };
 
     const categoryLabels: Record<string, { label: string; color: string }> = {
@@ -460,7 +465,7 @@ export function FullScreenChat({
             {/* Header */}
             <div className="h-14 px-4 border-b flex items-center justify-between bg-muted/10 flex-shrink-0">
                 <div className="flex items-center gap-3 min-w-0">
-                    <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-lg shadow-violet-500/20">
+                    <div className="h-9 w-9 rounded-xl bg-black dark:bg-neutral-900 border border-neutral-800 flex items-center justify-center flex-shrink-0 shadow-sm">
                         <Sparkles className="h-5 w-5 text-white" />
                     </div>
                     <div className="min-w-0">
@@ -489,7 +494,7 @@ export function FullScreenChat({
                             disabled={isSending}
                         >
                             <Trash2 className="h-3.5 w-3.5 mr-1" />
-                            <span className="hidden sm:inline">Clear</span>
+                            <span className="hidden sm:inline">{t.fullScreenChat.clear}</span>
                         </Button>
                     )}
                     <Button
@@ -499,7 +504,7 @@ export function FullScreenChat({
                         className="h-8 text-xs text-muted-foreground gap-1"
                     >
                         <Minimize2 className="h-3.5 w-3.5" />
-                        <span className="hidden sm:inline">Minimize</span>
+                        <span className="hidden sm:inline">{t.fullScreenChat.minimize}</span>
                     </Button>
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onClose}>
                         <X className="h-4 w-4" />
@@ -526,7 +531,7 @@ export function FullScreenChat({
                                 <div className="space-y-2">
                                     <div className="flex items-center gap-1.5">
                                         <BookOpen className="h-3.5 w-3.5 text-muted-foreground" />
-                                        <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">Resources</span>
+                                        <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">{t.fullScreenChat.resources}</span>
                                     </div>
                                     <div className="space-y-1.5">
                                         {allResources.map((r, i) => {
@@ -570,7 +575,7 @@ export function FullScreenChat({
                             <div className="space-y-2">
                                 <div className="flex items-center gap-1.5">
                                     <Lightbulb className="h-3.5 w-3.5 text-amber-500" />
-                                    <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">Quick Questions</span>
+                                    <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">{t.fullScreenChat.quickQuestions}</span>
                                 </div>
                                 <div className="space-y-1">
                                     {suggestedQuestions.map((q, i) => (
@@ -597,7 +602,7 @@ export function FullScreenChat({
                                 <div className="flex items-center justify-center py-16">
                                     <div className="flex flex-col items-center gap-3">
                                         <Loader2 className="h-8 w-8 animate-spin text-violet-500" />
-                                        <span className="text-sm text-muted-foreground">Memuat riwayat chat...</span>
+                                        <span className="text-sm text-muted-foreground">{t.fullScreenChat.chatLoadingHistory}</span>
                                     </div>
                                 </div>
                             ) : (
@@ -618,7 +623,7 @@ export function FullScreenChat({
                                                 <div className={cn(
                                                     "h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1",
                                                     isAi
-                                                        ? "bg-gradient-to-br from-violet-500 to-purple-600 shadow-sm"
+                                                            ? "bg-black dark:bg-neutral-900 border border-neutral-800 shadow-sm"
                                                         : "bg-muted border"
                                                 )}>
                                                     {isAi ? (
@@ -639,10 +644,10 @@ export function FullScreenChat({
                                                         !isAi && "flex-row-reverse"
                                                     )}>
                                                         <span className="text-xs font-semibold">
-                                                            {isAi ? "AI Tutor" : "Kamu"}
+                                                            {isAi ? "AI Tutor" : t.fullScreenChat.you}
                                                         </span>
                                                         <span className="text-[10px] text-muted-foreground">
-                                                            {isWelcome ? "" : formatRelativeTime(message.createdAt)}
+                                                            {isWelcome ? "" : formatRelativeTime(message.createdAt, language)}
                                                         </span>
                                                     </div>
 
@@ -688,7 +693,7 @@ export function FullScreenChat({
                             {/* Typing indicator */}
                             {isSending && (
                                 <div className="flex gap-3">
-                                    <div className="h-8 w-8 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+                                    <div className="h-8 w-8 rounded-full bg-black dark:bg-neutral-900 border border-neutral-800 flex items-center justify-center flex-shrink-0 shadow-sm">
                                         <Sparkles className="h-4 w-4 text-white" />
                                     </div>
                                     <div className="flex flex-col gap-1">
@@ -698,7 +703,7 @@ export function FullScreenChat({
                                                 <span className="w-2 h-2 bg-violet-400/60 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
                                                 <span className="w-2 h-2 bg-violet-400/60 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
                                                 <span className="w-2 h-2 bg-violet-400/60 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
-                                                <span className="text-xs text-muted-foreground ml-2">Sedang mengetik...</span>
+                                                <span className="text-xs text-muted-foreground ml-2">{t.fullScreenChat.typing}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -710,7 +715,7 @@ export function FullScreenChat({
                                 <div className="md:hidden">
                                     <div className="flex items-center gap-1.5 mb-3">
                                         <Lightbulb className="h-3.5 w-3.5 text-amber-500" />
-                                        <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">Coba tanyakan</span>
+                                        <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">{t.fullScreenChat.trySuggestions}</span>
                                     </div>
                                     <div className="grid grid-cols-1 gap-2">
                                         {suggestedQuestions.slice(0, 4).map((question, i) => (
@@ -756,7 +761,7 @@ export function FullScreenChat({
                                         value={input}
                                         onChange={handleTextareaChange}
                                         onKeyDown={handleKeyDown}
-                                        placeholder={`Tanya tentang ${topic}...`}
+                                        placeholder={t.fullScreenChat.askPlaceholder.replace("{topic}", topic)}
                                         disabled={isSending}
                                         rows={1}
                                         className="w-full resize-none rounded-xl border border-input bg-background px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 min-h-[44px] max-h-[144px] overflow-y-auto"
@@ -776,7 +781,7 @@ export function FullScreenChat({
                                 </Button>
                             </div>
                             <p className="text-[10px] text-muted-foreground mt-1.5 text-center">
-                                <kbd className="px-1 py-0.5 bg-muted rounded text-[9px] font-mono">Enter</kbd> kirim · <kbd className="px-1 py-0.5 bg-muted rounded text-[9px] font-mono">Shift+Enter</kbd> baris baru
+                                <kbd className="px-1 py-0.5 bg-muted rounded text-[9px] font-mono">Enter</kbd> {t.fullScreenChat.enterSend} · <kbd className="px-1 py-0.5 bg-muted rounded text-[9px] font-mono">Shift+Enter</kbd> {t.fullScreenChat.shiftEnterNewline}
                             </p>
                         </div>
                     </div>

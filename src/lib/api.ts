@@ -274,12 +274,13 @@ export interface RoadmapPreferences {
 export async function generateRoadmap(
   prompt: string,
   projectId?: string,
-  preferences?: RoadmapPreferences
+  preferences?: RoadmapPreferences,
+  language?: string
 ): Promise<GeneratedRoadmap> {
   const res = await fetch(`${API_URL}/roadmap/generate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt, projectId, preferences }),
+    body: JSON.stringify({ prompt, projectId, preferences, language }),
   });
 
   const data = await res.json();
@@ -771,12 +772,13 @@ export async function sendNodeChatMessage(
   projectId: string,
   nodeId: string,
   message: string,
-  context?: { role: string; content: string }[]
+  context?: { role: string; content: string }[],
+  language?: string
 ): Promise<{ reply: string }> {
   const res = await fetch(`${API_URL}/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message, projectId, nodeId, context }),
+    body: JSON.stringify({ message, projectId, nodeId, context, language }),
   });
 
   if (!res.ok) {
@@ -803,12 +805,13 @@ export async function getChatHistory(
 export async function sendGeneralChatMessage(
   message: string,
   projectId: string | null,
-  context?: { role: string; content: string }[]
+  context?: { role: string; content: string }[],
+  language?: string
 ): Promise<{ reply: string }> {
   const res = await fetch(`${API_URL}/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message, projectId, context }),
+    body: JSON.stringify({ message, projectId, context, language }),
   });
 
   const data = await res.json();

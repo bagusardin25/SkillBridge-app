@@ -220,6 +220,40 @@ export interface AppTranslations {
     topics: string;
     askAi: string;
   };
+
+  // FullScreenChat (AI Tutor)
+  fullScreenChat: {
+    welcomeMessage: string;
+    suggestedQ1: string;
+    suggestedQ2: string;
+    suggestedQ3: string;
+    suggestedQ4: string;
+    suggestedQ5: string;
+    suggestedQ6: string;
+    chatLoadingHistory: string;
+    typing: string;
+    trySuggestions: string;
+    resources: string;
+    quickQuestions: string;
+    clear: string;
+    minimize: string;
+    done: string;
+    you: string;
+    askPlaceholder: string;
+    enterSend: string;
+    shiftEnterNewline: string;
+    chatCleared: string;
+    failedResponse: string;
+  };
+
+  // NodeChatPanel (mini AI Tutor in detail panel)
+  nodeChatPanel: {
+    notSaved: string;
+    notSavedDesc: string;
+    askAiAbout: string;
+    getExplanation: string;
+    trySuggestions: string;
+  };
 }
 
 const en: AppTranslations = {
@@ -437,6 +471,38 @@ const en: AppTranslations = {
     topics: "topics",
     askAi: "Ask AI to Create Custom Roadmap",
   },
+
+  fullScreenChat: {
+    welcomeMessage: `Hi! 👋 I'm your AI Tutor for the topic **{topic}**.\n\n{description}I'm ready to help you understand this material. You can:\n- Ask me anything about this topic\n- Request code examples or explanations\n- Discuss concepts you haven't understood\n\nWhere would you like to start? 😊`,
+    suggestedQ1: "What is {topic}?",
+    suggestedQ2: "How to start learning {topic}?",
+    suggestedQ3: "Give me code examples for {topic}",
+    suggestedQ4: "Beginner mistakes when learning {topic}?",
+    suggestedQ5: "Best practices for {topic}?",
+    suggestedQ6: "What's next after {topic}?",
+    chatLoadingHistory: "Loading chat history...",
+    typing: "Typing...",
+    trySuggestions: "Try asking",
+    resources: "Resources",
+    quickQuestions: "Quick Questions",
+    clear: "Clear",
+    minimize: "Minimize",
+    done: "Done",
+    you: "You",
+    askPlaceholder: "Ask about {topic}...",
+    enterSend: "send",
+    shiftEnterNewline: "new line",
+    chatCleared: "Chat history cleared",
+    failedResponse: "Failed to get AI response",
+  },
+
+  nodeChatPanel: {
+    notSaved: "Roadmap Not Saved",
+    notSavedDesc: "Save your roadmap first (Ctrl+S) to use the AI Tutor.",
+    askAiAbout: "Ask AI about",
+    getExplanation: "Get personalized explanations, code examples, and specific guidance.",
+    trySuggestions: "Try asking:",
+  },
 };
 
 const id: AppTranslations = {
@@ -653,6 +719,38 @@ const id: AppTranslations = {
     all: "Semua",
     topics: "topik",
     askAi: "Minta AI Buatkan Roadmap Kustom",
+  },
+
+  fullScreenChat: {
+    welcomeMessage: `Hai! 👋 Aku AI Tutor-mu untuk topik **{topic}**.\n\n{description}Aku siap membantu kamu memahami materi ini. Kamu bisa:\n- Bertanya apa saja tentang topik ini\n- Minta contoh kode atau penjelasan\n- Diskusi tentang konsep yang belum dipahami\n\nMau mulai dari mana? 😊`,
+    suggestedQ1: "Apa itu {topic}?",
+    suggestedQ2: "Gimana cara mulai belajar {topic}?",
+    suggestedQ3: "Berikan contoh kode untuk {topic}",
+    suggestedQ4: "Kesalahan pemula saat belajar {topic}?",
+    suggestedQ5: "Best practices untuk {topic}?",
+    suggestedQ6: "Topik selanjutnya setelah {topic}?",
+    chatLoadingHistory: "Memuat riwayat chat...",
+    typing: "Sedang mengetik...",
+    trySuggestions: "Coba tanyakan",
+    resources: "Sumber",
+    quickQuestions: "Pertanyaan Cepat",
+    clear: "Hapus",
+    minimize: "Kecilkan",
+    done: "Selesai",
+    you: "Kamu",
+    askPlaceholder: "Tanya tentang {topic}...",
+    enterSend: "kirim",
+    shiftEnterNewline: "baris baru",
+    chatCleared: "Riwayat percakapan dibersihkan",
+    failedResponse: "Gagal mendapatkan respons AI",
+  },
+
+  nodeChatPanel: {
+    notSaved: "Roadmap Belum Disimpan",
+    notSavedDesc: "Simpan roadmap terlebih dahulu (Ctrl+S) untuk menggunakan AI Tutor.",
+    askAiAbout: "Tanya AI tentang",
+    getExplanation: "Dapatkan penjelasan terpersonalisasi, contoh kode, dan panduan spesifik.",
+    trySuggestions: "Coba tanyakan:",
   },
 };
 

@@ -26,7 +26,7 @@ async function enrichAndUpdateRoadmap(roadmapId: string, nodes: any[]) {
 // POST /api/roadmap/generate - Generate roadmap from AI
 router.post("/generate", async (req, res) => {
   try {
-    const { prompt, projectId, preferences } = req.body;
+    const { prompt, projectId, preferences, language } = req.body;
 
     if (!prompt) {
       return res.status(400).json({ error: "Prompt is required" });
@@ -43,7 +43,7 @@ router.post("/generate", async (req, res) => {
       : undefined;
 
     // Generate roadmap using AI with preferences
-    const roadmapData = await generateRoadmap(prompt, validPreferences);
+    const roadmapData = await generateRoadmap(prompt, validPreferences, 2, language);
 
     // Check if response is a valid roadmap
     const isValidRoadmap = roadmapData.title &&
@@ -54,12 +54,19 @@ router.post("/generate", async (req, res) => {
     if (!isValidRoadmap) {
       // Return friendly chat response instead of error
       const defaultMessage = (roadmapData as any).error ||
-        "Hmm, saya tidak bisa membuat roadmap dari request tersebut. 🤔\n\n" +
-        "Coba dengan format seperti:\n" +
-        "• \"Buat roadmap belajar React\"\n" +
-        "• \"Saya ingin belajar Python dari nol\"\n" +
-        "• \"Jalur belajar menjadi Backend Developer\"\n\n" +
-        "Ada topik teknologi yang ingin dipelajari?";
+        (language === "en"
+          ? "Hmm, I couldn't create a roadmap from that request. 🤔\n\n" +
+            "Try with a format like:\n" +
+            "• \"Create a React learning roadmap\"\n" +
+            "• \"I want to learn Python from scratch\"\n" +
+            "• \"Learning path to become a Backend Developer\"\n\n" +
+            "Any technology topic you'd like to learn?"
+          : "Hmm, saya tidak bisa membuat roadmap dari request tersebut. 🤔\n\n" +
+            "Coba dengan format seperti:\n" +
+            "• \"Buat roadmap belajar React\"\n" +
+            "• \"Saya ingin belajar Python dari nol\"\n" +
+            "• \"Jalur belajar menjadi Backend Developer\"\n\n" +
+            "Ada topik teknologi yang ingin dipelajari?");
 
       return res.status(200).json({
         type: "chat",

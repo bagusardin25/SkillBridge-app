@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { useAppLanguage } from "@/contexts/LanguageContext";
 
 const THINKING_DELAY = 500; // ms before starting to type
 
@@ -114,6 +115,7 @@ interface NodeChatPanelProps {
 
 export function NodeChatPanel({ nodeId, topic, onExpand }: NodeChatPanelProps) {
     const { currentProjectId } = useRoadmapStore();
+    const { t, language } = useAppLanguage();
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -129,10 +131,10 @@ export function NodeChatPanel({ nodeId, topic, onExpand }: NodeChatPanelProps) {
     }, [streamingMessageId]);
 
     const suggestedQuestions = [
-        `Apa itu ${topic}?`,
-        `Gimana cara mulai belajar ${topic}?`,
-        `Kesalahan pemula saat belajar ${topic}?`,
-        `Topik selanjutnya setelah ${topic}?`
+        t.fullScreenChat.suggestedQ1.replace("{topic}", topic),
+        t.fullScreenChat.suggestedQ2.replace("{topic}", topic),
+        t.fullScreenChat.suggestedQ4.replace("{topic}", topic),
+        t.fullScreenChat.suggestedQ6.replace("{topic}", topic)
     ];
 
     // Load chat history when component mounts or nodeId changes
@@ -187,14 +189,15 @@ export function NodeChatPanel({ nodeId, topic, onExpand }: NodeChatPanelProps) {
             // Add system context about the topic
             context.unshift({
                 role: "system",
-                content: `You are an AI tutor helping the user learn about "${topic}". Be concise and helpful. Answer in the same language the user uses.`,
+                content: `You are an AI tutor helping the user learn about "${topic}". Be concise and helpful. Answer in the same language the user uses. Format your responses with markdown for readability. ${language === "en" ? "ALWAYS respond in English." : "ALWAYS respond in Indonesian (Bahasa Indonesia)."}`,
             });
 
             const { reply } = await sendNodeChatMessage(
                 currentProjectId,
                 nodeId,
                 message.trim(),
-                context
+                context,
+                language
             );
 
             const aiMessage: ChatMessage = {
@@ -230,9 +233,9 @@ export function NodeChatPanel({ nodeId, topic, onExpand }: NodeChatPanelProps) {
         return (
             <div className="h-full flex flex-col items-center justify-center p-4 text-center">
                 <AlertCircle className="h-10 w-10 text-amber-500 mb-3" />
-                <p className="font-medium text-amber-700 dark:text-amber-400">Roadmap Belum Disimpan</p>
+                <p className="font-medium text-amber-700 dark:text-amber-400">{t.nodeChatPanel.notSaved}</p>
                 <p className="text-sm text-muted-foreground mt-1">
-                    Simpan roadmap terlebih dahulu (Ctrl+S) untuk menggunakan AI Tutor.
+                    {t.nodeChatPanel.notSavedDesc}
                 </p>
             </div>
         );
@@ -251,7 +254,7 @@ export function NodeChatPanel({ nodeId, topic, onExpand }: NodeChatPanelProps) {
             console.error("Failed to clear node chat history:", error);
         }
 
-        toast.success("Riwayat percakapan dibersihkan");
+        toast.success(t.fullScreenChat.chatCleared);
     };
 
     return (
@@ -304,16 +307,16 @@ export function NodeChatPanel({ nodeId, topic, onExpand }: NodeChatPanelProps) {
                                 <div className="h-12 w-12 bg-violet-100 dark:bg-violet-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-violet-200 dark:border-violet-800 shadow-sm rotate-3">
                                     <Sparkles className="h-6 w-6 text-violet-600 dark:text-violet-400" />
                                 </div>
-                                <h4 className="font-semibold text-lg px-2 break-words">Tanya AI tentang<br /> <span className="text-violet-600 dark:text-violet-400">{topic}</span></h4>
+                                <h4 className="font-semibold text-lg px-2 break-words">{t.nodeChatPanel.askAiAbout}<br /> <span className="text-violet-600 dark:text-violet-400">{topic}</span></h4>
                                 <p className="text-xs text-muted-foreground mt-2 max-w-[250px] mx-auto">
-                                    Dapatkan penjelasan terpersonalisasi, contoh kode, dan panduan spesifik.
+                                    {t.nodeChatPanel.getExplanation}
                                 </p>
                             </div>
 
                             <div className="w-full">
                                 <div className="flex items-center gap-1.5 px-1 mb-3 justify-center">
                                     <span className="text-xs">💡</span>
-                                    <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">Coba tanyakan:</span>
+                                    <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">{t.nodeChatPanel.trySuggestions}</span>
                                 </div>
                                 <div className="flex flex-col gap-2 w-full max-w-sm mx-auto">
                                     {suggestedQuestions.map((question, i) => (
@@ -388,7 +391,7 @@ export function NodeChatPanel({ nodeId, topic, onExpand }: NodeChatPanelProps) {
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        placeholder={`Ask about ${topic}...`}
+                        placeholder={`${language === "en" ? "Ask about" : "Tanya tentang"} ${topic}...`}
                         disabled={isSending}
                         className="flex-1"
                     />
