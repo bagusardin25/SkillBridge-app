@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useRoadmapStore } from "@/store/useRoadmapStore";
+import { useAppLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -26,22 +28,31 @@ import {
     Bell,
     Trash2,
     Monitor,
+    Globe,
 } from "lucide-react";
+import { LanguageDialog } from "@/components/ui/LanguageDialog";
+
+const LANGUAGE_NAMES: Record<string, string> = {
+    en: "English",
+    id: "Bahasa Indonesia",
+};
 
 export function SettingsPage() {
     const navigate = useNavigate();
     const { user } = useAuthStore();
     const { isDarkMode, toggleTheme, isAiPanelOpen, toggleAiPanel } = useRoadmapStore();
+    const { language, t } = useAppLanguage();
+    const [langDialogOpen, setLangDialogOpen] = useState(false);
 
     const handleDeleteAccount = () => {
-        toast.info("Fitur hapus akun akan segera tersedia");
+        toast.info(t.toasts.deleteAccountSoon);
     };
 
     return (
         <div className="fixed inset-0 z-50 bg-background overflow-y-auto animate-in fade-in duration-300">
             {/* Header */}
             <div className="sticky top-0 z-[60] h-14 border-b bg-background flex items-center justify-between px-4">
-                <h1 className="text-lg font-semibold">Settings</h1>
+                <h1 className="text-lg font-semibold">{t.settingsPage.title}</h1>
                 <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
                     <X className="h-5 w-5" />
                 </Button>
@@ -54,20 +65,20 @@ export function SettingsPage() {
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <Monitor className="h-5 w-5" />
-                            Appearance
+                            {t.settingsPage.appearance}
                         </CardTitle>
                         <CardDescription>
-                            Customize how SkillBridge looks on your device
+                            {t.settingsPage.appearanceDescription}
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="flex items-center justify-between">
                             <div className="space-y-0.5">
                                 <Label htmlFor="dark-mode" className="font-medium">
-                                    Dark Mode
+                                    {t.settingsPage.darkMode}
                                 </Label>
                                 <p className="text-sm text-muted-foreground">
-                                    Toggle between light and dark theme
+                                    {t.settingsPage.darkModeDescription}
                                 </p>
                             </div>
                             <div className="flex items-center gap-2">
@@ -83,25 +94,53 @@ export function SettingsPage() {
                     </CardContent>
                 </Card>
 
+                {/* Language */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Globe className="h-5 w-5" />
+                            {t.settingsPage.language}
+                        </CardTitle>
+                        <CardDescription>
+                            {t.settingsPage.languageDescription}
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex items-center justify-between">
+                            <div className="space-y-0.5">
+                                <p className="font-medium">
+                                    {t.settingsPage.currentLanguage}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                    {LANGUAGE_NAMES[language] || language}
+                                </p>
+                            </div>
+                            <Button variant="outline" size="sm" onClick={() => setLangDialogOpen(true)}>
+                                {t.settingsPage.changeLanguage}
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+
                 {/* Editor Settings */}
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <MessageSquare className="h-5 w-5" />
-                            Editor
+                            {t.settingsPage.editor}
                         </CardTitle>
                         <CardDescription>
-                            Configure the roadmap editor behavior
+                            {t.settingsPage.editorDescription}
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="flex items-center justify-between">
                             <div className="space-y-0.5">
                                 <Label htmlFor="ai-panel" className="font-medium">
-                                    AI Panel
+                                    {t.settingsPage.aiPanel}
                                 </Label>
                                 <p className="text-sm text-muted-foreground">
-                                    Show AI assistant panel by default
+                                    {t.settingsPage.aiPanelDescription}
                                 </p>
                             </div>
                             <Switch
@@ -118,20 +157,20 @@ export function SettingsPage() {
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <Bell className="h-5 w-5" />
-                            Notifications
+                            {t.settingsPage.notifications}
                         </CardTitle>
                         <CardDescription>
-                            Manage your notification preferences
+                            {t.settingsPage.notificationsDescription}
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="flex items-center justify-between">
                             <div className="space-y-0.5">
                                 <Label htmlFor="email-notif" className="font-medium">
-                                    Email Notifications
+                                    {t.settingsPage.emailNotifications}
                                 </Label>
                                 <p className="text-sm text-muted-foreground">
-                                    Receive updates about your learning progress
+                                    {t.settingsPage.emailNotificationsDescription}
                                 </p>
                             </div>
                             <Switch
@@ -141,7 +180,7 @@ export function SettingsPage() {
                             />
                         </div>
                         <p className="text-xs text-muted-foreground italic">
-                            Coming soon
+                            {t.common.comingSoon}
                         </p>
                     </CardContent>
                 </Card>
@@ -153,42 +192,40 @@ export function SettingsPage() {
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-destructive">
                             <Trash2 className="h-5 w-5" />
-                            Danger Zone
+                            {t.settingsPage.dangerZone}
                         </CardTitle>
                         <CardDescription>
-                            Irreversible actions for your account
+                            {t.settingsPage.dangerZoneDescription}
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
                         <div className="flex items-center justify-between">
                             <div className="space-y-0.5">
-                                <p className="font-medium">Delete Account</p>
+                                <p className="font-medium">{t.settingsPage.deleteAccount}</p>
                                 <p className="text-sm text-muted-foreground">
-                                    Permanently delete your account and all data
+                                    {t.settingsPage.deleteAccountDescription}
                                 </p>
                             </div>
                             <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                     <Button variant="destructive" size="sm">
-                                        Delete Account
+                                        {t.settingsPage.deleteAccount}
                                     </Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                     <AlertDialogHeader>
-                                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                        <AlertDialogTitle>{t.settingsPage.deleteAccountConfirmTitle}</AlertDialogTitle>
                                         <AlertDialogDescription>
-                                            This action cannot be undone. This will permanently delete your
-                                            account and remove all your data including projects, roadmaps,
-                                            and quiz results.
+                                            {t.settingsPage.deleteAccountConfirmDescription}
                                         </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogCancel>{t.common.cancel}</AlertDialogCancel>
                                         <AlertDialogAction
                                             onClick={handleDeleteAccount}
                                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                         >
-                                            Delete Account
+                                            {t.settingsPage.deleteAccount}
                                         </AlertDialogAction>
                                     </AlertDialogFooter>
                                 </AlertDialogContent>
@@ -199,9 +236,12 @@ export function SettingsPage() {
 
                 {/* Account Info */}
                 <div className="text-center text-sm text-muted-foreground pt-4">
-                    <p>Logged in as <span className="font-medium">{user?.email}</span></p>
+                    <p>{t.settingsPage.loggedInAs} <span className="font-medium">{user?.email}</span></p>
                 </div>
             </div>
+
+            {/* Language Dialog */}
+            <LanguageDialog open={langDialogOpen} onOpenChange={setLangDialogOpen} />
         </div>
     );
 }

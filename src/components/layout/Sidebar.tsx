@@ -39,6 +39,7 @@ import { Logo } from "@/components/ui/Logo";
 import { createProject, getProjects, deleteProject, updateProject, getQuizResultsForRoadmap, type Project } from "@/lib/api";
 import { mergeNodesWithQuizResults } from "@/lib/roadmapUtils";
 import { toast } from "sonner";
+import { useAppLanguage } from "@/contexts/LanguageContext";
 
 export function Sidebar({ className }: { className?: string }) {
     const [projects, setProjects] = useState<Project[]>([]);
@@ -64,6 +65,7 @@ export function Sidebar({ className }: { className?: string }) {
     } = useRoadmapStore();
     const { user, logout } = useAuthStore();
     const navigate = useNavigate();
+    const { t } = useAppLanguage();
 
     // Filter projects based on search query
     const filteredProjects = useMemo(() => {
@@ -79,7 +81,7 @@ export function Sidebar({ className }: { className?: string }) {
             setProjects(data);
         } catch (error) {
             console.error("Failed to fetch projects:", error);
-            toast.error("Failed to load projects");
+            toast.error(t.toasts.loadFailed);
         } finally {
             setIsLoading(false);
         }
@@ -112,7 +114,7 @@ export function Sidebar({ className }: { className?: string }) {
 
     const handleCreateProject = async (title: string) => {
         if (!user?.id) {
-            toast.error("User not authenticated");
+            toast.error(t.toasts.userNotAuth);
             return;
         }
         const newProject = await createProject(title, user.id);
@@ -121,7 +123,7 @@ export function Sidebar({ className }: { className?: string }) {
         // Clear roadmap for new project and set as current
         clearRoadmap();
         setCurrentProject(newProject.id, newProject.title);
-        toast.success("Project created successfully");
+        toast.success(t.toasts.projectCreated);
     };
 
     const handleSelectProject = async (project: Project) => {
@@ -171,7 +173,7 @@ export function Sidebar({ className }: { className?: string }) {
             toggleSidebar();
         }
         navigate("/");
-        toast.success("Logged out successfully");
+        toast.success(t.toasts.loggedOut);
     };
 
     const handleRenameClick = (project: Project, e: React.MouseEvent) => {
@@ -199,10 +201,10 @@ export function Sidebar({ className }: { className?: string }) {
                 setCurrentProject(updated.id, updated.title);
             }
 
-            toast.success("Project renamed successfully");
+            toast.success(t.toasts.projectRenamed);
             setRenameDialogOpen(false);
         } catch (error) {
-            toast.error("Failed to rename project");
+            toast.error(t.toasts.renameFailed);
         }
     };
 
@@ -219,10 +221,10 @@ export function Sidebar({ className }: { className?: string }) {
                 setCurrentProject(null, "");
             }
 
-            toast.success("Project deleted successfully");
+            toast.success(t.toasts.projectDeleted);
             setDeleteDialogOpen(false);
         } catch (error) {
-            toast.error("Failed to delete project");
+            toast.error(t.toasts.deleteFailed);
         }
     };
 
@@ -265,7 +267,7 @@ export function Sidebar({ className }: { className?: string }) {
                     size="icon"
                     onClick={toggleSidebar}
                     className="h-10 w-10"
-                    title="Expand sidebar"
+                    title={t.sidebar.expandSidebar}
                 >
                     <PanelLeft className="h-5 w-5" />
                 </Button>
@@ -278,7 +280,7 @@ export function Sidebar({ className }: { className?: string }) {
                     size="icon"
                     onClick={() => setIsDialogOpen(true)}
                     className="h-10 w-10"
-                    title="New Project"
+                    title={t.sidebar.newProject}
                 >
                     <Plus className="h-5 w-5" />
                 </Button>
@@ -289,7 +291,7 @@ export function Sidebar({ className }: { className?: string }) {
                     size="icon"
                     onClick={toggleSidebar}
                     className="h-10 w-10"
-                    title="Search projects"
+                    title={t.sidebar.searchProjects}
                 >
                     <Search className="h-5 w-5" />
                 </Button>
@@ -309,31 +311,31 @@ export function Sidebar({ className }: { className?: string }) {
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="start" side="right" className="w-56 z-[70]">
-                            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                            <DropdownMenuLabel>{t.sidebar.myAccount}</DropdownMenuLabel>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => handleNavigate("/profile")}>
                                 <User className="mr-2 h-4 w-4" />
-                                Profile
+                                {t.sidebar.profile}
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleNavigate("/settings")}>
                                 <Settings className="mr-2 h-4 w-4" />
-                                Settings
+                                {t.sidebar.settings}
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleNavigate("/billing")}>
                                 <CreditCard className="mr-2 h-4 w-4" />
-                                Billing
+                                {t.sidebar.billing}
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => handleNavigate("/language")}>
                                 <Globe className="mr-2 h-4 w-4" />
-                                Language
+                                {t.sidebar.language}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                                 className="text-destructive focus:text-destructive"
                                 onClick={handleLogout}
                             >
                                 <LogOut className="mr-2 h-4 w-4" />
-                                Log out
+                                {t.common.logOut}
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
@@ -361,7 +363,7 @@ export function Sidebar({ className }: { className?: string }) {
                             size="icon"
                             onClick={toggleSidebar}
                             className="h-8 w-8 md:hidden"
-                            title="Close sidebar"
+                            title={t.sidebar.closeSidebar}
                         >
                             <X className="h-4 w-4" />
                         </Button>
@@ -371,7 +373,7 @@ export function Sidebar({ className }: { className?: string }) {
                             size="icon"
                             onClick={toggleSidebar}
                             className="h-8 w-8 hidden md:flex"
-                            title="Collapse sidebar"
+                            title={t.sidebar.collapseSidebar}
                         >
                             <PanelLeftClose className="h-4 w-4" />
                         </Button>
@@ -383,7 +385,7 @@ export function Sidebar({ className }: { className?: string }) {
                     <div className="relative">
                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input
-                            placeholder="Search projects..."
+                            placeholder={t.sidebar.searchProjects}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="pl-8 h-9"
@@ -400,14 +402,14 @@ export function Sidebar({ className }: { className?: string }) {
                                 onClick={() => setIsDialogOpen(true)}
                             >
                                 <Plus className="mr-2 h-4 w-4" />
-                                New Project
+                                {t.sidebar.newProject}
                             </Button>
                         </div>
                     </div>
 
                     <div className="px-2">
                         <h2 className="mb-3 px-4 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                            Your Projects
+                            {t.sidebar.yourProjects}
                         </h2>
                         <div className="space-y-1 px-2">
                             {isLoading ? (
@@ -418,7 +420,7 @@ export function Sidebar({ className }: { className?: string }) {
                                 </div>
                             ) : filteredProjects.length === 0 ? (
                                 <p className="px-4 py-3 text-sm text-muted-foreground text-center bg-muted/20 rounded-lg border border-dashed border-border/50">
-                                    {searchQuery ? "No matching projects" : "No projects yet"}
+                                    {searchQuery ? t.sidebar.noMatching : t.sidebar.noProjects}
                                 </p>
                             ) : (
                                 filteredProjects.map((project) => (
@@ -461,7 +463,7 @@ export function Sidebar({ className }: { className?: string }) {
                                             <DropdownMenuContent align="end" className="w-40 z-[70]">
                                                 <DropdownMenuItem onClick={(e) => handleRenameClick(project, e)}>
                                                     <Pencil className="mr-2 h-4 w-4" />
-                                                    Rename
+                                                    {t.sidebar.rename}
                                                 </DropdownMenuItem>
                                                 <DropdownMenuSeparator />
                                                 <DropdownMenuItem
@@ -469,7 +471,7 @@ export function Sidebar({ className }: { className?: string }) {
                                                     onClick={(e) => handleDeleteClick(project, e)}
                                                 >
                                                     <Trash2 className="mr-2 h-4 w-4" />
-                                                    Delete
+                                                    {t.common.delete}
                                                 </DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>
@@ -500,35 +502,35 @@ export function Sidebar({ className }: { className?: string }) {
                                     <DropdownMenuTrigger asChild>
                                         <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground flex-shrink-0">
                                             <MoreHorizontal className="h-4 w-4" />
-                                            <span className="sr-only">Open menu</span>
+                                            <span className="sr-only">{t.sidebar.openMenu}</span>
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end" className="w-56 z-[70]">
-                                        <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                                        <DropdownMenuLabel>{t.sidebar.myAccount}</DropdownMenuLabel>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem onClick={() => handleNavigate("/profile")}>
                                             <User className="mr-2 h-4 w-4" />
-                                            Profile
+                                            {t.sidebar.profile}
                                         </DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => handleNavigate("/settings")}>
                                             <Settings className="mr-2 h-4 w-4" />
-                                            Settings
+                                            {t.sidebar.settings}
                                         </DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => handleNavigate("/billing")}>
                                             <CreditCard className="mr-2 h-4 w-4" />
-                                            Billing
+                                            {t.sidebar.billing}
                                         </DropdownMenuItem>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem onClick={() => handleNavigate("/language")}>
                                             <Globe className="mr-2 h-4 w-4" />
-                                            Language
+                                            {t.sidebar.language}
                                         </DropdownMenuItem>
                                         <DropdownMenuItem
                                             className="text-destructive focus:text-destructive"
                                             onClick={handleLogout}
                                         >
                                             <LogOut className="mr-2 h-4 w-4" />
-                                            Log out
+                                            {t.common.logOut}
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
@@ -549,25 +551,25 @@ export function Sidebar({ className }: { className?: string }) {
             <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
-                        <DialogTitle>Rename Project</DialogTitle>
+                        <DialogTitle>{t.sidebar.renameProject}</DialogTitle>
                         <DialogDescription>
-                            Enter a new name for your project.
+                            {t.sidebar.renameDescription}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="py-4">
                         <Input
                             value={newTitle}
                             onChange={(e) => setNewTitle(e.target.value)}
-                            placeholder="Project name"
+                            placeholder={t.sidebar.projectName}
                             onKeyDown={(e) => e.key === "Enter" && handleRename()}
                         />
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setRenameDialogOpen(false)}>
-                            Cancel
+                            {t.common.cancel}
                         </Button>
                         <Button onClick={handleRename} disabled={!newTitle.trim()}>
-                            Save
+                            {t.common.save}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -577,18 +579,18 @@ export function Sidebar({ className }: { className?: string }) {
             <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Project</AlertDialogTitle>
+                        <AlertDialogTitle>{t.sidebar.deleteProject}</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Are you sure you want to delete "{selectedProject?.title}"? This action cannot be undone. All roadmaps in this project will also be deleted.
+                            {t.sidebar.deleteDescription.replace("{title}", selectedProject?.title || "")}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel>{t.common.cancel}</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleDelete}
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         >
-                            Delete
+                            {t.common.delete}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

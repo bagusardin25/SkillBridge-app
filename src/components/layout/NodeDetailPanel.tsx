@@ -36,6 +36,7 @@ import { NodeChatPanel } from "@/components/chat/NodeChatPanel";
 import { FullScreenChat } from "@/components/chat/FullScreenChat";
 import { getQuizResult, type QuizResultData, getNodeNote, saveNodeNote } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import { useAppLanguage } from "@/contexts/LanguageContext";
 
 const categoryLabels: Record<string, { label: string; color: string }> = {
     core: { label: "Core", color: "bg-primary text-primary-foreground" },
@@ -78,6 +79,7 @@ export function NodeDetailPanel() {
     const { nodes, edges, selectedNodeIds, closeDetailPanel, currentRoadmapId } = useRoadmapStore();
     const { updateNodeData } = useReactFlow();
     const [activeTab, setActiveTab] = useState("resources");
+    const { t } = useAppLanguage();
     const [showQuiz, setShowQuiz] = useState(false);
     const [showFullScreenChat, setShowFullScreenChat] = useState(false);
     const [quizResult, setQuizResult] = useState<QuizResultData | null>(null);
@@ -311,14 +313,14 @@ export function NodeDetailPanel() {
         return (
             <div className="flex flex-col h-full border-l bg-background w-full md:w-80">
                 <div className="p-4 border-b flex items-center justify-between">
-                    <h2 className="text-sm font-semibold">Node Details</h2>
+                    <h2 className="text-sm font-semibold">{t.nodeDetail.title}</h2>
                     <Button variant="ghost" size="icon" className="h-7 w-7" onClick={closeDetailPanel}>
                         <X className="h-4 w-4" />
                     </Button>
                 </div>
                 <div className="flex-1 flex items-center justify-center p-4">
                     <p className="text-sm text-muted-foreground text-center">
-                        Select a node to view its details
+                        {t.nodeDetail.selectNodePrompt}
                     </p>
                 </div>
             </div>
@@ -343,8 +345,8 @@ export function NodeDetailPanel() {
                         </div>
                     </div>
                     <div>
-                        <h2 className="text-sm font-semibold leading-none">Node Details</h2>
-                        <span className="text-[10px] text-muted-foreground">Resources & AI Tutor</span>
+                        <h2 className="text-sm font-semibold leading-none">{t.nodeDetail.title}</h2>
+                        <span className="text-[10px] text-muted-foreground">{t.nodeDetail.subtitle}</span>
                     </div>
                 </div>
                 <Button variant="ghost" size="icon" className="h-7 w-7" onClick={closeDetailPanel}>
@@ -358,15 +360,15 @@ export function NodeDetailPanel() {
                     <TabsList className="h-8 w-full">
                         <TabsTrigger value="resources" className="text-xs px-2 gap-1 flex-1">
                             <Heart className="h-3.5 w-3.5" />
-                            <span className="hidden sm:inline">Resources</span>
+                            <span className="hidden sm:inline">{t.nodeDetail.tabResources}</span>
                         </TabsTrigger>
                         <TabsTrigger value="ai-tutor" className="text-xs px-2 gap-1 flex-1">
                             <Sparkles className="h-3.5 w-3.5" />
-                            <span className="hidden sm:inline">AI Tutor</span>
+                            <span className="hidden sm:inline">{t.nodeDetail.tabAiTutor}</span>
                         </TabsTrigger>
                         <TabsTrigger value="notes" className="text-xs px-2 gap-1 flex-1">
                             <StickyNote className="h-3.5 w-3.5" />
-                            <span className="hidden sm:inline">Notes</span>
+                            <span className="hidden sm:inline">{t.nodeDetail.tabNotes}</span>
                         </TabsTrigger>
                     </TabsList>
 
@@ -380,7 +382,7 @@ export function NodeDetailPanel() {
                         ) : (
                             <Circle className="h-3 w-3" />
                         )}
-                        <span>{isCompleted ? "Done" : "Pending"}</span>
+                        <span>{isCompleted ? t.nodeDetail.statusDone : t.nodeDetail.statusPending}</span>
                     </div>
                 </div>
 
@@ -423,8 +425,8 @@ export function NodeDetailPanel() {
                                                 <Sparkles className="h-4 w-4" />
                                             </div>
                                             <div className="text-left">
-                                                <p className="text-sm font-semibold text-violet-700 dark:text-violet-400">Bingung dengan materi ini?</p>
-                                                <p className="text-[10px] text-violet-600/70 dark:text-violet-400/70">Tanya AI Tutor sekarang</p>
+                                                <p className="text-sm font-semibold text-violet-700 dark:text-violet-400">{t.nodeDetail.confusedTitle}</p>
+                                                <p className="text-[10px] text-violet-600/70 dark:text-violet-400/70">{t.nodeDetail.confusedSubtitle}</p>
                                             </div>
                                         </div>
                                         <ArrowRight className="h-4 w-4 text-violet-500 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
@@ -439,7 +441,7 @@ export function NodeDetailPanel() {
                                 <div className="space-y-3">
                                     <div className="flex items-center gap-2 text-rose-500">
                                         <Heart className="h-4 w-4 fill-current" />
-                                        <span className="text-sm font-medium">Free Resources</span>
+                                        <span className="text-sm font-medium">{t.nodeDetail.freeResources}</span>
                                     </div>
                                     <div className="border-t border-dashed border-rose-200 dark:border-rose-900" />
 
@@ -499,7 +501,7 @@ export function NodeDetailPanel() {
                                 <div className="space-y-3">
                                     <div className="flex items-center gap-2 text-red-500">
                                         <Video className="h-4 w-4" />
-                                        <span className="text-sm font-medium">Video Tutorials</span>
+                                        <span className="text-sm font-medium">{t.nodeDetail.videoTutorials}</span>
                                     </div>
                                     <div className="border-t border-dashed border-red-200 dark:border-red-900" />
 
@@ -575,7 +577,7 @@ export function NodeDetailPanel() {
                                     {!currentRoadmapId && !isCompleted && (
                                         <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800 mb-3">
                                             <p className="text-sm text-amber-700 dark:text-amber-400">
-                                                ⚠️ Simpan roadmap terlebih dahulu (Ctrl+S) untuk mengerjakan quiz
+                                                ⚠️ {t.nodeDetail.saveRoadmapFirst}
                                             </p>
                                         </div>
                                     )}
@@ -587,7 +589,7 @@ export function NodeDetailPanel() {
                                                     <Trophy className="h-5 w-5 text-white" />
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <p className="font-semibold text-sm text-emerald-700 dark:text-emerald-400">Quiz Selesai! ✅</p>
+                                                    <p className="font-semibold text-sm text-emerald-700 dark:text-emerald-400">{t.nodeDetail.quizCompleted}</p>
                                                     {quizResult && (
                                                         <div className="flex items-center gap-2 mt-0.5">
                                                             <span className="text-xs font-bold text-emerald-600 dark:text-emerald-500">
@@ -595,7 +597,7 @@ export function NodeDetailPanel() {
                                                             </span>
                                                             <span className="text-xs text-muted-foreground">•</span>
                                                             <span className="text-xs text-muted-foreground">
-                                                                {quizResult.score}/{quizResult.totalQuestions} benar
+                                                                {quizResult.score}/{quizResult.totalQuestions} {t.nodeDetail.correct}
                                                             </span>
                                                             <span className="inline-flex items-center gap-0.5 text-xs text-amber-600 dark:text-amber-400">
                                                                 <Zap className="h-3 w-3" /> +100 XP
@@ -615,7 +617,7 @@ export function NodeDetailPanel() {
                                                         >
                                                             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                                                                 <BookOpen className="h-3.5 w-3.5" />
-                                                                Review Jawaban
+                                                                {t.nodeDetail.reviewAnswers}
                                                             </span>
                                                             <ChevronDown className={cn(
                                                                 "h-4 w-4 text-muted-foreground transition-transform duration-200",
@@ -631,10 +633,10 @@ export function NodeDetailPanel() {
                                                                 e.stopPropagation();
                                                                 handleExportPDF();
                                                             }}
-                                                            title="Download Quiz Result as PDF"
+                                                            title={t.nodeDetail.downloadPdfTitle}
                                                         >
                                                             <Download className="h-3.5 w-3.5 mr-1.5" />
-                                                            Export PDF
+                                                            {t.nodeDetail.exportPdf}
                                                         </Button>
                                                     </div>
 
@@ -680,11 +682,11 @@ export function NodeDetailPanel() {
                                                                             <div className="mt-2 ml-7 space-y-2">
                                                                                 {!isCorrect && (
                                                                                     <p className="text-xs text-red-500 dark:text-red-400">
-                                                                                        ✗ Jawabanmu: {q.options[userAnswer ?? 0]}
+                                                                                        ✗ {t.nodeDetail.yourAnswer} {q.options[userAnswer ?? 0]}
                                                                                     </p>
                                                                                 )}
                                                                                 <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
-                                                                                    ✓ Jawaban benar: {q.options[q.correctIndex]}
+                                                                                    ✓ {t.nodeDetail.correctAnswer} {q.options[q.correctIndex]}
                                                                                 </p>
                                                                                 <div className="text-[11px] text-muted-foreground bg-muted/50 rounded-lg p-2 leading-relaxed">
                                                                                     💡 {q.explanation}
@@ -707,8 +709,8 @@ export function NodeDetailPanel() {
                                                     <Lock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                                                 </div>
                                                 <div>
-                                                    <p className="font-bold text-amber-800 dark:text-amber-300">Quiz Terkunci</p>
-                                                    <p className="text-xs text-amber-600/80 dark:text-amber-500/80 mt-0.5">Selesaikan prasyarat berikut untuk membuka Quiz</p>
+                                                    <p className="font-bold text-amber-800 dark:text-amber-300">{t.nodeDetail.quizLocked}</p>
+                                                    <p className="text-xs text-amber-600/80 dark:text-amber-500/80 mt-0.5">{t.nodeDetail.quizLockedDescription}</p>
                                                 </div>
                                             </div>
 
@@ -731,7 +733,7 @@ export function NodeDetailPanel() {
                                             className="w-full h-10 py-2 px-4 text-sm bg-primary hover:bg-primary/90 flex items-center justify-center"
                                         >
                                             <GraduationCap className="h-4 w-4 mr-2 flex-shrink-0" />
-                                            <span>Take Quiz to Complete This Topic</span>
+                                            <span>{t.nodeDetail.takeQuiz}</span>
                                         </Button>
                                     )}
                                 </div>
@@ -746,15 +748,15 @@ export function NodeDetailPanel() {
                                                 <CheckCircle2 className="h-5 w-5 text-emerald-600" />
                                             </div>
                                             <div>
-                                                <p className="font-medium text-emerald-700 dark:text-emerald-400">Completed!</p>
-                                                <p className="text-sm text-emerald-600 dark:text-emerald-500">You've explored this optional topic.</p>
+                                                <p className="font-medium text-emerald-700 dark:text-emerald-400">{t.nodeDetail.completed}</p>
+                                                <p className="text-sm text-emerald-600 dark:text-emerald-500">{t.nodeDetail.completedOptionalDesc}</p>
                                             </div>
                                         </div>
                                     ) : (
                                         <div className="space-y-3">
                                             <div className="p-4 bg-muted/50 rounded-lg">
                                                 <p className="text-sm text-muted-foreground">
-                                                    This is an optional topic. No quiz required - explore at your own pace!
+                                                    {t.nodeDetail.optionalTopicDesc}
                                                 </p>
                                             </div>
                                             <Button
@@ -770,7 +772,7 @@ export function NodeDetailPanel() {
                                                 className="w-full"
                                             >
                                                 <CheckCircle2 className="h-4 w-4 mr-2" />
-                                                Mark as Complete
+                                                {t.nodeDetail.markAsComplete}
                                             </Button>
                                         </div>
                                     )}
@@ -786,8 +788,8 @@ export function NodeDetailPanel() {
                                                 <CheckCircle2 className="h-5 w-5 text-emerald-600" />
                                             </div>
                                             <div>
-                                                <p className="font-medium text-emerald-700 dark:text-emerald-400">Project Completed!</p>
-                                                <p className="text-sm text-emerald-600 dark:text-emerald-500">Great job finishing this project.</p>
+                                                <p className="font-medium text-emerald-700 dark:text-emerald-400">{t.nodeDetail.projectCompleted}</p>
+                                                <p className="text-sm text-emerald-600 dark:text-emerald-500">{t.nodeDetail.projectCompletedDesc}</p>
                                             </div>
                                         </div>
                                     ) : !allPrerequisitesPassed ? (
@@ -798,8 +800,8 @@ export function NodeDetailPanel() {
                                                     <Lock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                                                 </div>
                                                 <div>
-                                                    <p className="font-bold text-amber-800 dark:text-amber-300">Project Terkunci</p>
-                                                    <p className="text-xs text-amber-600/80 dark:text-amber-500/80 mt-0.5">Selesaikan prasyarat berikut untuk membuka Project</p>
+                                                    <p className="font-bold text-amber-800 dark:text-amber-300">{t.nodeDetail.projectLocked}</p>
+                                                    <p className="text-xs text-amber-600/80 dark:text-amber-500/80 mt-0.5">{t.nodeDetail.projectLockedDescription}</p>
                                                 </div>
                                             </div>
 
@@ -820,18 +822,18 @@ export function NodeDetailPanel() {
                                         <>
                                             <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border border-emerald-200 dark:border-emerald-800">
                                                 <h4 className="font-medium text-emerald-700 dark:text-emerald-400 mb-2">
-                                                    🚀 Cara Menyelesaikan Project Ini:
+                                                    {t.nodeDetail.howToCompleteProject}
                                                 </h4>
                                                 <ol className="text-sm text-emerald-600 dark:text-emerald-500 space-y-2 list-decimal list-inside">
-                                                    <li>Pelajari semua resources yang tersedia di atas</li>
-                                                    <li>Buat project sesuai dengan topik "{data.label}"</li>
-                                                    <li>Implementasikan konsep yang sudah dipelajari</li>
-                                                    <li>Setelah selesai, klik tombol di bawah untuk menandai selesai</li>
+                                                    <li>{t.nodeDetail.projectStep1}</li>
+                                                    <li>{t.nodeDetail.projectStep2.replace("{label}", data.label)}</li>
+                                                    <li>{t.nodeDetail.projectStep3}</li>
+                                                    <li>{t.nodeDetail.projectStep4}</li>
                                                 </ol>
                                             </div>
                                             <div className="p-3 bg-muted/50 rounded-lg">
                                                 <p className="text-xs text-muted-foreground">
-                                                    💡 Tips: Gunakan AI Tutor jika butuh bantuan dalam mengerjakan project ini!
+                                                    {t.nodeDetail.projectTip}
                                                 </p>
                                             </div>
                                             <Button
@@ -846,7 +848,7 @@ export function NodeDetailPanel() {
                                                 className="w-full h-auto min-h-12 py-3 px-4 bg-emerald-600 hover:bg-emerald-700 whitespace-normal leading-snug flex items-center justify-center text-center"
                                             >
                                                 <CheckCircle2 className="h-5 w-5 mr-2 flex-shrink-0" />
-                                                <span>Saya Sudah Menyelesaikan Project Ini</span>
+                                                <span>{t.nodeDetail.iCompletedProject}</span>
                                             </Button>
                                         </>
                                     )}
@@ -870,13 +872,13 @@ export function NodeDetailPanel() {
                     <div className="p-4 border-b bg-muted/20 flex items-center justify-between shadow-sm z-10 shrink-0">
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <StickyNote className="h-4 w-4" />
-                            <span className="font-medium">Personal Notes</span>
+                            <span className="font-medium">{t.nodeDetail.personalNotes}</span>
                         </div>
                         <div className="flex items-center gap-2">
                             {isSavingNote ? (
-                                <span className="text-xs text-muted-foreground flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" /> Saving...</span>
+                                <span className="text-xs text-muted-foreground flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" /> {t.nodeDetail.savingNote}</span>
                             ) : lastSaved ? (
-                                <span className="text-xs text-muted-foreground flex items-center gap-1"><Save className="h-3 w-3" /> Saved {lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                <span className="text-xs text-muted-foreground flex items-center gap-1"><Save className="h-3 w-3" /> {t.nodeDetail.savedAt} {lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                             ) : null}
                             <Button
                                 variant="outline"
@@ -885,13 +887,13 @@ export function NodeDetailPanel() {
                                 onClick={handleSaveNote}
                                 disabled={isSavingNote}
                             >
-                                Force Save
+                                {t.nodeDetail.forceSave}
                             </Button>
                         </div>
                     </div>
                     <textarea
                         className="flex-1 min-h-0 w-full bg-transparent p-4 outline-none resize-none placeholder:text-muted-foreground/50"
-                        placeholder="Write your personal notes for this topic here... (Auto-saves while typing)"
+                        placeholder={t.nodeDetail.notePlaceholder}
                         value={noteContent}
                         onChange={(e) => setNoteContent(e.target.value)}
                         onBlur={handleSaveNote}

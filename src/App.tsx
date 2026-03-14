@@ -19,6 +19,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useRoadmapStore } from "@/store/useRoadmapStore";
 import { updateStreak } from "@/lib/api";
 import { useLearningTimeTracker } from "@/hooks/useLearningTimeTracker";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 import { Toaster } from "sonner";
 
 function App() {
@@ -54,6 +55,7 @@ function App() {
   }, [isAuthenticated, user?.id]);
 
   return (
+    <LanguageProvider>
     <BrowserRouter>
       <Routes>
         <Route
@@ -143,6 +145,7 @@ function App() {
       </Routes>
       <Toaster />
     </BrowserRouter>
+    </LanguageProvider>
   );
 }
 

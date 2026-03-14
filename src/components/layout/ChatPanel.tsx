@@ -11,6 +11,7 @@ import { convertToReactFlowNodes, isRoadmapRequest } from "@/lib/layoutUtils";
 import { useRoadmapStore } from "@/store/useRoadmapStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "sonner";
+import { useAppLanguage } from "@/contexts/LanguageContext";
 import {
     Select,
     SelectContent,
@@ -39,11 +40,7 @@ type Message = {
 
 import { Rocket, FileText, Target } from "lucide-react";
 
-const SUGGESTIONS = [
-    { icon: <Rocket className="h-5 w-5" />, text: "Buatkan roadmap React Developer" },
-    { icon: <FileText className="h-5 w-5" />, text: "Jelaskan konsep System Design" },
-    { icon: <Target className="h-5 w-5" />, text: "Bagaimana cara belajar Go?" },
-];
+// Suggestions are now dynamic based on language, defined inside the component
 
 const TYPING_SPEED = 15; // ms per character
 const THINKING_DELAY = 800; // ms before starting to type
@@ -199,6 +196,7 @@ export function ChatPanel() {
         incrementProjectsVersion,
     } = useRoadmapStore();
     const { user } = useAuthStore();
+    const { t } = useAppLanguage();
     const hasHandledTopic = useRef(false);
     const isCreatingProject = useRef(false);
 
@@ -263,7 +261,7 @@ export function ChatPanel() {
     useEffect(() => {
         if (contextualChatTopic && !hasHandledTopic.current) {
             hasHandledTopic.current = true;
-            const prompt = `Jelaskan lebih detail tentang "${contextualChatTopic}" dalam konteks roadmap pembelajaran. Apa saja yang perlu dipelajari dan bagaimana cara memulainya?`;
+            const prompt = t.chat.contextualPrompt.replace("{topic}", contextualChatTopic);
             setInputValue(prompt);
             // Clear the topic after setting
             setContextualChatTopic(null);
@@ -329,12 +327,12 @@ export function ChatPanel() {
                             console.warn("onProjectCreated callback is not registered");
                         }
 
-                        toast.success(`Project "${newProject.title}" dibuat!`);
+                        toast.success(t.toasts.projectCreatedName.replace("{title}", newProject.title));
                         // Trigger sidebar refresh via version counter
                         incrementProjectsVersion();
                     } catch (projectError) {
                         console.error("Failed to create project:", projectError);
-                        toast.error("Gagal membuat project. Chat akan dilanjutkan tanpa project.");
+                        toast.error(t.toasts.projectCreateFailed);
                         // Continue without project - user can still see the roadmap
                     }
                 }
@@ -411,8 +409,8 @@ export function ChatPanel() {
 
                     // Show success message with streaming effect
                     const messageId = (Date.now() + 1).toString();
-                    const timeInfo = roadmap.totalEstimatedTime ? `\n⏱️ Estimasi waktu: ${roadmap.totalEstimatedTime}` : '';
-                    const successMessageContent = `🎉 Roadmap "${roadmap.title}" berhasil dibuat!${timeInfo}\n\nRoadmap ini memiliki ${nodes.length} langkah pembelajaran. Klik pada setiap node untuk melihat detail dan sumber belajar.\n\nAda yang ingin kamu tanyakan tentang roadmap ini?`;
+                    const timeInfo = roadmap.totalEstimatedTime ? `\n⏱️ ${roadmap.totalEstimatedTime}` : '';
+                    const successMessageContent = `${t.chat.roadmapCreated.replace("{title}", roadmap.title)}${timeInfo}\n\n${t.chat.roadmapCreatedBody.replace("{count}", String(nodes.length))}\n\n${t.chat.askAboutRoadmap}`;
                     const successMessage: Message = {
                         id: messageId,
                         role: "assistant",
@@ -451,12 +449,12 @@ export function ChatPanel() {
                             console.warn("onProjectCreated callback is not registered for chat");
                         }
 
-                        toast.success(`Project "${newProject.title}" dibuat!`);
+                        toast.success(t.toasts.projectCreatedName.replace("{title}", newProject.title));
                         // Trigger sidebar refresh via version counter
                         incrementProjectsVersion();
                     } catch (projectError) {
                         console.error("Failed to create project for chat:", projectError);
-                        toast.error("Gagal membuat project. Chat akan dilanjutkan tanpa project.");
+                        toast.error(t.toasts.projectCreateFailed);
                         // Continue without project - user can still chat
                     }
                 }
@@ -487,15 +485,15 @@ export function ChatPanel() {
             let errorContent = "";
 
             if (error instanceof TypeError && error.message === "Failed to fetch") {
-                errorContent = "🔌 **Tidak dapat terhubung ke server**\n\nKemungkinan penyebab:\n- Server backend belum dijalankan\n- Koneksi internet terputus\n\nSilakan coba lagi dalam beberapa saat.";
+                errorContent = `${t.chat.errorNoConnection}\n\n${t.chat.errorNoConnectionDesc}`;
             } else if (error instanceof Error && (error.message.includes("rate limit") || error.message.includes("429"))) {
-                errorContent = "⏳ **Server sedang sibuk**\n\nTerlalu banyak permintaan dalam waktu singkat. Silakan tunggu beberapa detik dan coba lagi.";
+                errorContent = `${t.chat.errorRateLimit}\n\n${t.chat.errorRateLimitDesc}`;
             } else if (error instanceof Error && error.message.includes("unavailable")) {
-                errorContent = "🔧 **Layanan AI sedang tidak tersedia**\n\nSilakan coba lagi dalam beberapa menit.";
+                errorContent = `${t.chat.errorUnavailable}\n\n${t.chat.errorUnavailableDesc}`;
             } else {
                 errorContent = error instanceof Error
-                    ? `❌ **Terjadi kesalahan**\n\n${error.message}\n\nSilakan coba lagi.`
-                    : "❌ **Terjadi kesalahan**\n\nTidak dapat memproses permintaan. Silakan coba lagi.";
+                    ? `${t.chat.errorGeneric}\n\n${error.message}\n\n${t.chat.errorGenericDesc}`
+                    : `${t.chat.errorGeneric}\n\n${t.chat.errorGenericDesc}`;
             }
 
             const errorMessage: Message = {
@@ -562,8 +560,8 @@ export function ChatPanel() {
                         <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 border-2 border-background"></span>
                     </div>
                     <div>
-                        <h2 className="text-sm font-semibold leading-none">AI Assistant</h2>
-                        <span className="text-[10px] text-muted-foreground">Powered by SkillBridge</span>
+                        <h2 className="text-sm font-semibold leading-none">{t.chat.aiAssistant}</h2>
+                        <span className="text-[10px] text-muted-foreground">{t.chat.poweredBy}</span>
                     </div>
                 </div>
                 <div className="flex items-center gap-1">
@@ -593,9 +591,9 @@ export function ChatPanel() {
                                 <Sparkles className="h-6 w-6 text-muted-foreground" />
                             </div>
                             <div className="space-y-1">
-                                <h3 className="text-sm font-medium">Welcome to SkillBridge!</h3>
+                                <h3 className="text-sm font-medium">{t.chat.welcome}</h3>
                                 <p className="text-xs text-muted-foreground px-4">
-                                    I can help you build learning roadmaps. Try asking:
+                                    {t.chat.welcomeHint}
                                 </p>
                             </div>
 
@@ -613,9 +611,9 @@ export function ChatPanel() {
                                     <div className="flex flex-col items-start gap-0.5">
                                         <div className="flex items-center gap-2">
                                             <Settings2 className="h-3.5 w-3.5 text-muted-foreground" />
-                                            <span className="font-medium">Atur Preferensi Belajar</span>
+                                            <span className="font-medium">{t.chat.setPreferences}</span>
                                         </div>
-                                        <span className="text-[10px] text-muted-foreground ml-5">Sesuaikan level & gaya belajarmu</span>
+                                        <span className="text-[10px] text-muted-foreground ml-5">{t.chat.customizePreferences}</span>
                                     </div>
                                     <ChevronDown className={cn(
                                         "h-3.5 w-3.5 transition-transform duration-200",
@@ -635,7 +633,7 @@ export function ChatPanel() {
                                             {/* Skill Level - Radio Group Style */}
                                             <div className="space-y-2">
                                                 <label className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground flex items-center gap-1.5">
-                                                    <span className="h-4 w-1 bg-primary/40 rounded-full" /> Level Belajar
+                                                    <span className="h-4 w-1 bg-primary/40 rounded-full" /> {t.chat.skillLevel}
                                                 </label>
                                                 <div className="grid grid-cols-3 gap-1.5 bg-muted/50 p-1 rounded-lg">
                                                     {(['beginner', 'intermediate', 'advanced'] as const).map((level) => (
@@ -658,7 +656,7 @@ export function ChatPanel() {
                                             {/* Learning Style - Radio Group Style */}
                                             <div className="space-y-2">
                                                 <label className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground flex items-center gap-1.5">
-                                                    <span className="h-4 w-1 bg-blue-500/40 rounded-full" /> Gaya Belajar
+                                                    <span className="h-4 w-1 bg-blue-500/40 rounded-full" /> {t.chat.learningStyle}
                                                 </label>
                                                 <div className="grid grid-cols-3 gap-1.5 bg-muted/50 p-1 rounded-lg">
                                                     {(['theory', 'balanced', 'practice'] as const).map((style) => (
@@ -680,7 +678,7 @@ export function ChatPanel() {
 
                                             <div className="grid grid-cols-2 gap-3">
                                                 <div className="space-y-1.5">
-                                                    <label className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">Waktu</label>
+                                                    <label className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">{t.chat.timeLabel}</label>
                                                     <Select
                                                         value={preferences.learningTime}
                                                         onValueChange={(v) => setPreferences({ ...preferences, learningTime: v as RoadmapPreferences["learningTime"] })}
@@ -689,15 +687,15 @@ export function ChatPanel() {
                                                             <SelectValue />
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            <SelectItem value="casual">Santai (~1 jam/hari)</SelectItem>
-                                                            <SelectItem value="moderate">Sedang (2-3 jam/hari)</SelectItem>
-                                                            <SelectItem value="intensive">Intensif (4+ jam/hari)</SelectItem>
+                                                            <SelectItem value="casual">{t.chat.casual}</SelectItem>
+                                                            <SelectItem value="moderate">{t.chat.moderate}</SelectItem>
+                                                            <SelectItem value="intensive">{t.chat.intensive}</SelectItem>
                                                         </SelectContent>
                                                     </Select>
                                                 </div>
 
                                                 <div className="space-y-1.5">
-                                                    <label className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">Tujuan</label>
+                                                    <label className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">{t.chat.goalLabel}</label>
                                                     <Select
                                                         value={preferences.goal}
                                                         onValueChange={(v) => setPreferences({ ...preferences, goal: v as RoadmapPreferences["goal"] })}
@@ -706,10 +704,10 @@ export function ChatPanel() {
                                                             <SelectValue />
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            <SelectItem value="career">Karier</SelectItem>
-                                                            <SelectItem value="project">Project</SelectItem>
-                                                            <SelectItem value="certification">Sertifikasi</SelectItem>
-                                                            <SelectItem value="hobby">Hobi</SelectItem>
+                                                            <SelectItem value="career">{t.chat.career}</SelectItem>
+                                                            <SelectItem value="project">{t.chat.project}</SelectItem>
+                                                            <SelectItem value="certification">{t.chat.certification}</SelectItem>
+                                                            <SelectItem value="hobby">{t.chat.hobby}</SelectItem>
                                                         </SelectContent>
                                                     </Select>
                                                 </div>
@@ -722,10 +720,14 @@ export function ChatPanel() {
                             <div className="flex flex-col gap-2 w-full px-2 mt-6 max-w-md mx-auto">
                                 <div className="flex items-center gap-2 px-1 mb-2">
                                     <Sparkles className="h-3.5 w-3.5 text-primary animate-pulse" />
-                                    <span className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">Mulai dengan topik di bawah:</span>
+                                    <span className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">{t.chat.startWithTopic}</span>
                                 </div>
                                 <div className="grid grid-cols-1 gap-2.5">
-                                    {SUGGESTIONS.map((suggestion, index) => (
+                                    {[
+                                        { icon: <Rocket className="h-5 w-5" />, text: t.chat.suggestion1 },
+                                        { icon: <FileText className="h-5 w-5" />, text: t.chat.suggestion2 },
+                                        { icon: <Target className="h-5 w-5" />, text: t.chat.suggestion3 },
+                                    ].map((suggestion, index) => (
                                         <button
                                             key={index}
                                             onClick={() => handleSuggestionClick(suggestion.text)}
@@ -822,7 +824,7 @@ export function ChatPanel() {
                                                                 <Copy className="h-3.5 w-3.5" />
                                                             </Button>
                                                         </TooltipTrigger>
-                                                        <TooltipContent><p className="text-xs">Copy</p></TooltipContent>
+                                                        <TooltipContent><p className="text-xs">{t.common.copy}</p></TooltipContent>
                                                     </Tooltip>
                                                 </TooltipProvider>
 
@@ -841,7 +843,7 @@ export function ChatPanel() {
                                                                     <RefreshCw className="h-3.5 w-3.5" />
                                                                 </Button>
                                                             </TooltipTrigger>
-                                                            <TooltipContent><p className="text-xs">Regenerate</p></TooltipContent>
+                                                            <TooltipContent><p className="text-xs">{t.common.regenerate}</p></TooltipContent>
                                                         </Tooltip>
                                                     </TooltipProvider>
                                                 )}
@@ -861,7 +863,7 @@ export function ChatPanel() {
                                                                 <ThumbsUp className="h-3.5 w-3.5" />
                                                             </Button>
                                                         </TooltipTrigger>
-                                                        <TooltipContent><p className="text-xs">Good response</p></TooltipContent>
+                                                        <TooltipContent><p className="text-xs">{t.common.goodResponse}</p></TooltipContent>
                                                     </Tooltip>
                                                 </TooltipProvider>
 
@@ -878,7 +880,7 @@ export function ChatPanel() {
                                                                 <ThumbsDown className="h-3.5 w-3.5" />
                                                             </Button>
                                                         </TooltipTrigger>
-                                                        <TooltipContent><p className="text-xs">Bad response</p></TooltipContent>
+                                                        <TooltipContent><p className="text-xs">{t.common.badResponse}</p></TooltipContent>
                                                     </Tooltip>
                                                 </TooltipProvider>
                                             </div>
@@ -900,7 +902,7 @@ export function ChatPanel() {
                                     <span className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce"></span>
                                 </div>
                                 <span className="text-[10px] font-medium text-muted-foreground animate-pulse">
-                                    Thinking...
+                                    {t.chat.thinking}
                                 </span>
                             </div>
                         </div>
@@ -919,7 +921,7 @@ export function ChatPanel() {
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
                         className="flex-1 bg-transparent border-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-3 min-h-[44px] shadow-none"
-                        placeholder="Ask AI anything..."
+                        placeholder={t.chat.askAnything}
                         disabled={isLoading}
                     />
                     {isLoading ? (
@@ -937,7 +939,7 @@ export function ChatPanel() {
                                         <span className="sr-only">Stop</span>
                                     </Button>
                                 </TooltipTrigger>
-                                <TooltipContent><p className="text-xs">Stop generating</p></TooltipContent>
+                                <TooltipContent><p className="text-xs">{t.chat.stopGenerating}</p></TooltipContent>
                             </Tooltip>
                         </TooltipProvider>
                     ) : (

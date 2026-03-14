@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Clock, Sparkles, ChevronRight, LayoutTemplate, X } from "lucide-react";
+import { useAppLanguage } from "@/contexts/LanguageContext";
 
 interface TemplateSelectorProps {
     onSelectTemplate: (template: RoadmapTemplate) => void;
@@ -19,6 +20,7 @@ const difficultyColors = {
 };
 
 export function TemplateSelector({ onSelectTemplate, onAskAi, onClose }: TemplateSelectorProps) {
+    const { t } = useAppLanguage();
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const categories = [...new Set(roadmapTemplates.map(t => t.category))];
 
@@ -48,9 +50,9 @@ export function TemplateSelector({ onSelectTemplate, onAskAi, onClose }: Templat
                 </div>
             </div>
             
-            <h3 className="text-xl font-bold tracking-tight mb-2">Start Your Learning Journey</h3>
+            <h3 className="text-xl font-bold tracking-tight mb-2">{t.templateSelector.startJourney}</h3>
             <p className="text-sm text-muted-foreground mb-6 max-w-[80%] mx-auto">
-                Choose a curated template or ask AI to construct a highly personalized roadmap just for you.
+                {t.templateSelector.description}
             </p>
 
             {/* Category Filter */}
@@ -61,7 +63,7 @@ export function TemplateSelector({ onSelectTemplate, onAskAi, onClose }: Templat
                     className={`rounded-full px-4 ${selectedCategory === null ? "shadow-md shadow-primary/20" : "hover:bg-primary/10 hover:text-primary bg-muted/50"}`}
                     onClick={() => setSelectedCategory(null)}
                 >
-                    All
+                    {t.templateSelector.all}
                 </Button>
                 {categories.map(cat => (
                     <Button
@@ -110,7 +112,7 @@ export function TemplateSelector({ onSelectTemplate, onAskAi, onClose }: Templat
                                         {template.estimatedTime}
                                     </span>
                                     <span className="flex items-center gap-1">
-                                        {template.roadmap.nodes.length} topics
+                                        {template.roadmap.nodes.length} {t.templateSelector.topics}
                                         <ChevronRight className="h-3 w-3" />
                                     </span>
                                 </div>
@@ -129,7 +131,7 @@ export function TemplateSelector({ onSelectTemplate, onAskAi, onClose }: Templat
                 >
                     <div className="absolute inset-0 bg-gradient-to-r from-violet-600 to-indigo-600 dark:from-zinc-800 dark:to-zinc-900 group-hover:opacity-90 transition-opacity" />
                     <Sparkles className="mr-2 h-4 w-4 relative z-10 text-white animate-pulse" />
-                    <span className="relative z-10 text-white font-medium">Ask AI to Create Custom Roadmap</span>
+                    <span className="relative z-10 text-white font-medium">{t.templateSelector.askAi}</span>
                 </Button>
             </div>
         </div>

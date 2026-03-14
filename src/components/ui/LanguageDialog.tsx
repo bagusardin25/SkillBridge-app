@@ -10,6 +10,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Globe, Check } from "lucide-react";
+import { useAppLanguage } from "@/contexts/LanguageContext";
+import type { AppLanguage } from "@/lib/appTranslations";
 
 interface LanguageDialogProps {
     open: boolean;
@@ -18,13 +20,13 @@ interface LanguageDialogProps {
 
 const LANGUAGES = [
     {
-        code: "id",
+        code: "id" as const,
         name: "Bahasa Indonesia",
         flag: "🇮🇩",
         description: "Indonesian",
     },
     {
-        code: "en",
+        code: "en" as const,
         name: "English",
         flag: "🇺🇸",
         description: "English (US)",
@@ -32,24 +34,21 @@ const LANGUAGES = [
 ];
 
 export function LanguageDialog({ open, onOpenChange }: LanguageDialogProps) {
-    const [selectedLanguage, setSelectedLanguage] = useState(() => {
-        return localStorage.getItem("language") || "id";
-    });
+    const { language, setLanguage, t } = useAppLanguage();
+    const [selectedLanguage, setSelectedLanguage] = useState<AppLanguage>(language);
 
     useEffect(() => {
         if (open) {
-            setSelectedLanguage(localStorage.getItem("language") || "id");
+            setSelectedLanguage(language);
         }
-    }, [open]);
+    }, [open, language]);
 
     const handleSave = () => {
-        localStorage.setItem("language", selectedLanguage);
-        
-        // Dispatch custom event so other components can react
-        window.dispatchEvent(new CustomEvent("languageChange", { detail: selectedLanguage }));
+        setLanguage(selectedLanguage);
         
         const langName = LANGUAGES.find(l => l.code === selectedLanguage)?.name || selectedLanguage;
-        toast.success(`Bahasa diubah ke ${langName}`);
+        const msg = t.languagePage.languageChanged.replace("{name}", langName);
+        toast.success(msg);
         
         onOpenChange(false);
     };
@@ -60,10 +59,10 @@ export function LanguageDialog({ open, onOpenChange }: LanguageDialogProps) {
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <Globe className="h-5 w-5" />
-                        Language / Bahasa
+                        {t.languageDialog.title}
                     </DialogTitle>
                     <DialogDescription>
-                        Pilih bahasa yang ingin digunakan
+                        {t.languageDialog.description}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -91,17 +90,12 @@ export function LanguageDialog({ open, onOpenChange }: LanguageDialogProps) {
                     ))}
                 </div>
 
-                <div className="text-xs text-muted-foreground text-center px-4">
-                    <p>Saat ini aplikasi hanya tersedia dalam Bahasa Indonesia.</p>
-                    <p>Full translation akan tersedia di versi mendatang.</p>
-                </div>
-
                 <DialogFooter>
                     <Button variant="outline" onClick={() => onOpenChange(false)}>
-                        Batal
+                        {t.common.cancel}
                     </Button>
                     <Button onClick={handleSave}>
-                        Simpan
+                        {t.common.save}
                     </Button>
                 </DialogFooter>
             </DialogContent>

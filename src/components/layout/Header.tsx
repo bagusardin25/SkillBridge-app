@@ -26,6 +26,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAppLanguage } from "@/contexts/LanguageContext";
 
 export function Header() {
     const {
@@ -47,6 +48,7 @@ export function Header() {
     } = useRoadmapStore();
 
     const { user } = useAuthStore();
+    const { t } = useAppLanguage();
     const [showSaveDialog, setShowSaveDialog] = useState(false);
     const [showCertificate, setShowCertificate] = useState(false);
     const [showDashboard, setShowDashboard] = useState(false);
@@ -72,7 +74,7 @@ export function Header() {
     // Handle save - create new project if none exists, otherwise update
     const handleSave = useCallback(async () => {
         if (nodes.length === 0) {
-            toast.error("Tidak ada roadmap untuk disimpan");
+            toast.error(t.toasts.noRoadmapToSave);
             return;
         }
 
@@ -87,9 +89,9 @@ export function Header() {
             setIsSaving(true);
             try {
                 await updateRoadmap(currentRoadmapId, { nodes, edges });
-                toast.success("Roadmap berhasil disimpan!");
+                toast.success(t.toasts.roadmapSaved);
             } catch (error) {
-                toast.error("Gagal menyimpan roadmap");
+                toast.error(t.toasts.roadmapSaveFailed);
                 console.error(error);
             } finally {
                 setIsSaving(false);
@@ -100,7 +102,7 @@ export function Header() {
     // Handle save new project from dialog
     const handleSaveNewProject = async (title: string) => {
         if (!user?.id) {
-            toast.error("Silakan login terlebih dahulu");
+            toast.error(t.toasts.pleaseLoginFirst);
             return;
         }
 
@@ -129,9 +131,9 @@ export function Header() {
             // Also trigger version-based refresh as a fallback
             incrementProjectsVersion();
 
-            toast.success(`Project "${title}" berhasil dibuat!`);
+            toast.success(t.toasts.projectCreatedName.replace("{title}", title));
         } catch (error) {
-            toast.error("Gagal membuat project");
+            toast.error(t.toasts.projectCreateFailed);
             console.error(error);
             throw error;
         }
@@ -154,7 +156,7 @@ export function Header() {
     const [isExporting, setIsExporting] = useState(false);
 
     const handleClearCanvas = () => {
-        if (confirm("Are you sure you want to clear the canvas? This action cannot be undone.")) {
+        if (confirm(t.header.clearCanvasConfirm)) {
             // Need to get access to these functions via the store
             useRoadmapStore.getState().setNodes([]);
             useRoadmapStore.getState().setEdges([]);
@@ -164,12 +166,12 @@ export function Header() {
     const handleExport = useCallback(async () => {
         const allNodes = getNodes();
         if (allNodes.length === 0) {
-            toast.error("No nodes to export");
+            toast.error(t.toasts.noNodesToExport);
             return;
         }
 
         setIsExporting(true);
-        toast.loading("Generating image...", { id: "export" });
+        toast.loading(t.header.generatingImage, { id: "export" });
 
         try {
             // Get actual DOM dimensions for each node to ensure highly accurate bounds calculation
@@ -198,7 +200,7 @@ export function Header() {
 
             const viewportElement = document.querySelector('.react-flow__viewport') as HTMLElement;
             if (!viewportElement) {
-                toast.error("Could not find canvas element", { id: "export" });
+                toast.error(t.header.canvasElementNotFound, { id: "export" });
                 setIsExporting(false);
                 return;
             }
@@ -233,10 +235,10 @@ export function Header() {
             link.href = dataUrl;
             link.click();
 
-            toast.success("Roadmap exported successfully!", { id: "export" });
+            toast.success(t.toasts.roadmapExported, { id: "export" });
         } catch (error) {
             console.error("Export failed:", error);
-            toast.error("Failed to export roadmap", { id: "export" });
+            toast.error(t.toasts.exportFailed, { id: "export" });
         } finally {
             setIsExporting(false);
         }
@@ -245,7 +247,7 @@ export function Header() {
     // Handle toggle public for sharing
     const handleTogglePublic = useCallback(async (isPublic: boolean) => {
         if (!currentRoadmapId) {
-            throw new Error("Please save your roadmap first");
+            throw new Error(t.header.pleaseSaveFirst);
         }
 
         await toggleRoadmapPublic(currentRoadmapId, isPublic);
@@ -322,7 +324,7 @@ export function Header() {
                         className="hidden md:flex ml-2 text-emerald-600 border-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950"
                     >
                         <Award className="h-4 w-4 mr-1" />
-                        <span className="hidden lg:inline">Certificate</span>
+                        <span className="hidden lg:inline">{t.header.certificate}</span>
                     </Button>
                 )}
             </div>
@@ -345,10 +347,10 @@ export function Header() {
                                 ) : (
                                     <Save className="h-4 w-4 sm:mr-2" />
                                 )}
-                                <span className="hidden sm:inline">{isSaving ? "Saving..." : "Save"}</span>
+                                <span className="hidden sm:inline">{isSaving ? t.common.saving : t.header.saveProject}</span>
                             </Button>
                         </TooltipTrigger>
-                        <TooltipContent>Save Project (Ctrl+S)</TooltipContent>
+                        <TooltipContent>{t.header.saveProjectShortcut}</TooltipContent>
                     </Tooltip>
                 </TooltipProvider>
 
@@ -360,7 +362,7 @@ export function Header() {
                                 {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                             </Button>
                         </TooltipTrigger>
-                        <TooltipContent>Switch Theme</TooltipContent>
+                        <TooltipContent>{t.header.switchTheme}</TooltipContent>
                     </Tooltip>
                 </TooltipProvider>
 
@@ -376,16 +378,16 @@ export function Header() {
                     <DropdownMenuContent align="end" className="w-48">
                         <DropdownMenuItem onClick={() => setShowShare(true)} disabled={nodes.length === 0}>
                             <Share2 className="h-4 w-4 mr-2" />
-                            Share Roadmap
+                            {t.header.shareRoadmap}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={handleExport} disabled={isExporting || nodes.length === 0}>
                             {isExporting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
-                            Export to PNG
+                            {t.header.exportToPng}
                         </DropdownMenuItem>
                         <Separator className="my-1" />
                         <DropdownMenuItem onClick={handleClearCanvas} className="text-destructive focus:text-destructive group">
                             <Trash2 className="h-4 w-4 mr-2 group-hover:animate-pulse" />
-                            Clear Canvas
+                            {t.header.clearCanvas}
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
@@ -436,7 +438,7 @@ export function Header() {
                     ) : (
                         <MessageSquare className="h-4 w-4 mr-2" />
                     )}
-                    {(isAiPanelOpen || isDetailPanelOpen) ? "Close" : "AI"}
+                    {(isAiPanelOpen || isDetailPanelOpen) ? t.common.close : t.common.ai}
                 </Button>
 
                 {/* User Avatar Menu */}
@@ -461,15 +463,15 @@ export function Header() {
                             <Separator className="my-1" />
                             <DropdownMenuItem onClick={() => setShowDashboard(true)}>
                                 <BarChart3 className="h-4 w-4 mr-2" />
-                                Progress Dashboard
+                                {t.header.progressDashboard}
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => toast.info("Settings are coming soon!")}>
+                            <DropdownMenuItem onClick={() => toast.info(t.toasts.settingsComingSoon)}>
                                 <Save className="h-4 w-4 mr-2" />
-                                My Settings
+                                {t.header.mySettings}
                             </DropdownMenuItem>
                             <Separator className="my-1" />
                             <DropdownMenuItem onClick={() => useAuthStore.getState().logout()} className="text-destructive focus:text-destructive">
-                                Log Out
+                                {t.common.logOut}
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
