@@ -544,26 +544,30 @@ export function FullScreenChat({
                                                     href={r.url}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="block rounded-lg hover:bg-muted/50 transition-colors group overflow-hidden"
+                                                    className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-muted/50 transition-colors group"
                                                 >
-                                                    {/* Show mini thumbnail for videos */}
-                                                    {isVideo && r.thumbnail && (
-                                                        <div className="relative w-full aspect-video bg-muted rounded-t-lg overflow-hidden">
+                                                    {/* Compact thumbnail for videos */}
+                                                    {isVideo && r.thumbnail ? (
+                                                        <div className="relative w-20 h-[45px] bg-muted rounded-md overflow-hidden flex-shrink-0">
                                                             <img src={r.thumbnail} alt={r.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
                                                             <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                <div className="h-7 w-7 rounded-full bg-red-600 flex items-center justify-center">
-                                                                    <svg className="h-3.5 w-3.5 text-white ml-0.5" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+                                                                <div className="h-5 w-5 rounded-full bg-red-600 flex items-center justify-center">
+                                                                    <svg className="h-2.5 w-2.5 text-white ml-0.5" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                    )}
-                                                    <div className="flex items-center gap-2 p-2">
+                                                    ) : (
                                                         <span className={`text-[8px] uppercase px-1.5 py-0.5 rounded font-bold flex-shrink-0 ${info.color}`}>
                                                             {info.type}
                                                         </span>
-                                                        <span className="truncate text-xs text-foreground/80 group-hover:text-foreground flex-1">{r.title}</span>
-                                                        <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 flex-shrink-0 transition-opacity" />
+                                                    )}
+                                                    <div className="flex-1 min-w-0">
+                                                        <span className="block line-clamp-2 text-xs text-foreground/80 group-hover:text-foreground leading-snug">{r.title}</span>
+                                                        {isVideo && 'channelTitle' in r && r.channelTitle && (
+                                                            <span className="block truncate text-[10px] text-muted-foreground">{r.channelTitle}</span>
+                                                        )}
                                                     </div>
+                                                    <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 flex-shrink-0 transition-opacity" />
                                                 </a>
                                             );
                                         })}
