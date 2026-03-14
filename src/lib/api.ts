@@ -244,6 +244,8 @@ export interface RoadmapNode {
     description: string;
     resources: string[];
     isCompleted?: boolean;
+    videos?: (string | { url: string; title: string; thumbnail: string; channelTitle?: string })[];
+    articles?: { url: string; title: string; source: string }[];
   };
 }
 
@@ -387,11 +389,11 @@ export interface QuizResponse {
 }
 
 // Quiz Functions
-export async function generateQuiz(topic: string, description?: string, resources?: string[]): Promise<QuizResponse> {
+export async function generateQuiz(topic: string, description?: string, resources?: string[], language?: string): Promise<QuizResponse> {
   const res = await fetch(`${API_URL}/quiz/generate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ topic, description, resources }),
+    body: JSON.stringify({ topic, description, resources, language }),
   });
 
   const data = await res.json();

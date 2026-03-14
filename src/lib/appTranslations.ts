@@ -309,6 +309,38 @@ export interface AppTranslations {
     enterpriseFeature5: string;
     enterpriseFeature6: string;
   };
+
+  // Quiz
+  quiz: {
+    preparingQuiz: string;
+    generatingQuestions: string;
+    cancel: string;
+    oops: string;
+    tryAgain: string;
+    close: string;
+    submittingAnswers: string;
+    congratulations: string;
+    score: string;
+    correct: string;
+    time: string;
+    xpEarned: string;
+    topicMarkedComplete: string;
+    continueLearning: string;
+    notPassed: string;
+    needToPass: string;
+    correctCount: string;
+    reviewAnswers: string;
+    yourAnswer: string;
+    correctAnswer: string;
+    timeUp: string;
+    dontGiveUp: string;
+    answered: string;
+    previous: string;
+    next: string;
+    submitAnswers: string;
+    saveRoadmapFirst: string;
+    answerAllFirst: string;
+  };
 }
 
 const en: AppTranslations = {
@@ -611,6 +643,37 @@ const en: AppTranslations = {
     enterpriseFeature5: "Dedicated support",
     enterpriseFeature6: "Custom branding",
   },
+
+  quiz: {
+    preparingQuiz: "Preparing Quiz",
+    generatingQuestions: "Generating questions based on",
+    cancel: "Cancel",
+    oops: "Oops!",
+    tryAgain: "Try Again",
+    close: "Close",
+    submittingAnswers: "Submitting answers...",
+    congratulations: "Congratulations! 🎉",
+    score: "Score",
+    correct: "Correct",
+    time: "Time",
+    xpEarned: "+100 XP earned!",
+    topicMarkedComplete: "This topic is now marked as complete. Keep learning! 💪",
+    continueLearning: "Continue Learning",
+    notPassed: "Not Passed!",
+    needToPass: "Need {percentage}% to pass",
+    correctCount: "correct",
+    reviewAnswers: "Review Answers",
+    yourAnswer: "Your answer:",
+    correctAnswer: "Correct:",
+    timeUp: "Time's Up!",
+    dontGiveUp: "Don't give up! You can try again.",
+    answered: "answered",
+    previous: "Previous",
+    next: "Next",
+    submitAnswers: "Submit Answers",
+    saveRoadmapFirst: "Save your roadmap first (Ctrl+S)",
+    answerAllFirst: "Please answer all questions before submitting",
+  },
 };
 
 const id: AppTranslations = {
@@ -912,6 +975,37 @@ const id: AppTranslations = {
     enterpriseFeature4: "Autentikasi SSO",
     enterpriseFeature5: "Dukungan khusus",
     enterpriseFeature6: "Branding kustom",
+  },
+
+  quiz: {
+    preparingQuiz: "Menyiapkan Quiz",
+    generatingQuestions: "Membuat pertanyaan berdasarkan materi",
+    cancel: "Batal",
+    oops: "Oops!",
+    tryAgain: "Coba Lagi",
+    close: "Tutup",
+    submittingAnswers: "Mengirim jawaban...",
+    congratulations: "Selamat! 🎉",
+    score: "Score",
+    correct: "Benar",
+    time: "Waktu",
+    xpEarned: "+100 XP diperoleh!",
+    topicMarkedComplete: "Topik ini sekarang ditandai sebagai selesai. Lanjutkan belajar! 💪",
+    continueLearning: "Lanjutkan Belajar",
+    notPassed: "Belum Berhasil!",
+    needToPass: "Butuh {percentage}% untuk lulus",
+    correctCount: "benar",
+    reviewAnswers: "Review Jawaban",
+    yourAnswer: "Jawabanmu:",
+    correctAnswer: "Benar:",
+    timeUp: "Waktu Habis!",
+    dontGiveUp: "Jangan menyerah! Kamu bisa coba lagi.",
+    answered: "dijawab",
+    previous: "Sebelumnya",
+    next: "Selanjutnya",
+    submitAnswers: "Kirim Jawaban",
+    saveRoadmapFirst: "Simpan roadmap terlebih dahulu (Ctrl+S)",
+    answerAllFirst: "Jawab semua pertanyaan terlebih dahulu sebelum mengirim",
   },
 };
 

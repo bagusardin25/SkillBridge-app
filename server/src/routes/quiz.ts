@@ -17,6 +17,7 @@ const generateQuizSchema = z.object({
   topic: z.string().min(1, "Topic is required"),
   description: z.string().optional(),
   resources: z.array(z.string()).optional(), // Learning resource URLs/titles for context
+  language: z.string().optional(), // Language code: "en" or "id"
 });
 
 interface QuizQuestion {
@@ -53,7 +54,8 @@ Return ONLY valid JSON in this EXACT format:
 IMPORTANT:
 - correctIndex is 0-based (0=A, 1=B, 2=C, 3=D)
 - Return exactly 5 questions
-- No markdown, just pure JSON`;
+- No markdown, just pure JSON
+- CRITICAL: If a language is specified, you MUST write ALL questions, ALL options, and ALL explanations entirely in that language. Do not mix languages.`;
 
 // POST /api/quiz/generate
 router.post("/generate", async (req, res) => {
@@ -67,7 +69,7 @@ router.post("/generate", async (req, res) => {
       });
     }
 
-    const { topic, description, resources } = validation.data;
+    const { topic, description, resources, language } = validation.data;
 
     // Build user prompt with resource context
     let userPrompt = `Generate a quiz about "${topic}".`;
@@ -76,6 +78,13 @@ router.post("/generate", async (req, res) => {
     }
     if (resources && resources.length > 0) {
       userPrompt += `\n\nThe learner has been studying from these resources:\n${resources.map((r, i) => `${i + 1}. ${r}`).join('\n')}\n\nPlease base your questions on the concepts, techniques, and knowledge that would be covered by these resources. Focus on practical understanding that someone who studied these materials should know.`;
+    }
+
+    // Add language instruction
+    if (language === "id") {
+      userPrompt += `\n\nIMPORTANT: Generate ALL questions, options, and explanations in Bahasa Indonesia.`;
+    } else if (language === "en") {
+      userPrompt += `\n\nIMPORTANT: Generate ALL questions, options, and explanations in English.`;
     }
 
     const response = await openai.chat.completions.create({

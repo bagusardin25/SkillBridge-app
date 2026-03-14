@@ -407,38 +407,50 @@ export function ChatPanel() {
                         setEdges([...displayedEdges]);
                     }
 
-                    // Poll for enriched resources after background enrichment finishes
+                    // Poll for enriched resources with retry (background enrichment may take varying time)
                     if (roadmap.id) {
                         const enrichRoadmapId = roadmap.id;
-                        setTimeout(async () => {
-                            try {
-                                const enrichedRoadmap = await getRoadmap(enrichRoadmapId);
-                                if (enrichedRoadmap.nodes && Array.isArray(enrichedRoadmap.nodes)) {
-                                    const currentNodes = useRoadmapStore.getState().nodes;
-                                    const updatedNodes = currentNodes.map(node => {
-                                        const enrichedNode = (enrichedRoadmap.nodes as any[]).find(
-                                            (n: any) => n.id === node.id
+                        const pollDelays = [5000, 10000, 15000]; // 5s, 10s, 15s
+
+                        (async () => {
+                            for (const delay of pollDelays) {
+                                await new Promise(r => setTimeout(r, delay));
+                                try {
+                                    const enrichedRoadmap = await getRoadmap(enrichRoadmapId);
+                                    if (enrichedRoadmap.nodes && Array.isArray(enrichedRoadmap.nodes)) {
+                                        const hasVideos = (enrichedRoadmap.nodes as any[]).some(
+                                            (n: any) => n.data?.videos && n.data.videos.length > 0
                                         );
-                                        if (enrichedNode?.data) {
-                                            return {
-                                                ...node,
-                                                data: {
-                                                    ...node.data,
-                                                    videos: enrichedNode.data.videos || node.data.videos || [],
-                                                    articles: enrichedNode.data.articles || node.data.articles || [],
-                                                    resources: enrichedNode.data.resources || node.data.resources || [],
-                                                },
-                                            };
+                                        if (hasVideos) {
+                                            const currentNodes = useRoadmapStore.getState().nodes;
+                                            const updatedNodes = currentNodes.map(node => {
+                                                const enrichedNode = (enrichedRoadmap.nodes as any[]).find(
+                                                    (n: any) => n.id === node.id
+                                                );
+                                                if (enrichedNode?.data) {
+                                                    return {
+                                                        ...node,
+                                                        data: {
+                                                            ...node.data,
+                                                            videos: enrichedNode.data.videos || node.data.videos || [],
+                                                            articles: enrichedNode.data.articles || node.data.articles || [],
+                                                            resources: enrichedNode.data.resources || node.data.resources || [],
+                                                        },
+                                                    };
+                                                }
+                                                return node;
+                                            });
+                                            setNodes(updatedNodes as any);
+                                            console.log("✅ Enriched resources loaded from DB");
+                                            break; // Stop polling — enrichment complete
                                         }
-                                        return node;
-                                    });
-                                    setNodes(updatedNodes as any);
-                                    console.log("✅ Enriched resources loaded from DB");
+                                        console.log(`⏳ Enrichment not ready yet, retrying in ${delay / 1000}s...`);
+                                    }
+                                } catch (e) {
+                                    console.warn("Failed to fetch enriched resources:", e);
                                 }
-                            } catch (e) {
-                                console.warn("Failed to fetch enriched resources:", e);
                             }
-                        }, 12000); // 12s — enough for background enrichment
+                        })();
                     }
 
                     // Show success message with streaming effect

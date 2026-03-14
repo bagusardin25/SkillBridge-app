@@ -23,6 +23,7 @@ import {
 import { useAuthStore } from "@/store/useAuthStore";
 import { useRoadmapStore } from "@/store/useRoadmapStore";
 import { cn } from "@/lib/utils";
+import { useAppLanguage } from "@/contexts/LanguageContext";
 
 // Format seconds to MM:SS
 function formatTime(seconds: number): string {
@@ -145,6 +146,7 @@ export function QuizFullScreen({
 
   const { user } = useAuthStore();
   const { currentRoadmapId } = useRoadmapStore();
+  const { t, language } = useAppLanguage();
 
   // Load quiz function
   const loadQuiz = async () => {
@@ -177,7 +179,7 @@ export function QuizFullScreen({
       }
 
       // Generate new quiz — pass resources for context-aware questions
-      const response = await generateQuiz(topic, description, resources);
+      const response = await generateQuiz(topic, description, resources, language);
       setQuestions(response.questions);
       setAnswers(new Array(response.questions.length).fill(null));
       setQuizState("ready");
@@ -254,8 +256,8 @@ export function QuizFullScreen({
 
   const handleSubmit = async () => {
     if (!user?.id) { setError("Please login to submit quiz"); setQuizState("error"); return; }
-    if (!currentRoadmapId) { setError("Simpan roadmap terlebih dahulu (Ctrl+S)"); setQuizState("error"); return; }
-    if (answers.some(a => a === null)) { setError("Please answer all questions before submitting"); return; }
+    if (!currentRoadmapId) { setError(t.quiz.saveRoadmapFirst); setQuizState("error"); return; }
+    if (answers.some(a => a === null)) { setError(t.quiz.answerAllFirst); return; }
 
     const timeTaken = QUIZ_TIME_LIMIT - remainingTime;
     setQuizState("submitting");
@@ -333,9 +335,9 @@ export function QuizFullScreen({
           <div className="absolute -inset-4 rounded-3xl bg-violet-500/20 animate-ping" style={{ animationDuration: '2s' }} />
         </div>
         <div className="mt-8 text-center space-y-2">
-          <p className="text-lg font-semibold">Menyiapkan Quiz</p>
+          <p className="text-lg font-semibold">{t.quiz.preparingQuiz}</p>
           <p className="text-sm text-muted-foreground max-w-xs">
-            Membuat pertanyaan berdasarkan materi <span className="text-violet-500 font-medium">{topic}</span>...
+            {t.quiz.generatingQuestions} <span className="text-violet-500 font-medium">{topic}</span>...
           </p>
         </div>
         {/* Skeleton questions */}
@@ -344,7 +346,7 @@ export function QuizFullScreen({
             <div key={i} className="h-12 rounded-xl bg-muted animate-pulse" style={{ animationDelay: `${i * 200}ms`, opacity: 1 - i * 0.2 }} />
           ))}
         </div>
-        <Button variant="ghost" onClick={onClose} className="mt-8 text-muted-foreground">Cancel</Button>
+        <Button variant="ghost" onClick={onClose} className="mt-8 text-muted-foreground">{t.quiz.cancel}</Button>
       </div>
     );
   }
@@ -358,14 +360,14 @@ export function QuizFullScreen({
             <XCircle className="h-10 w-10 text-red-500" />
           </div>
           <div>
-            <h2 className="text-xl font-bold mb-2">Oops!</h2>
+            <h2 className="text-xl font-bold mb-2">{t.quiz.oops}</h2>
             <p className="text-sm text-muted-foreground">{error}</p>
           </div>
           <div className="flex gap-3">
             <Button onClick={loadQuiz} className="flex-1">
-              <RefreshCw className="h-4 w-4 mr-2" /> Coba Lagi
+              <RefreshCw className="h-4 w-4 mr-2" /> {t.quiz.tryAgain}
             </Button>
-            <Button onClick={onClose} variant="outline">Tutup</Button>
+            <Button onClick={onClose} variant="outline">{t.quiz.close}</Button>
           </div>
         </div>
       </div>
@@ -382,7 +384,7 @@ export function QuizFullScreen({
             <Target className="h-6 w-6 text-primary/50" />
           </div>
         </div>
-        <p className="text-lg text-muted-foreground mt-6">Mengirim jawaban...</p>
+        <p className="text-lg text-muted-foreground mt-6">{t.quiz.submittingAnswers}</p>
       </div>
     );
   }
@@ -406,17 +408,17 @@ export function QuizFullScreen({
           {/* Score */}
           <div className="space-y-3">
             <h2 className="text-3xl font-black bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent">
-              Selamat! 🎉
+              {t.quiz.congratulations}
             </h2>
             <div className="flex items-center justify-center gap-4">
               <div className="text-center">
                 <div className="text-4xl font-black text-emerald-600">{result.percentage}%</div>
-                <div className="text-xs text-muted-foreground mt-1">Score</div>
+                <div className="text-xs text-muted-foreground mt-1">{t.quiz.score}</div>
               </div>
               <div className="h-12 w-px bg-border" />
               <div className="text-center">
                 <div className="text-4xl font-black text-foreground">{result.score}/{result.total}</div>
-                <div className="text-xs text-muted-foreground mt-1">Benar</div>
+                <div className="text-xs text-muted-foreground mt-1">{t.quiz.correct}</div>
               </div>
               {result.timeTaken && (
                 <>
@@ -426,7 +428,7 @@ export function QuizFullScreen({
                       <Clock className="h-5 w-5" />
                       {formatTime(result.timeTaken)}
                     </div>
-                    <div className="text-xs text-muted-foreground mt-1">Waktu</div>
+                    <div className="text-xs text-muted-foreground mt-1">{t.quiz.time}</div>
                   </div>
                 </>
               )}
@@ -436,16 +438,16 @@ export function QuizFullScreen({
           {/* XP earned */}
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full text-sm font-semibold">
             <Zap className="h-4 w-4" />
-            +100 XP earned!
+            {t.quiz.xpEarned}
           </div>
 
           <p className="text-muted-foreground text-sm">
-            Topik ini sekarang ditandai sebagai selesai. Lanjutkan belajar! 💪
+            {t.quiz.topicMarkedComplete}
           </p>
 
           <Button onClick={onClose} size="lg" className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-lg shadow-emerald-500/25 h-12 text-base">
             <CheckCircle2 className="h-5 w-5 mr-2" />
-            Lanjutkan Belajar
+            {t.quiz.continueLearning}
           </Button>
         </div>
       </div>
@@ -462,12 +464,12 @@ export function QuizFullScreen({
             <XCircle className="h-8 w-8 text-white" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold">Belum Berhasil!</h2>
+            <h2 className="text-2xl font-bold">{t.quiz.notPassed}</h2>
             <p className="text-sm text-muted-foreground mt-1">
-              Score: <span className="font-bold text-amber-600">{result.percentage}%</span> — Butuh {PASSING_PERCENTAGE}% untuk lulus
+              {t.quiz.score}: <span className="font-bold text-amber-600">{result.percentage}%</span> — {t.quiz.needToPass.replace("{percentage}", String(PASSING_PERCENTAGE))}
             </p>
             <p className="text-xs text-muted-foreground">
-              {result.score}/{result.total} benar
+              {result.score}/{result.total} {t.quiz.correctCount}
               {result.timeTaken && ` • ${formatTime(result.timeTaken)}`}
             </p>
           </div>
@@ -477,7 +479,7 @@ export function QuizFullScreen({
         <div className="flex-1 overflow-auto p-4">
           <div className="max-w-2xl mx-auto space-y-3">
             <h3 className="font-semibold text-sm flex items-center gap-2 text-muted-foreground uppercase tracking-wider">
-              <BookOpen className="h-4 w-4" /> Review Jawaban
+              <BookOpen className="h-4 w-4" /> {t.quiz.reviewAnswers}
             </h3>
             {questions.map((q, i) => {
               const isCorrect = answers[i] === q.correctIndex;
@@ -503,16 +505,16 @@ export function QuizFullScreen({
                       {!isCorrect && (
                         <div className="space-y-1 text-xs">
                           <p className="text-red-600 dark:text-red-400">
-                            ✗ Jawabanmu: {q.options[answers[i] ?? 0]}
+                            ✗ {t.quiz.yourAnswer} {q.options[answers[i] ?? 0]}
                           </p>
                           <p className="text-emerald-600 dark:text-emerald-400 font-medium">
-                            ✓ Benar: {q.options[q.correctIndex]}
+                            ✓ {t.quiz.correctAnswer} {q.options[q.correctIndex]}
                           </p>
                         </div>
                       )}
                       {isCorrect && (
                         <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
-                          ✓ Benar: {q.options[q.correctIndex]}
+                          ✓ {t.quiz.correctAnswer} {q.options[q.correctIndex]}
                         </p>
                       )}
                       <p className="text-xs text-muted-foreground mt-2 leading-relaxed bg-muted/50 p-2 rounded-lg">
@@ -530,9 +532,9 @@ export function QuizFullScreen({
         <div className="p-4 border-t bg-background/80 backdrop-blur-sm">
           <div className="max-w-2xl mx-auto flex gap-3">
             <Button onClick={loadQuiz} className="flex-1 h-11 bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-600 hover:to-indigo-600 text-white shadow-lg shadow-violet-500/25" size="lg">
-              <RefreshCw className="h-4 w-4 mr-2" /> Coba Lagi
+              <RefreshCw className="h-4 w-4 mr-2" /> {t.quiz.tryAgain}
             </Button>
-            <Button onClick={onClose} variant="outline" size="lg" className="h-11">Tutup</Button>
+            <Button onClick={onClose} variant="outline" size="lg" className="h-11">{t.quiz.close}</Button>
           </div>
         </div>
       </div>
@@ -548,18 +550,18 @@ export function QuizFullScreen({
             <Clock className="h-12 w-12 text-white" />
           </div>
           <div>
-            <h2 className="text-3xl font-bold text-red-500">Waktu Habis!</h2>
+            <h2 className="text-3xl font-bold text-red-500">{t.quiz.timeUp}</h2>
             <p className="text-muted-foreground mt-2">
-              Score: {result.percentage}% — Butuh {PASSING_PERCENTAGE}% untuk lulus
+              {t.quiz.score}: {result.percentage}% — {t.quiz.needToPass.replace("{percentage}", String(PASSING_PERCENTAGE))}
             </p>
-            <p className="text-sm text-muted-foreground">{result.score}/{result.total} benar</p>
+            <p className="text-sm text-muted-foreground">{result.score}/{result.total} {t.quiz.correctCount}</p>
           </div>
-          <p className="text-muted-foreground text-sm">Jangan menyerah! Kamu bisa coba lagi.</p>
+          <p className="text-muted-foreground text-sm">{t.quiz.dontGiveUp}</p>
           <div className="flex gap-3">
             <Button onClick={loadQuiz} size="lg" className="flex-1 bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-600 hover:to-indigo-600 text-white h-11">
-              <RefreshCw className="h-5 w-5 mr-2" /> Coba Lagi
+              <RefreshCw className="h-5 w-5 mr-2" /> {t.quiz.tryAgain}
             </Button>
-            <Button onClick={onClose} variant="outline" size="lg" className="h-11">Tutup</Button>
+            <Button onClick={onClose} variant="outline" size="lg" className="h-11">{t.quiz.close}</Button>
           </div>
         </div>
       </div>
@@ -587,7 +589,7 @@ export function QuizFullScreen({
               <div className="min-w-0">
                 <h1 className="text-sm font-semibold leading-tight truncate">{topic}</h1>
                 <p className="text-[10px] text-muted-foreground">
-                  {answeredCount}/{questions.length} dijawab
+                  {answeredCount}/{questions.length} {t.quiz.answered}
                 </p>
               </div>
             </div>
@@ -654,7 +656,7 @@ export function QuizFullScreen({
               disabled={currentIndex === 0}
               className="h-10 gap-1.5"
             >
-              <ArrowLeft className="h-4 w-4" /> Sebelumnya
+              <ArrowLeft className="h-4 w-4" /> {t.quiz.previous}
             </Button>
             <Button
               variant="ghost"
@@ -673,7 +675,7 @@ export function QuizFullScreen({
                 disabled={currentAnswer === null}
                 className="h-10 gap-1.5 bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-600 hover:to-indigo-600 text-white shadow-md shadow-violet-500/20"
               >
-                Selanjutnya <ArrowRight className="h-4 w-4" />
+                {t.quiz.next} <ArrowRight className="h-4 w-4" />
               </Button>
             ) : (
               <Button
@@ -681,7 +683,7 @@ export function QuizFullScreen({
                 disabled={!allAnswered}
                 className="h-10 gap-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-md shadow-emerald-500/20"
               >
-                <CheckCircle2 className="h-4 w-4" /> Kirim Jawaban
+                <CheckCircle2 className="h-4 w-4" /> {t.quiz.submitAnswers}
               </Button>
             )}
           </div>

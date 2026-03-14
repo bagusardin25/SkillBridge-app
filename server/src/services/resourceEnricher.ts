@@ -15,6 +15,12 @@
 
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY || "";
 
+if (!YOUTUBE_API_KEY) {
+    console.warn("⚠️  YOUTUBE_API_KEY is not set. Video resources will not be available.");
+    console.warn("   Get a free key at: https://console.cloud.google.com/apis/credentials");
+    console.warn("   Enable: YouTube Data API v3 in API Library");
+}
+
 // ────────────────────────────────────
 // Types
 // ────────────────────────────────────
