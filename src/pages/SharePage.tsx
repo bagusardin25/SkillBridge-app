@@ -10,9 +10,9 @@ import {
     type Edge,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import "@xyflow/react/dist/style.css";
 import { getPublicRoadmap, type PublicRoadmap } from "@/lib/api";
 import { ReadOnlyNode } from "@/components/nodes/ReadOnlyNode";
+import { convertToReactFlowNodes } from "@/lib/layoutUtils";
 
 const nodeTypes = {
     default: ReadOnlyNode,
@@ -121,17 +121,28 @@ export function SharePage() {
         );
     }
 
-    // Debug logging
-    console.log("Roadmap data:", roadmap);
-    console.log("Raw nodes:", roadmap.nodes);
-    console.log("Raw edges:", roadmap.edges);
+    // Detect node format: raw AI format (no position) vs ReactFlow format (has position)
+    const rawNodes = (roadmap.nodes as any[]) || [];
+    const rawEdges = (roadmap.edges as any[]) || [];
+    const isRawFormat = rawNodes.length > 0 && !rawNodes[0]?.position;
 
-    const nodes = (roadmap.nodes as Node[]) || [];
-    const edges = (roadmap.edges as Edge[]) || [];
+    let nodes: Node[];
+    let edges: Edge[];
+
+    if (isRawFormat) {
+        // Raw AI format — needs transformation to ReactFlow format
+        const converted = convertToReactFlowNodes({ title: roadmap.title, nodes: rawNodes, edges: rawEdges });
+        nodes = converted.nodes;
+        edges = converted.edges;
+    } else {
+        nodes = rawNodes as Node[];
+        edges = rawEdges as Edge[];
+    }
+
     const authorName = roadmap.project.user.name || "Anonymous";
 
-    console.log("Parsed nodes:", nodes);
-    console.log("Parsed edges:", edges);
+    // Debug: check actual node data
+    console.log("SharePage debug:", { isRawFormat, rawNodeSample: rawNodes[0], processedNodeSample: nodes[0], nodeCount: nodes.length, edgeCount: edges.length });
 
     return (
         <div className="min-h-screen bg-background flex flex-col">
