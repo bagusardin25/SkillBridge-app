@@ -665,3 +665,87 @@ export async function chatWithAI(
   }
 }
 
+// Streaming version of chatWithAI — yields tokens as they arrive
+export async function* chatWithAIStream(
+  message: string,
+  context?: { role: string; content: string }[],
+  language?: string
+): AsyncGenerator<string> {
+  if (USE_MOCK) {
+    throw new Error("Mock mode is enabled. Please set USE_MOCK=false in server/.env");
+  }
+
+  const chatPrompt = buildChatPrompt(language);
+  const messages: { role: "system" | "user" | "assistant"; content: string }[] = [
+    { role: "system", content: chatPrompt },
+  ];
+
+  if (context) {
+    for (const msg of context) {
+      messages.push({
+        role: msg.role === "user" ? "user" : "assistant",
+        content: msg.content,
+      });
+    }
+  }
+
+  messages.push({ role: "user", content: message });
+
+  try {
+    const stream = await openai.chat.completions.create({
+      model: MODEL,
+      messages,
+      temperature: 0.7,
+      stream: true,
+    });
+
+    for await (const chunk of stream) {
+      const content = chunk.choices[0]?.delta?.content;
+      if (content) {
+        yield content;
+      }
+    }
+  } catch (error: any) {
+    console.error("OpenAI streaming error:", error.message);
+
+    // Rate limit — fallback to Gemini streaming
+    if (isRateLimitError(error)) {
+      console.log("OpenAI rate limited for streaming, trying Gemini fallback...");
+      await sleep(500);
+
+      try {
+        const model = gemini.getGenerativeModel({
+          model: GEMINI_MODEL,
+          generationConfig: { temperature: 0.7 },
+        });
+
+        let fullPrompt = chatPrompt + "\n\n---\n\nConversation:\n";
+        if (context) {
+          for (const msg of context) {
+            const role = msg.role === "user" ? "User" : "Assistant";
+            fullPrompt += `${role}: ${msg.content}\n\n`;
+          }
+        }
+        fullPrompt += `User: ${message}\n\nAssistant:`;
+
+        const result = await model.generateContentStream(fullPrompt);
+        for await (const chunk of result.stream) {
+          const text = chunk.text();
+          if (text) {
+            yield text;
+          }
+        }
+      } catch (geminiError: any) {
+        console.error("Gemini streaming fallback also failed:", geminiError.message);
+        throw new Error("Both OpenAI and Gemini are unavailable. Please try again later.");
+      }
+      return;
+    }
+
+    if (error.status === 404) {
+      throw new Error("Model not found. Please check the model configuration.");
+    }
+
+    throw new Error(`AI chat failed: ${error.message}`);
+  }
+}

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useRoadmapStore } from "@/store/useRoadmapStore";
-import { getNodeChatHistory, sendNodeChatMessage, clearNodeChatHistory, type ChatMessage } from "@/lib/api";
+import { getNodeChatHistory, clearNodeChatHistory, streamChat, type ChatMessage } from "@/lib/api";
 import {
     Sparkles,
     Send,
@@ -28,7 +28,7 @@ import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { cn } from "@/lib/utils";
 import { useAppLanguage } from "@/contexts/LanguageContext";
 
-const THINKING_DELAY = 500;
+
 
 // Format relative timestamp
 function formatRelativeTime(dateStr: string, language: string): string {
@@ -120,35 +120,9 @@ function CopyButton({ text, className, label }: { text: string; className?: stri
     );
 }
 
-// Typewriter component for streaming AI responses
-function TypewriterText({ text, onComplete }: { text: string; onComplete?: () => void }) {
-    const [displayedText, setDisplayedText] = useState("");
-
-    useEffect(() => {
-        let charIndex = 0;
-        setDisplayedText("");
-
-        const delayTimer = setTimeout(() => {
-            const typeText = () => {
-                if (charIndex < text.length) {
-                    const chunkSize = Math.max(1, Math.floor(text.length / 50));
-                    charIndex = Math.min(text.length, charIndex + chunkSize);
-                    setDisplayedText(text.slice(0, charIndex));
-
-                    if (charIndex < text.length) {
-                        setTimeout(typeText, Math.random() * 10 + 5);
-                    } else {
-                        onComplete?.();
-                    }
-                }
-            };
-            typeText();
-        }, THINKING_DELAY);
-
-        return () => clearTimeout(delayTimer);
-    }, [text, onComplete]);
-
-    return <>{displayedText}<span className="animate-pulse">|</span></>;
+// Streaming cursor component
+function StreamingCursor() {
+    return <span className="inline-block w-1.5 h-4 bg-violet-500 animate-pulse ml-0.5 align-text-bottom rounded-sm" />;
 }
 
 // Detect resource type from URL
@@ -244,12 +218,7 @@ export function FullScreenChat({
     const [lastUserMessage, setLastUserMessage] = useState<string>("");
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const bottomRef = useRef<HTMLDivElement>(null);
-
-    const handleStreamingComplete = useCallback((messageId: string) => {
-        if (streamingMessageId === messageId) {
-            setStreamingMessageId(null);
-        }
-    }, [streamingMessageId]);
+    const abortControllerRef = useRef<AbortController | null>(null);
 
     const suggestedQuestions = [
         t.fullScreenChat.suggestedQ1.replace("{topic}", topic),
@@ -378,31 +347,44 @@ export function FullScreenChat({
                 content: `You are an AI tutor helping the user learn about "${topic}". ${description ? `Context: ${description}` : ''} Be concise and helpful. Use code examples when relevant. Format your responses with markdown for readability. ${language === "en" ? "ALWAYS respond in English." : "ALWAYS respond in Indonesian (Bahasa Indonesia)."}`,
             });
 
-            const { reply } = await sendNodeChatMessage(
-                currentProjectId,
-                nodeId,
-                message.trim(),
-                context,
-                language
-            );
-
+            // Create empty assistant message immediately
+            const aiMessageId = `ai-${Date.now()}`;
             const aiMessage: ChatMessage = {
-                id: `ai-${Date.now()}`,
+                id: aiMessageId,
                 projectId: currentProjectId,
                 nodeId,
                 role: "assistant",
-                content: reply,
+                content: "",
                 createdAt: new Date().toISOString(),
             };
-
-            setStreamingMessageId(aiMessage.id);
+            setStreamingMessageId(aiMessageId);
             setMessages(prev => [...prev, aiMessage]);
-        } catch {
+
+            // Stream tokens
+            abortControllerRef.current = new AbortController();
+            await streamChat(
+                { message: message.trim(), projectId: currentProjectId, nodeId, context, language },
+                (token) => {
+                    setMessages(prev =>
+                        prev.map(m =>
+                            m.id === aiMessageId
+                                ? { ...m, content: m.content + token }
+                                : m
+                        )
+                    );
+                },
+                abortControllerRef.current.signal
+            );
+
+            // Mark streaming complete
+            setStreamingMessageId(null);
+        } catch (error) {
+            if (error instanceof Error && error.name === 'AbortError') return;
             toast.error(t.fullScreenChat.failedResponse);
             setMessages(prev => prev.filter(m => m.id !== userMessage.id));
         } finally {
             setIsSending(false);
-            // Re-focus textarea
+            abortControllerRef.current = null;
             setTimeout(() => textareaRef.current?.focus(), 100);
         }
     };
@@ -667,12 +649,10 @@ export function FullScreenChat({
                                                         {message.role === "user" ? (
                                                             <p className="whitespace-pre-wrap">{message.content}</p>
                                                         ) : isStreaming ? (
-                                                            <div className="prose prose-sm dark:prose-invert max-w-none">
-                                                                <TypewriterText
-                                                                    text={message.content}
-                                                                    onComplete={() => handleStreamingComplete(message.id)}
-                                                                />
-                                                            </div>
+                                                            <>
+                                                                <MarkdownContent content={message.content} />
+                                                                <StreamingCursor />
+                                                            </>
                                                         ) : (
                                                             <MarkdownContent content={message.content} />
                                                         )}

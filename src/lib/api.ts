@@ -26,6 +26,67 @@ function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
   return fetch(url, { ...options, headers });
 }
 
+// Stream chat with AI via SSE — calls onChunk for each token as it arrives
+export async function streamChat(
+  params: {
+    message: string;
+    projectId: string | null;
+    nodeId?: string;
+    context?: { role: string; content: string }[];
+    language?: string;
+  },
+  onChunk: (token: string) => void,
+  signal?: AbortSignal
+): Promise<void> {
+  const res = await authFetch(`${API_URL}/chat/stream`, {
+    method: "POST",
+    body: JSON.stringify(params),
+    signal,
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({ error: "Failed to connect to streaming endpoint" }));
+    throw new Error(data.error || "Failed to start streaming");
+  }
+
+  const reader = res.body!.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+
+    // Process complete SSE lines
+    const lines = buffer.split("\n");
+    buffer = lines.pop() || ""; // Keep incomplete line in buffer
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || !trimmed.startsWith("data: ")) continue;
+
+      const data = trimmed.slice(6); // Remove "data: " prefix
+
+      if (data === "[DONE]") return;
+
+      try {
+        const parsed = JSON.parse(data);
+        if (parsed.error) {
+          throw new Error(parsed.error);
+        }
+        if (parsed.content) {
+          onChunk(parsed.content);
+        }
+      } catch (e) {
+        if (e instanceof SyntaxError) continue; // Skip malformed JSON
+        throw e; // Re-throw actual errors
+      }
+    }
+  }
+}
+
 // Auth Types
 export interface AuthUser {
   id: string;

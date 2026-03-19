@@ -21,6 +21,7 @@ import { updateStreak } from "@/lib/api";
 import { useLearningTimeTracker } from "@/hooks/useLearningTimeTracker";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { Toaster } from "sonner";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 function App() {
   const { setLoading, isAuthenticated, user } = useAuthStore();
@@ -55,9 +56,10 @@ function App() {
   }, [isAuthenticated, user?.id]);
 
   return (
-    <LanguageProvider>
-    <BrowserRouter>
-      <Routes>
+    <ErrorBoundary>
+      <LanguageProvider>
+        <BrowserRouter>
+          <Routes>
         <Route
           path="/"
           element={
@@ -146,6 +148,7 @@ function App() {
       <Toaster />
     </BrowserRouter>
     </LanguageProvider>
+    </ErrorBoundary>
   );
 }
 

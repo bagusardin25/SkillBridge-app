@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useRoadmapStore } from "@/store/useRoadmapStore";
-import { getNodeChatHistory, sendNodeChatMessage, clearNodeChatHistory, type ChatMessage } from "@/lib/api";
+import { getNodeChatHistory, clearNodeChatHistory, streamChat, type ChatMessage } from "@/lib/api";
 import { Sparkles, Send, Loader2, MessageSquare, AlertCircle, Trash2, Maximize2 } from "lucide-react";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
@@ -11,7 +11,7 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { useAppLanguage } from "@/contexts/LanguageContext";
 
-const THINKING_DELAY = 500; // ms before starting to type
+
 
 // Markdown renderer with syntax highlighting
 function MarkdownContent({ content }: { content: string }) {
@@ -56,55 +56,9 @@ function MarkdownContent({ content }: { content: string }) {
     );
 }
 
-// Typewriter component for streaming AI responses
-function TypewriterText({ text, onComplete }: { text: string; onComplete?: () => void }) {
-    const [displayedText, setDisplayedText] = useState("");
-    const completedRef = useRef(false);
-
-    useEffect(() => {
-        let charIndex = 0;
-        completedRef.current = false;
-        setDisplayedText("");
-
-        // Start typing after thinking delay
-        const delayTimer = setTimeout(() => {
-            const typeText = () => {
-                if (completedRef.current) return;
-
-                if (charIndex < text.length) {
-                    // Calculate dynamic speed based on chunk size to type faster
-                    const chunkSize = Math.max(1, Math.floor(text.length / 50)); // Type up to 50 chunks
-                    charIndex = Math.min(text.length, charIndex + chunkSize);
-
-                    setDisplayedText(text.slice(0, charIndex));
-
-                    if (charIndex < text.length) {
-                        // Fast typing delay: 5-15ms
-                        setTimeout(typeText, Math.random() * 10 + 5);
-                    } else {
-                        completedRef.current = true;
-                        onComplete?.();
-                    }
-                }
-            };
-
-            typeText();
-
-        }, THINKING_DELAY);
-
-        return () => {
-            completedRef.current = true;
-            clearTimeout(delayTimer);
-        };
-    }, [text]); // Remove onComplete from deps to prevent re-triggers
-
-    // Render markdown during typing (same rendering as completed state)
-    return (
-        <div>
-            <MarkdownContent content={displayedText} />
-            {!completedRef.current && <span className="inline-block w-1.5 h-4 bg-violet-500 animate-pulse ml-0.5 align-text-bottom rounded-sm" />}
-        </div>
-    );
+// Streaming cursor component
+function StreamingCursor() {
+    return <span className="inline-block w-1.5 h-4 bg-violet-500 animate-pulse ml-0.5 align-text-bottom rounded-sm" />;
 }
 
 interface NodeChatPanelProps {
@@ -122,13 +76,7 @@ export function NodeChatPanel({ nodeId, topic, onExpand }: NodeChatPanelProps) {
     const [isSending, setIsSending] = useState(false);
     const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
-
-    // Mark streaming message as complete
-    const handleStreamingComplete = useCallback((messageId: string) => {
-        if (streamingMessageId === messageId) {
-            setStreamingMessageId(null);
-        }
-    }, [streamingMessageId]);
+    const abortControllerRef = useRef<AbortController | null>(null);
 
     const suggestedQuestions = [
         t.fullScreenChat.suggestedQ1.replace("{topic}", topic),
@@ -192,32 +140,44 @@ export function NodeChatPanel({ nodeId, topic, onExpand }: NodeChatPanelProps) {
                 content: `You are an AI tutor helping the user learn about "${topic}". Be concise and helpful. Answer in the same language the user uses. Format your responses with markdown for readability. ${language === "en" ? "ALWAYS respond in English." : "ALWAYS respond in Indonesian (Bahasa Indonesia)."}`,
             });
 
-            const { reply } = await sendNodeChatMessage(
-                currentProjectId,
-                nodeId,
-                message.trim(),
-                context,
-                language
-            );
-
+            // Create empty assistant message immediately
+            const aiMessageId = `ai-${Date.now()}`;
             const aiMessage: ChatMessage = {
-                id: `ai-${Date.now()}`,
+                id: aiMessageId,
                 projectId: currentProjectId,
                 nodeId,
                 role: "assistant",
-                content: reply,
+                content: "",
                 createdAt: new Date().toISOString(),
             };
-
-            // Set this message as streaming before adding
-            setStreamingMessageId(aiMessage.id);
+            setStreamingMessageId(aiMessageId);
             setMessages(prev => [...prev, aiMessage]);
+
+            // Stream tokens
+            abortControllerRef.current = new AbortController();
+            await streamChat(
+                { message: message.trim(), projectId: currentProjectId, nodeId, context, language },
+                (token) => {
+                    setMessages(prev =>
+                        prev.map(m =>
+                            m.id === aiMessageId
+                                ? { ...m, content: m.content + token }
+                                : m
+                        )
+                    );
+                },
+                abortControllerRef.current.signal
+            );
+
+            // Mark streaming complete
+            setStreamingMessageId(null);
         } catch (error) {
+            if (error instanceof Error && error.name === 'AbortError') return;
             toast.error("Failed to get AI response");
-            // Remove the user message if failed
             setMessages(prev => prev.filter(m => m.id !== userMessage.id));
         } finally {
             setIsSending(false);
+            abortControllerRef.current = null;
         }
     };
 
@@ -356,10 +316,10 @@ export function NodeChatPanel({ nodeId, topic, onExpand }: NodeChatPanelProps) {
                                         {message.role === "user" ? (
                                             <p className="whitespace-pre-wrap">{message.content}</p>
                                         ) : isStreaming ? (
-                                            <TypewriterText
-                                                text={message.content}
-                                                onComplete={() => handleStreamingComplete(message.id)}
-                                            />
+                                            <>
+                                                <MarkdownContent content={message.content} />
+                                                <StreamingCursor />
+                                            </>
                                         ) : (
                                             <MarkdownContent content={message.content} />
                                         )}

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { chatWithAI } from "../services/ai.js";
+import { chatWithAI, chatWithAIStream } from "../services/ai.js";
 import { prisma } from "../lib/prisma.js";
 
 const router = Router();
@@ -54,6 +54,22 @@ router.delete("/:projectId", async (req, res) => {
   }
 });
 
+// DELETE /api/chat/:projectId/node/:nodeId - Clear chat history for a specific node
+router.delete("/:projectId/node/:nodeId", async (req, res) => {
+  try {
+    const { projectId, nodeId } = req.params;
+
+    await prisma.chatMessage.deleteMany({
+      where: { projectId, nodeId },
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Error clearing node chat history:", error);
+    res.status(500).json({ error: "Failed to clear node chat history" });
+  }
+});
+
 // POST /api/chat/save - Save a single message (without AI call)
 router.post("/save", async (req, res) => {
   try {
@@ -74,7 +90,102 @@ router.post("/save", async (req, res) => {
   }
 });
 
-// POST /api/chat - Chat with AI
+// POST /api/chat/stream - Stream chat with AI via SSE
+router.post("/stream", async (req, res) => {
+  const { message, context, projectId, nodeId, language } = req.body;
+
+  if (!message) {
+    return res.status(400).json({ error: "Message is required" });
+  }
+
+  // Set SSE headers
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.setHeader("X-Accel-Buffering", "no"); // Disable nginx buffering
+  res.flushHeaders();
+
+  let clientDisconnected = false;
+  req.on("close", () => {
+    clientDisconnected = true;
+  });
+
+  // Save user message to DB
+  if (projectId) {
+    try {
+      await prisma.chatMessage.create({
+        data: { projectId, nodeId: nodeId || null, role: "user", content: message },
+      });
+    } catch (e) {
+      console.error("Failed to save user message:", e);
+    }
+  }
+
+  // Normalize context
+  let normalizedContext: { role: string; content: string }[] | undefined;
+  if (context) {
+    if (Array.isArray(context)) {
+      normalizedContext = context.filter(
+        (item) => item && typeof item.role === "string" && typeof item.content === "string"
+      );
+    } else if (typeof context === "string") {
+      normalizedContext = [{ role: "system", content: context }];
+    }
+  }
+
+  let fullReply = "";
+
+  try {
+    const stream = chatWithAIStream(message, normalizedContext, language);
+
+    for await (const token of stream) {
+      if (clientDisconnected) break;
+
+      fullReply += token;
+      res.write(`data: ${JSON.stringify({ content: token })}\n\n`);
+    }
+
+    // Send done signal
+    if (!clientDisconnected) {
+      res.write("data: [DONE]\n\n");
+    }
+
+    // Save complete AI reply to DB
+    if (projectId && fullReply) {
+      try {
+        await prisma.chatMessage.create({
+          data: { projectId, nodeId: nodeId || null, role: "assistant", content: fullReply },
+        });
+      } catch (e) {
+        console.error("Failed to save AI reply:", e);
+      }
+    }
+  } catch (error) {
+    console.error("Streaming error:", error);
+
+    let errorMessage = "Terjadi kesalahan saat memproses permintaan";
+    if (error instanceof Error) {
+      if (error.message.includes("rate limit") || error.message.includes("429")) {
+        errorMessage = "Server sedang sibuk. Silakan coba lagi dalam beberapa detik.";
+      } else if (error.message.includes("unavailable")) {
+        errorMessage = "Layanan AI sedang tidak tersedia. Silakan coba lagi nanti.";
+      } else {
+        errorMessage = error.message;
+      }
+    }
+
+    if (!clientDisconnected) {
+      res.write(`data: ${JSON.stringify({ error: errorMessage })}\n\n`);
+      res.write("data: [DONE]\n\n");
+    }
+  } finally {
+    if (!clientDisconnected) {
+      res.end();
+    }
+  }
+});
+
+// POST /api/chat - Chat with AI (non-streaming, kept for backward compatibility)
 router.post("/", async (req, res) => {
   try {
     const { message, context, projectId, nodeId, language } = req.body;

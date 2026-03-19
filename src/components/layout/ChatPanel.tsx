@@ -5,7 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, Bot, Sparkles, Trash2, Settings2, ChevronDown, Copy, Check, RefreshCw, ThumbsUp, ThumbsDown, Square, X } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { generateRoadmap, createProject, extractTopicFromPrompt, saveChatMessage, getChatHistory, sendGeneralChatMessage, clearChatHistory, getRoadmap } from "@/lib/api";
+import { generateRoadmap, createProject, extractTopicFromPrompt, saveChatMessage, getChatHistory, clearChatHistory, getRoadmap, streamChat } from "@/lib/api";
 import type { RoadmapPreferences } from "@/lib/api";
 import { convertToReactFlowNodes, isRoadmapRequest } from "@/lib/layoutUtils";
 import { useRoadmapStore } from "@/store/useRoadmapStore";
@@ -40,10 +40,9 @@ type Message = {
 
 import { Rocket, FileText, Target } from "lucide-react";
 
+
 // Suggestions are now dynamic based on language, defined inside the component
 
-const TYPING_SPEED = 15; // ms per character
-const THINKING_DELAY = 800; // ms before starting to type
 
 // Format timestamp
 function formatTime(timestamp: number): string {
@@ -138,33 +137,9 @@ function CopyButton({ text, className }: { text: string; className?: string }) {
     );
 }
 
-// Typewriter component for streaming messages
-function TypewriterText({ text, onComplete }: { text: string; onComplete?: () => void }) {
-    const [displayedText, setDisplayedText] = useState("");
-
-    useEffect(() => {
-        let charIndex = 0;
-        setDisplayedText("");
-
-        // Start typing after thinking delay
-        const delayTimer = setTimeout(() => {
-            const typeInterval = setInterval(() => {
-                if (charIndex < text.length) {
-                    setDisplayedText(text.slice(0, charIndex + 1));
-                    charIndex++;
-                } else {
-                    clearInterval(typeInterval);
-                    onComplete?.();
-                }
-            }, TYPING_SPEED);
-
-            return () => clearInterval(typeInterval);
-        }, THINKING_DELAY);
-
-        return () => clearTimeout(delayTimer);
-    }, [text, onComplete]);
-
-    return <>{displayedText}<span className="animate-pulse">|</span></>;
+// Streaming cursor component — shows pulsing cursor during active streaming
+function StreamingCursor() {
+    return <span className="inline-block w-2 h-4 bg-foreground/60 animate-pulse ml-0.5 align-text-bottom" />;
 }
 
 // Default preferences
@@ -200,12 +175,7 @@ export function ChatPanel() {
     const hasHandledTopic = useRef(false);
     const isCreatingProject = useRef(false);
 
-    // Mark streaming message as complete
-    const handleStreamingComplete = useCallback((messageId: string) => {
-        setMessages(prev => prev.map(msg =>
-            msg.id === messageId ? { ...msg, isStreaming: false } : msg
-        ));
-    }, []);
+
 
     // Handle feedback (like/dislike)
     const handleFeedback = useCallback((messageId: string, feedback: "like" | "dislike") => {
@@ -472,7 +442,7 @@ export function ChatPanel() {
                     }
                 }
             } else {
-                // Regular chat - call chat API
+                // Regular chat — use streaming
                 let projectId = currentProjectId;
 
                 // Auto-create project if none selected
@@ -486,22 +456,16 @@ export function ChatPanel() {
                         isCreatingProject.current = true;
                         setCurrentProject(newProject.id, newProject.title);
 
-                        // Use fresh callback from store to ensure we get the latest
                         const freshCallback = useRoadmapStore.getState().onProjectCreated;
                         if (freshCallback) {
-                            console.log("Calling onProjectCreated callback for chat");
                             freshCallback(newProject.id);
-                        } else {
-                            console.warn("onProjectCreated callback is not registered for chat");
                         }
 
                         toast.success(t.toasts.projectCreatedName.replace("{title}", newProject.title));
-                        // Trigger sidebar refresh via version counter
                         incrementProjectsVersion();
                     } catch (projectError) {
                         console.error("Failed to create project for chat:", projectError);
                         toast.error(t.toasts.projectCreateFailed);
-                        // Continue without project - user can still chat
                     }
                 }
 
@@ -509,17 +473,40 @@ export function ChatPanel() {
                     role: m.role,
                     content: m.content,
                 }));
-                const data = await sendGeneralChatMessage(userMessage, projectId, context, language);
 
+                // Create empty assistant message immediately
                 const messageId = (Date.now() + 1).toString();
                 const newAiMessage: Message = {
                     id: messageId,
                     role: "assistant",
-                    content: data.reply,
+                    content: "",
                     isStreaming: true,
                     timestamp: Date.now(),
                 };
                 setMessages((prev) => [...prev, newAiMessage]);
+
+                // Stream tokens into the message
+                await streamChat(
+                    { message: userMessage, projectId, context, language },
+                    (token) => {
+                        setMessages((prev) =>
+                            prev.map((msg) =>
+                                msg.id === messageId
+                                    ? { ...msg, content: msg.content + token }
+                                    : msg
+                            )
+                        );
+                    },
+                    abortControllerRef.current?.signal
+                );
+
+                setMessages((prev) =>
+                    prev.map((msg) =>
+                        msg.id === messageId ? { ...msg, isStreaming: false } : msg
+                    )
+                );
+
+                // Save the complete message to DB (streaming endpoint already saves it)
             }
         } catch (error) {
             // Don't show error if it was aborted
@@ -840,11 +827,11 @@ export function ChatPanel() {
                                                     : "bg-muted text-foreground"
                                             )}
                                         >
-                                            {msg.isStreaming ? (
-                                                <TypewriterText
-                                                    text={msg.content}
-                                                    onComplete={() => handleStreamingComplete(msg.id)}
-                                                />
+                                        {msg.isStreaming ? (
+                                                <>
+                                                    <MarkdownContent content={msg.content} />
+                                                    <StreamingCursor />
+                                                </>
                                             ) : (
                                                 msg.role === "assistant" ? (
                                                     <MarkdownContent content={msg.content} />
