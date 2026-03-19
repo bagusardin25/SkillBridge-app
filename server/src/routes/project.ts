@@ -6,10 +6,11 @@ const router = Router();
 // POST /api/project - Create new project
 router.post("/", async (req, res) => {
   try {
-    const { title, userId } = req.body;
+    const { title } = req.body;
+    const userId = req.user!.id;
 
-    if (!title || !userId) {
-      return res.status(400).json({ error: "Title and userId are required" });
+    if (!title) {
+      return res.status(400).json({ error: "Title is required" });
     }
 
     const project = await prisma.project.create({
@@ -32,10 +33,10 @@ router.post("/", async (req, res) => {
 // GET /api/project - Get all projects (optionally filter by userId)
 router.get("/", async (req, res) => {
   try {
-    const { userId } = req.query;
+    const userId = req.user!.id;
 
     const projects = await prisma.project.findMany({
-      where: userId ? { userId: userId as string } : undefined,
+      where: { userId },
       include: {
         roadmaps: true,
         user: {
@@ -62,6 +63,7 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
+    const userId = req.user!.id;
 
     const project = await prisma.project.findUnique({
       where: { id },
@@ -81,6 +83,11 @@ router.get("/:id", async (req, res) => {
       return res.status(404).json({ error: "Project not found" });
     }
 
+    // Verify ownership
+    if (project.userId !== userId) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
     res.json(project);
   } catch (error) {
     console.error("Error fetching project:", error);
@@ -88,10 +95,17 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// PUT /api/project/:id - Update project
+// PUT /api/project/:id - Update project (ownership verified via project lookup)
 router.put("/:id", async (req, res) => {
   try {
     const { id } = req.params;
+    const userId = req.user!.id;
+
+    // Verify ownership before updating
+    const existing = await prisma.project.findUnique({ where: { id } });
+    if (!existing || existing.userId !== userId) {
+      return res.status(403).json({ error: "Access denied" });
+    }
     const { title } = req.body;
 
     const project = await prisma.project.update({
@@ -115,6 +129,13 @@ router.put("/:id", async (req, res) => {
 router.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
+    const userId = req.user!.id;
+
+    // Verify ownership before deleting
+    const existing = await prisma.project.findUnique({ where: { id } });
+    if (!existing || existing.userId !== userId) {
+      return res.status(403).json({ error: "Access denied" });
+    }
 
     await prisma.project.delete({
       where: { id },

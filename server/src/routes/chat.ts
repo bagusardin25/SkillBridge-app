@@ -1,9 +1,8 @@
 import { Router } from "express";
 import { chatWithAI } from "../services/ai.js";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../lib/prisma.js";
 
 const router = Router();
-const prisma = new PrismaClient();
 
 // GET /api/chat/:projectId - Get chat history for a project (general chat)
 router.get("/:projectId", async (req, res) => {

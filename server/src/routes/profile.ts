@@ -3,10 +3,10 @@ import { prisma } from "../lib/prisma.js";
 
 const router = Router();
 
-// GET /api/profile/:userId - Get user profile with stats
-router.get("/:userId", async (req, res) => {
+// GET /api/profile/me - Get current user profile with stats
+router.get("/me", async (req, res) => {
   try {
-    const { userId } = req.params;
+    const userId = req.user!.id;
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -124,10 +124,10 @@ router.get("/:userId", async (req, res) => {
   }
 });
 
-// PUT /api/profile/:userId - Update user profile
-router.put("/:userId", async (req, res) => {
+// PUT /api/profile/me - Update user profile
+router.put("/me", async (req, res) => {
   try {
-    const { userId } = req.params;
+    const userId = req.user!.id;
     const { name, bio, location, jobRole, avatarUrl } = req.body;
 
     const user = await prisma.user.update({
@@ -167,10 +167,10 @@ router.put("/:userId", async (req, res) => {
   }
 });
 
-// POST /api/profile/:userId/update-streak - Update user streak
-router.post("/:userId/update-streak", async (req, res) => {
+// POST /api/profile/update-streak - Update user streak
+router.post("/update-streak", async (req, res) => {
   try {
-    const { userId } = req.params;
+    const userId = req.user!.id;
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -237,10 +237,10 @@ router.post("/:userId/update-streak", async (req, res) => {
   }
 });
 
-// POST /api/profile/:userId/add-learning-time - Add learning minutes
-router.post("/:userId/add-learning-time", async (req, res) => {
+// POST /api/profile/add-learning-time - Add learning minutes
+router.post("/add-learning-time", async (req, res) => {
   try {
-    const { userId } = req.params;
+    const userId = req.user!.id;
     const { minutes } = req.body;
 
     if (!minutes || typeof minutes !== "number") {
@@ -272,10 +272,10 @@ router.post("/:userId/add-learning-time", async (req, res) => {
   }
 });
 
-// POST /api/profile/:userId/add-xp - Add XP to user
-router.post("/:userId/add-xp", async (req, res) => {
+// POST /api/profile/add-xp - Add XP to user
+router.post("/add-xp", async (req, res) => {
   try {
-    const { userId } = req.params;
+    const userId = req.user!.id;
     const { amount } = req.body;
 
     if (!amount || typeof amount !== "number") {

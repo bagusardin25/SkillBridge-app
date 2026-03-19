@@ -1,9 +1,8 @@
 import { Router } from "express";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../lib/prisma.js";
 import { z } from "zod";
 
 const router = Router();
-const prisma = new PrismaClient();
 
 // Validation schema
 const noteSchema = z.object({
@@ -11,9 +10,10 @@ const noteSchema = z.object({
 });
 
 // GET note for a specific node
-router.get("/:roadmapId/:nodeId/:userId", async (req, res) => {
+router.get("/:roadmapId/:nodeId", async (req, res) => {
     try {
-        const { roadmapId, nodeId, userId } = req.params;
+        const { roadmapId, nodeId } = req.params;
+        const userId = req.user!.id;
 
         const note = await prisma.nodeNote.findUnique({
             where: {
@@ -29,9 +29,10 @@ router.get("/:roadmapId/:nodeId/:userId", async (req, res) => {
 });
 
 // PUT (upsert) note for a specific node
-router.put("/:roadmapId/:nodeId/:userId", async (req, res) => {
+router.put("/:roadmapId/:nodeId", async (req, res) => {
     try {
-        const { roadmapId, nodeId, userId } = req.params;
+        const { roadmapId, nodeId } = req.params;
+        const userId = req.user!.id;
 
         const validation = noteSchema.safeParse(req.body);
         if (!validation.success) {
@@ -56,3 +57,4 @@ router.put("/:roadmapId/:nodeId/:userId", async (req, res) => {
 });
 
 export default router;
+

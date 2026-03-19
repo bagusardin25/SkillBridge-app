@@ -150,7 +150,6 @@ router.post("/generate", async (req, res) => {
 const submitQuizSchema = z.object({
   roadmapId: z.string().min(1),
   nodeId: z.string().min(1),
-  userId: z.string().min(1),
   answers: z.array(z.number()),
   questions: z.array(z.object({
     question: z.string(),
@@ -173,7 +172,8 @@ router.post("/submit", async (req, res) => {
       });
     }
 
-    const { roadmapId, nodeId, userId, answers, questions, timeTaken } = validation.data;
+    const { roadmapId, nodeId, answers, questions, timeTaken } = validation.data;
+    const userId = req.user!.id;
 
     // Calculate score
     let correctCount = 0;
@@ -236,10 +236,11 @@ router.post("/submit", async (req, res) => {
   }
 });
 
-// GET /api/quiz/result/:roadmapId/:nodeId/:userId - Get quiz result for a node
-router.get("/result/:roadmapId/:nodeId/:userId", async (req, res) => {
+// GET /api/quiz/result/:roadmapId/:nodeId - Get quiz result for a node
+router.get("/result/:roadmapId/:nodeId", async (req, res) => {
   try {
-    const { roadmapId, nodeId, userId } = req.params;
+    const { roadmapId, nodeId } = req.params;
+    const userId = req.user!.id;
 
     const result = await prisma.quizResult.findUnique({
       where: {
@@ -274,10 +275,11 @@ router.get("/result/:roadmapId/:nodeId/:userId", async (req, res) => {
   }
 });
 
-// GET /api/quiz/results/:roadmapId/:userId - Get all quiz results for a roadmap
-router.get("/results/:roadmapId/:userId", async (req, res) => {
+// GET /api/quiz/results/:roadmapId - Get all quiz results for a roadmap
+router.get("/results/:roadmapId", async (req, res) => {
   try {
-    const { roadmapId, userId } = req.params;
+    const { roadmapId } = req.params;
+    const userId = req.user!.id;
 
     const results = await prisma.quizResult.findMany({
       where: { roadmapId, userId },
@@ -298,10 +300,11 @@ router.get("/results/:roadmapId/:userId", async (req, res) => {
   }
 });
 
-// GET /api/quiz/cached/:roadmapId/:nodeId/:userId - Get cached quiz questions if exists
-router.get("/cached/:roadmapId/:nodeId/:userId", async (req, res) => {
+// GET /api/quiz/cached/:roadmapId/:nodeId - Get cached quiz questions if exists
+router.get("/cached/:roadmapId/:nodeId", async (req, res) => {
   try {
-    const { roadmapId, nodeId, userId } = req.params;
+    const { roadmapId, nodeId } = req.params;
+    const userId = req.user!.id;
 
     const existingResult = await prisma.quizResult.findUnique({
       where: {

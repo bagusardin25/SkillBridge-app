@@ -1,5 +1,31 @@
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
 
+// Authenticated fetch helper — auto-attaches JWT Bearer token
+function getAuthToken(): string | null {
+  try {
+    const stored = localStorage.getItem("auth-storage");
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return parsed?.state?.token || null;
+    }
+  } catch {
+    // ignore parse errors
+  }
+  return null;
+}
+
+function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  const token = getAuthToken();
+  const headers = new Headers(options.headers || {});
+  if (token) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+  if (!headers.has("Content-Type") && options.body) {
+    headers.set("Content-Type", "application/json");
+  }
+  return fetch(url, { ...options, headers });
+}
+
 // Auth Types
 export interface AuthUser {
   id: string;
@@ -172,11 +198,10 @@ export interface Roadmap {
   updatedAt: string;
 }
 
-export async function createProject(title: string, userId: string): Promise<Project> {
-  const res = await fetch(`${API_URL}/project`, {
+export async function createProject(title: string, _userId: string): Promise<Project> {
+  const res = await authFetch(`${API_URL}/project`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ title, userId }),
+    body: JSON.stringify({ title }),
   });
 
   if (!res.ok) {
@@ -187,9 +212,8 @@ export async function createProject(title: string, userId: string): Promise<Proj
   return res.json();
 }
 
-export async function getProjects(userId?: string): Promise<Project[]> {
-  const url = userId ? `${API_URL}/project?userId=${userId}` : `${API_URL}/project`;
-  const res = await fetch(url);
+export async function getProjects(_userId?: string): Promise<Project[]> {
+  const res = await authFetch(`${API_URL}/project`);
 
   if (!res.ok) {
     throw new Error("Failed to fetch projects");
@@ -199,7 +223,7 @@ export async function getProjects(userId?: string): Promise<Project[]> {
 }
 
 export async function getProject(id: string): Promise<Project> {
-  const res = await fetch(`${API_URL}/project/${id}`);
+  const res = await authFetch(`${API_URL}/project/${id}`);
 
   if (!res.ok) {
     throw new Error("Failed to fetch project");
@@ -209,7 +233,7 @@ export async function getProject(id: string): Promise<Project> {
 }
 
 export async function deleteProject(id: string): Promise<void> {
-  const res = await fetch(`${API_URL}/project/${id}`, {
+  const res = await authFetch(`${API_URL}/project/${id}`, {
     method: "DELETE",
   });
 
@@ -219,9 +243,8 @@ export async function deleteProject(id: string): Promise<void> {
 }
 
 export async function updateProject(id: string, title: string): Promise<Project> {
-  const res = await fetch(`${API_URL}/project/${id}`, {
+  const res = await authFetch(`${API_URL}/project/${id}`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ title }),
   });
 
@@ -279,9 +302,8 @@ export async function generateRoadmap(
   preferences?: RoadmapPreferences,
   language?: string
 ): Promise<GeneratedRoadmap> {
-  const res = await fetch(`${API_URL}/roadmap/generate`, {
+  const res = await authFetch(`${API_URL}/roadmap/generate`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ prompt, projectId, preferences, language }),
   });
 
@@ -298,9 +320,8 @@ export async function createRoadmap(
   projectId: string,
   data: { title?: string; nodes?: unknown; edges?: unknown }
 ): Promise<{ id: string; title: string; projectId: string; nodes: unknown; edges: unknown }> {
-  const res = await fetch(`${API_URL}/roadmap`, {
+  const res = await authFetch(`${API_URL}/roadmap`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ projectId, ...data }),
   });
 
@@ -317,9 +338,8 @@ export async function updateRoadmap(
   id: string,
   data: { nodes?: unknown; edges?: unknown; title?: string }
 ): Promise<GeneratedRoadmap> {
-  const res = await fetch(`${API_URL}/roadmap/${id}`, {
+  const res = await authFetch(`${API_URL}/roadmap/${id}`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
 
@@ -333,7 +353,7 @@ export async function updateRoadmap(
 }
 
 export async function getRoadmap(id: string): Promise<GeneratedRoadmap> {
-  const res = await fetch(`${API_URL}/roadmap/${id}`);
+  const res = await authFetch(`${API_URL}/roadmap/${id}`);
 
   const data = await res.json();
 
@@ -350,9 +370,8 @@ export async function saveChatMessage(
   role: "user" | "assistant",
   content: string
 ): Promise<void> {
-  await fetch(`${API_URL}/chat/save`, {
+  await authFetch(`${API_URL}/chat/save`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ projectId, role, content }),
   });
 }
@@ -390,9 +409,8 @@ export interface QuizResponse {
 
 // Quiz Functions
 export async function generateQuiz(topic: string, description?: string, resources?: string[], language?: string): Promise<QuizResponse> {
-  const res = await fetch(`${API_URL}/quiz/generate`, {
+  const res = await authFetch(`${API_URL}/quiz/generate`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ topic, description, resources, language }),
   });
 
@@ -405,9 +423,9 @@ export async function generateQuiz(topic: string, description?: string, resource
   return data;
 }
 
-export async function getCachedQuiz(roadmapId: string, nodeId: string, userId: string): Promise<QuizResponse | null> {
+export async function getCachedQuiz(roadmapId: string, nodeId: string, _userId: string): Promise<QuizResponse | null> {
   try {
-    const res = await fetch(`${API_URL}/quiz/cached/${roadmapId}/${nodeId}/${userId}`);
+    const res = await authFetch(`${API_URL}/quiz/cached/${roadmapId}/${nodeId}`);
     const data = await res.json();
 
     if (data.cached && data.questions) {
@@ -438,10 +456,10 @@ export interface QuizSubmitResult {
 }
 
 export async function submitQuiz(params: SubmitQuizParams): Promise<QuizSubmitResult> {
-  const res = await fetch(`${API_URL}/quiz/submit`, {
+  const { userId, ...submitData } = params; // Strip userId — server gets it from JWT
+  const res = await authFetch(`${API_URL}/quiz/submit`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(params),
+    body: JSON.stringify(submitData),
   });
 
   const data = await res.json();
@@ -468,9 +486,9 @@ export interface QuizResultData {
 export async function getQuizResult(
   roadmapId: string,
   nodeId: string,
-  userId: string
+  _userId: string
 ): Promise<QuizResultData | null> {
-  const res = await fetch(`${API_URL}/quiz/result/${roadmapId}/${nodeId}/${userId}`);
+  const res = await authFetch(`${API_URL}/quiz/result/${roadmapId}/${nodeId}`);
 
   if (res.status === 404) {
     return null;
@@ -497,9 +515,9 @@ export interface NodeNoteData {
 export async function getNodeNote(
   roadmapId: string,
   nodeId: string,
-  userId: string
+  _userId: string
 ): Promise<NodeNoteData> {
-  const res = await fetch(`${API_URL}/notes/${roadmapId}/${nodeId}/${userId}`);
+  const res = await authFetch(`${API_URL}/notes/${roadmapId}/${nodeId}`);
   const data = await res.json();
 
   if (!res.ok) {
@@ -512,14 +530,11 @@ export async function getNodeNote(
 export async function saveNodeNote(
   roadmapId: string,
   nodeId: string,
-  userId: string,
+  _userId: string,
   content: string
 ): Promise<NodeNoteData> {
-  const res = await fetch(`${API_URL}/notes/${roadmapId}/${nodeId}/${userId}`, {
+  const res = await authFetch(`${API_URL}/notes/${roadmapId}/${nodeId}`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify({ content }),
   });
 
@@ -542,9 +557,9 @@ export interface QuizResultSummary {
 
 export async function getQuizResultsForRoadmap(
   roadmapId: string,
-  userId: string
+  _userId: string
 ): Promise<QuizResultSummary[]> {
-  const res = await fetch(`${API_URL}/quiz/results/${roadmapId}/${userId}`);
+  const res = await authFetch(`${API_URL}/quiz/results/${roadmapId}`);
 
   if (!res.ok) {
     return [];
@@ -610,8 +625,8 @@ export interface ProfileResponse {
 }
 
 // Profile Functions
-export async function getProfile(userId: string): Promise<ProfileResponse> {
-  const res = await fetch(`${API_URL}/profile/${userId}`);
+export async function getProfile(_userId: string): Promise<ProfileResponse> {
+  const res = await authFetch(`${API_URL}/profile/me`);
 
   const data = await res.json();
 
@@ -630,10 +645,9 @@ export interface UpdateProfileParams {
   avatarUrl?: string;
 }
 
-export async function updateProfile(userId: string, params: UpdateProfileParams): Promise<UserProfile> {
-  const res = await fetch(`${API_URL}/profile/${userId}`, {
+export async function updateProfile(_userId: string, params: UpdateProfileParams): Promise<UserProfile> {
+  const res = await authFetch(`${API_URL}/profile/me`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(params),
   });
 
@@ -647,10 +661,9 @@ export async function updateProfile(userId: string, params: UpdateProfileParams)
 }
 
 // Update user streak
-export async function updateStreak(userId: string): Promise<{ currentStreak: number; longestStreak: number; lastActiveDate: string }> {
-  const res = await fetch(`${API_URL}/profile/${userId}/update-streak`, {
+export async function updateStreak(_userId: string): Promise<{ currentStreak: number; longestStreak: number; lastActiveDate: string }> {
+  const res = await authFetch(`${API_URL}/profile/update-streak`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
   });
 
   const data = await res.json();
@@ -663,10 +676,9 @@ export async function updateStreak(userId: string): Promise<{ currentStreak: num
 }
 
 // Add learning time
-export async function addLearningTime(userId: string, minutes: number): Promise<{ totalLearningMinutes: number }> {
-  const res = await fetch(`${API_URL}/profile/${userId}/add-learning-time`, {
+export async function addLearningTime(_userId: string, minutes: number): Promise<{ totalLearningMinutes: number }> {
+  const res = await authFetch(`${API_URL}/profile/add-learning-time`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ minutes }),
   });
 
@@ -680,10 +692,9 @@ export async function addLearningTime(userId: string, minutes: number): Promise<
 }
 
 // Add XP to user
-export async function addXp(userId: string, amount: number): Promise<{ id: string; xp: number; level: number }> {
-  const res = await fetch(`${API_URL}/profile/${userId}/add-xp`, {
+export async function addXp(_userId: string, amount: number): Promise<{ id: string; xp: number; level: number }> {
+  const res = await authFetch(`${API_URL}/profile/add-xp`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ amount }),
   });
 
@@ -719,9 +730,8 @@ export async function toggleRoadmapPublic(
   roadmapId: string,
   isPublic: boolean
 ): Promise<{ isPublic: boolean }> {
-  const res = await fetch(`${API_URL}/roadmap/${roadmapId}/public`, {
+  const res = await authFetch(`${API_URL}/roadmap/${roadmapId}/public`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ isPublic }),
   });
 
@@ -760,7 +770,7 @@ export async function getNodeChatHistory(
   projectId: string,
   nodeId: string
 ): Promise<{ messages: ChatMessage[] }> {
-  const res = await fetch(`${API_URL}/chat/${projectId}/node/${nodeId}`);
+  const res = await authFetch(`${API_URL}/chat/${projectId}/node/${nodeId}`);
 
   if (!res.ok) {
     throw new Error("Failed to fetch node chat history");
@@ -777,9 +787,8 @@ export async function sendNodeChatMessage(
   context?: { role: string; content: string }[],
   language?: string
 ): Promise<{ reply: string }> {
-  const res = await fetch(`${API_URL}/chat`, {
+  const res = await authFetch(`${API_URL}/chat`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ message, projectId, nodeId, context, language }),
   });
 
@@ -794,7 +803,7 @@ export async function sendNodeChatMessage(
 export async function getChatHistory(
   projectId: string
 ): Promise<{ messages: ChatMessage[] }> {
-  const res = await fetch(`${API_URL}/chat/${projectId}`);
+  const res = await authFetch(`${API_URL}/chat/${projectId}`);
 
   if (!res.ok) {
     return { messages: [] };
@@ -810,9 +819,8 @@ export async function sendGeneralChatMessage(
   context?: { role: string; content: string }[],
   language?: string
 ): Promise<{ reply: string }> {
-  const res = await fetch(`${API_URL}/chat`, {
+  const res = await authFetch(`${API_URL}/chat`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ message, projectId, context, language }),
   });
 
@@ -827,7 +835,7 @@ export async function sendGeneralChatMessage(
 
 // Clear chat history for a project
 export async function clearChatHistory(projectId: string): Promise<void> {
-  const res = await fetch(`${API_URL}/chat/${projectId}`, {
+  const res = await authFetch(`${API_URL}/chat/${projectId}`, {
     method: "DELETE",
   });
 
@@ -838,7 +846,7 @@ export async function clearChatHistory(projectId: string): Promise<void> {
 
 // Clear chat history for a specific node
 export async function clearNodeChatHistory(projectId: string, nodeId: string): Promise<void> {
-  const res = await fetch(`${API_URL}/chat/${projectId}/node/${nodeId}`, {
+  const res = await authFetch(`${API_URL}/chat/${projectId}/node/${nodeId}`, {
     method: "DELETE",
   });
 
