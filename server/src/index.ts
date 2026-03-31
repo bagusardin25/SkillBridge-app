@@ -1,6 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import jwt from "jsonwebtoken";
 import rateLimit from "express-rate-limit";
 import roadmapRouter from "./routes/roadmap.js";
 import chatRouter from "./routes/chat.js";
@@ -26,10 +27,22 @@ const authLimiter = rateLimit({
 // Rate limiter for AI-consuming endpoints (roadmap generate, chat, quiz generate)
 const aiLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
-  max: 10, // 10 AI requests per minute per IP
+  max: 30, // 30 AI requests per minute per IP
   message: { error: "Too many AI requests. Please slow down." },
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => {
+    // Skip rate limiting for ADMIN users (developers)
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader) return false;
+      const token = authHeader.split(" ")[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || "") as { role?: string };
+      return decoded.role === "ADMIN";
+    } catch {
+      return false;
+    }
+  },
 });
 
 // Middleware

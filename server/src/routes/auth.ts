@@ -42,14 +42,14 @@ const resendVerificationSchema = z.object({
   email: z.string().email("Invalid email format"),
 });
 
-function generateJwtToken(userId: string, email: string): string {
+function generateJwtToken(userId: string, email: string, role: string = "USER"): string {
   const secret = process.env.JWT_SECRET;
   if (!secret) {
     throw new Error("JWT_SECRET is not defined");
   }
 
   const expiresIn = process.env.JWT_EXPIRES_IN || "7d";
-  return jwt.sign({ userId, email }, secret, { expiresIn } as jwt.SignOptions);
+  return jwt.sign({ userId, email, role }, secret, { expiresIn } as jwt.SignOptions);
 }
 
 // POST /api/auth/register
@@ -93,7 +93,7 @@ router.post("/register", async (req, res) => {
       },
     });
 
-    const token = generateJwtToken(user.id, user.email);
+    const token = generateJwtToken(user.id, user.email, user.role);
 
     res.status(201).json({
       message: "User registered successfully",
@@ -141,7 +141,7 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ error: "Invalid email or password" });
     }
 
-    const token = generateJwtToken(user.id, user.email);
+    const token = generateJwtToken(user.id, user.email, user.role);
 
     res.json({
       message: "Login successful",
@@ -470,7 +470,7 @@ router.get("/google/callback", async (req, res) => {
     const user = await findOrCreateOAuthUser(userInfo);
 
     // Generate JWT
-    const token = generateJwtToken(user.id, user.email);
+    const token = generateJwtToken(user.id, user.email, user.role);
 
     // Redirect to frontend with token
     res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}`);
@@ -525,7 +525,7 @@ router.get("/github/callback", async (req, res) => {
     const user = await findOrCreateOAuthUser(userInfo);
 
     // Generate JWT
-    const token = generateJwtToken(user.id, user.email);
+    const token = generateJwtToken(user.id, user.email, user.role);
 
     // Redirect to frontend with token
     res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}`);
