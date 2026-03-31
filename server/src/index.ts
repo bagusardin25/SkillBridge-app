@@ -13,12 +13,13 @@ import profileRouter from "./routes/profile.js";
 import notesRouter from "./routes/notes.js";
 import { authMiddleware } from "./middleware/auth.js";
 import { prisma } from "./lib/prisma.js";
+import { logger } from "./lib/logger.js";
 
 // ── Environment Validation (fail fast) ─────────────────────
 const REQUIRED_ENV_VARS = ["JWT_SECRET", "DATABASE_URL"] as const;
 for (const envVar of REQUIRED_ENV_VARS) {
   if (!process.env[envVar]) {
-    console.error(`❌ Missing required environment variable: ${envVar}`);
+    logger.fatal(`Missing required environment variable: ${envVar}`);
     process.exit(1);
   }
 }
@@ -102,15 +103,15 @@ app.get("/api/health", async (_, res) => {
 });
 
 const server = app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  logger.info(`Server running on http://localhost:${PORT}`);
 });
 
 // ── Graceful Shutdown ──────────────────────────────────────
 async function shutdown(signal: string) {
-  console.log(`\n${signal} received. Shutting down gracefully...`);
+  logger.info(`${signal} received. Shutting down gracefully...`);
   server.close(async () => {
     await prisma.$disconnect();
-    console.log("Database disconnected. Goodbye!");
+    logger.info("Database disconnected. Goodbye!");
     process.exit(0);
   });
   // Force exit after 10s

@@ -51,9 +51,13 @@ export function LoginPage() {
   const [searchParams] = useSearchParams();
   const setAuth = useAuthStore((state) => state.setAuth);
 
-  // Handle OAuth errors from URL
+  // Handle OAuth errors and expired session from URL
   useEffect(() => {
     const error = searchParams.get("error");
+    const expired = searchParams.get("expired");
+    if (expired) {
+      toast.error("Session expired. Please sign in again.");
+    }
     if (error) {
       const errorMessages: Record<string, string> = {
         oauth_failed: "OAuth login failed. Please try again.",

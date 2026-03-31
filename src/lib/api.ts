@@ -14,7 +14,7 @@ function getAuthToken(): string | null {
   return null;
 }
 
-function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
+async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
   const token = getAuthToken();
   const headers = new Headers(options.headers || {});
   if (token) {
@@ -23,7 +23,15 @@ function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
   if (!headers.has("Content-Type") && options.body) {
     headers.set("Content-Type", "application/json");
   }
-  return fetch(url, { ...options, headers });
+  const res = await fetch(url, { ...options, headers });
+
+  // Auto-logout on 401 (expired/invalid token)
+  if (res.status === 401 && token) {
+    localStorage.removeItem("auth-storage");
+    window.location.href = "/login?expired=true";
+  }
+
+  return res;
 }
 
 // Stream chat with AI via SSE — calls onChunk for each token as it arrives
