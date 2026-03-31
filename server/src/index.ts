@@ -1,6 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
 import jwt from "jsonwebtoken";
 import rateLimit from "express-rate-limit";
 import roadmapRouter from "./routes/roadmap.js";
@@ -11,6 +12,16 @@ import quizRouter from "./routes/quiz.js";
 import profileRouter from "./routes/profile.js";
 import notesRouter from "./routes/notes.js";
 import { authMiddleware } from "./middleware/auth.js";
+import { prisma } from "./lib/prisma.js";
+
+// ── Environment Validation (fail fast) ─────────────────────
+const REQUIRED_ENV_VARS = ["JWT_SECRET", "DATABASE_URL"] as const;
+for (const envVar of REQUIRED_ENV_VARS) {
+  if (!process.env[envVar]) {
+    console.error(`❌ Missing required environment variable: ${envVar}`);
+    process.exit(1);
+  }
+}
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -51,6 +62,8 @@ const allowedOrigins = [
   process.env.FRONTEND_URL,
 ].filter(Boolean) as string[];
 
+// Security headers
+app.use(helmet());
 app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (e.g. mobile apps, curl)
@@ -78,11 +91,31 @@ app.use("/api/quiz", authMiddleware, aiLimiter, quizRouter);
 app.use("/api/profile", authMiddleware, profileRouter);
 app.use("/api/notes", authMiddleware, notesRouter);
 
-// Health check
-app.get("/api/health", (_, res) => {
-  res.json({ status: "ok", timestamp: new Date().toISOString() });
+// Health check — verifies DB connection
+app.get("/api/health", async (_, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({ status: "ok", timestamp: new Date().toISOString() });
+  } catch {
+    res.status(503).json({ status: "error", message: "Database unreachable" });
+  }
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
+
+// ── Graceful Shutdown ──────────────────────────────────────
+async function shutdown(signal: string) {
+  console.log(`\n${signal} received. Shutting down gracefully...`);
+  server.close(async () => {
+    await prisma.$disconnect();
+    console.log("Database disconnected. Goodbye!");
+    process.exit(0);
+  });
+  // Force exit after 10s
+  setTimeout(() => process.exit(1), 10000);
+}
+
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));
