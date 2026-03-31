@@ -3,11 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useRoadmapStore } from "@/store/useRoadmapStore";
 import { useAppLanguage } from "@/contexts/LanguageContext";
+import { deleteAccount } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -25,7 +25,6 @@ import {
     Sun,
     Moon,
     MessageSquare,
-    Bell,
     Trash2,
     Monitor,
     Globe,
@@ -39,13 +38,25 @@ const LANGUAGE_NAMES: Record<string, string> = {
 
 export function SettingsPage() {
     const navigate = useNavigate();
-    const { user } = useAuthStore();
+    const { user, logout } = useAuthStore();
     const { isDarkMode, toggleTheme, isAiPanelOpen, toggleAiPanel } = useRoadmapStore();
     const { language, t } = useAppLanguage();
     const [langDialogOpen, setLangDialogOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
-    const handleDeleteAccount = () => {
-        toast.info(t.toasts.deleteAccountSoon);
+    const handleDeleteAccount = async () => {
+        setIsDeleting(true);
+        try {
+            await deleteAccount();
+            logout();
+            navigate("/");
+            toast.success(t.toasts.accountDeleted);
+        } catch (error) {
+            console.error("Delete account error:", error);
+            toast.error(t.toasts.deleteAccountFailed);
+        } finally {
+            setIsDeleting(false);
+        }
     };
 
     return (
@@ -151,41 +162,6 @@ export function SettingsPage() {
                         </div>
                     </CardContent>
                 </Card>
-
-                {/* Notifications */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Bell className="h-5 w-5" />
-                            {t.settingsPage.notifications}
-                        </CardTitle>
-                        <CardDescription>
-                            {t.settingsPage.notificationsDescription}
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="flex items-center justify-between">
-                            <div className="space-y-0.5">
-                                <Label htmlFor="email-notif" className="font-medium">
-                                    {t.settingsPage.emailNotifications}
-                                </Label>
-                                <p className="text-sm text-muted-foreground">
-                                    {t.settingsPage.emailNotificationsDescription}
-                                </p>
-                            </div>
-                            <Switch
-                                id="email-notif"
-                                disabled
-                                checked={false}
-                            />
-                        </div>
-                        <p className="text-xs text-muted-foreground italic">
-                            {t.common.comingSoon}
-                        </p>
-                    </CardContent>
-                </Card>
-
-                <Separator />
 
                 {/* Danger Zone */}
                 <Card className="border-destructive/50">

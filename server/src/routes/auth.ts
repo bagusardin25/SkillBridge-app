@@ -535,4 +535,47 @@ router.get("/github/callback", async (req, res) => {
   }
 });
 
+// DELETE /api/auth/account - Permanently delete user account and all data
+router.delete("/account", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user!.id;
+
+    // Find all projects owned by user (to get projectIds for chat messages)
+    const userProjects = await prisma.project.findMany({
+      where: { userId },
+      select: { id: true },
+    });
+    const projectIds = userProjects.map((p) => p.id);
+
+    // Delete all user data in a transaction
+    await prisma.$transaction([
+      // Delete chat messages (linked to projects, not user directly)
+      prisma.chatMessage.deleteMany({
+        where: { projectId: { in: projectIds } },
+      }),
+      // Delete quiz results
+      prisma.quizResult.deleteMany({
+        where: { userId },
+      }),
+      // Delete node notes
+      prisma.nodeNote.deleteMany({
+        where: { userId },
+      }),
+      // Delete projects (cascades to roadmaps)
+      prisma.project.deleteMany({
+        where: { userId },
+      }),
+      // Finally delete the user
+      prisma.user.delete({
+        where: { id: userId },
+      }),
+    ]);
+
+    res.json({ message: "Account deleted successfully" });
+  } catch (error) {
+    console.error("Delete account error:", error);
+    res.status(500).json({ error: "Failed to delete account" });
+  }
+});
+
 export default router;

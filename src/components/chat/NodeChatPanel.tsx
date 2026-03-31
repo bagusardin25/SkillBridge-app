@@ -6,60 +6,8 @@ import { useRoadmapStore } from "@/store/useRoadmapStore";
 import { getNodeChatHistory, clearNodeChatHistory, streamChat, type ChatMessage } from "@/lib/api";
 import { Sparkles, Send, Loader2, MessageSquare, AlertCircle, Trash2, Maximize2 } from "lucide-react";
 import { toast } from "sonner";
-import ReactMarkdown from "react-markdown";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { useAppLanguage } from "@/contexts/LanguageContext";
-
-
-
-// Markdown renderer with syntax highlighting
-function MarkdownContent({ content }: { content: string }) {
-    return (
-        <div className="prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-ol:my-1 prose-li:my-0">
-            <ReactMarkdown
-                components={{
-                    code({ className, children, ...props }) {
-                        const match = /language-(\w+)/.exec(className || '');
-                        const isInline = !match;
-
-                        if (isInline) {
-                            return (
-                                <code className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono" {...props}>
-                                    {children}
-                                </code>
-                            );
-                        }
-
-                        return (
-                            <div className="relative group my-2">
-                                <SyntaxHighlighter
-                                    style={oneDark}
-                                    language={match[1]}
-                                    PreTag="div"
-                                    customStyle={{
-                                        margin: 0,
-                                        borderRadius: '0.5rem',
-                                        fontSize: '0.75rem',
-                                    }}
-                                >
-                                    {String(children).replace(/\n$/, '')}
-                                </SyntaxHighlighter>
-                            </div>
-                        );
-                    },
-                }}
-            >
-                {content}
-            </ReactMarkdown>
-        </div>
-    );
-}
-
-// Streaming cursor component
-function StreamingCursor() {
-    return <span className="inline-block w-1.5 h-4 bg-violet-500 animate-pulse ml-0.5 align-text-bottom rounded-sm" />;
-}
+import { MarkdownContent, StreamingCursor } from "@/components/chat/MarkdownRenderer";
 
 interface NodeChatPanelProps {
     nodeId: string;

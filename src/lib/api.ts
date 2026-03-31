@@ -915,3 +915,15 @@ export async function clearNodeChatHistory(projectId: string, nodeId: string): P
     throw new Error("Failed to clear node chat history");
   }
 }
+
+// Delete user account permanently
+export async function deleteAccount(): Promise<void> {
+  const res = await authFetch(`${API_URL}/auth/account`, {
+    method: "DELETE",
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || "Failed to delete account");
+  }
+}

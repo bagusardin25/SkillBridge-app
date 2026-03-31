@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Bot, Sparkles, Trash2, Settings2, ChevronDown, Copy, Check, RefreshCw, ThumbsUp, ThumbsDown, Square, X } from "lucide-react";
+import { Send, Bot, Sparkles, Trash2, Settings2, ChevronDown, Copy, RefreshCw, ThumbsUp, ThumbsDown, Square, X } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { generateRoadmap, createProject, extractTopicFromPrompt, saveChatMessage, getChatHistory, clearChatHistory, getRoadmap, streamChat } from "@/lib/api";
@@ -19,15 +19,13 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import ReactMarkdown from "react-markdown";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { MarkdownContent, StreamingCursor } from "@/components/chat/MarkdownRenderer";
 
 type Message = {
     id: string;
@@ -57,90 +55,6 @@ function formatTime(timestamp: number): string {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-// Markdown renderer with syntax highlighting
-function MarkdownContent({ content }: { content: string }) {
-    return (
-        <div className="prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-ol:my-1 prose-li:my-0">
-            <ReactMarkdown
-                components={{
-                    code({ className, children, ...props }) {
-                        const match = /language-(\w+)/.exec(className || '');
-                        const isInline = !match;
-
-                        if (isInline) {
-                            return (
-                                <code className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono" {...props}>
-                                    {children}
-                                </code>
-                            );
-                        }
-
-                        return (
-                            <div className="relative group my-2">
-                                <SyntaxHighlighter
-                                    style={oneDark}
-                                    language={match[1]}
-                                    PreTag="div"
-                                    customStyle={{
-                                        margin: 0,
-                                        borderRadius: '0.5rem',
-                                        fontSize: '0.75rem',
-                                    }}
-                                >
-                                    {String(children).replace(/\n$/, '')}
-                                </SyntaxHighlighter>
-                                <CopyButton text={String(children)} className="absolute top-2 right-2 opacity-0 group-hover:opacity-100" />
-                            </div>
-                        );
-                    },
-                }}
-            >
-                {content}
-            </ReactMarkdown>
-        </div>
-    );
-}
-
-// Copy button component
-function CopyButton({ text, className }: { text: string; className?: string }) {
-    const [copied, setCopied] = useState(false);
-
-    const handleCopy = async () => {
-        await navigator.clipboard.writeText(text);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-    };
-
-    return (
-        <TooltipProvider delayDuration={0}>
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <button
-                        onClick={handleCopy}
-                        className={cn(
-                            "p-1.5 rounded-md bg-background/80 hover:bg-background border transition-all",
-                            className
-                        )}
-                    >
-                        {copied ? (
-                            <Check className="h-3 w-3 text-green-500" />
-                        ) : (
-                            <Copy className="h-3 w-3 text-muted-foreground" />
-                        )}
-                    </button>
-                </TooltipTrigger>
-                <TooltipContent>
-                    <p className="text-xs">{copied ? "Copied!" : "Copy"}</p>
-                </TooltipContent>
-            </Tooltip>
-        </TooltipProvider>
-    );
-}
-
-// Streaming cursor component — shows pulsing cursor during active streaming
-function StreamingCursor() {
-    return <span className="inline-block w-2 h-4 bg-foreground/60 animate-pulse ml-0.5 align-text-bottom" />;
-}
 
 // Default preferences
 const defaultPreferences: RoadmapPreferences = {
@@ -827,7 +741,7 @@ export function ChatPanel() {
                                                     : "bg-muted text-foreground"
                                             )}
                                         >
-                                        {msg.isStreaming ? (
+                                            {msg.isStreaming ? (
                                                 <>
                                                     <MarkdownContent content={msg.content} />
                                                     <StreamingCursor />
@@ -929,8 +843,8 @@ export function ChatPanel() {
 
             {/* Input Area */}
             <div className="p-4 bg-background border-t">
-                <form 
-                    className="relative flex w-full items-center bg-muted/40 border border-muted-foreground/30 focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/50 rounded-[24px] p-1.5 shadow-sm transition-all duration-300" 
+                <form
+                    className="relative flex w-full items-center bg-muted/40 border border-muted-foreground/30 focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/50 rounded-[24px] p-1.5 shadow-sm transition-all duration-300"
                     onSubmit={handleSendMessage}
                 >
                     <Input
@@ -959,9 +873,9 @@ export function ChatPanel() {
                             </Tooltip>
                         </TooltipProvider>
                     ) : (
-                        <Button 
-                            type="submit" 
-                            size="icon" 
+                        <Button
+                            type="submit"
+                            size="icon"
                             disabled={!inputValue.trim()}
                             className="h-10 w-10 rounded-[18px] shrink-0 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm transition-transform active:scale-95"
                         >

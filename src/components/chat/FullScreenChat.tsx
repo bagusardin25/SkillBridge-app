@@ -15,18 +15,14 @@ import {
     CheckCircle2,
     Minimize2,
     Lightbulb,
-    Copy,
-    Check,
     RefreshCw,
     ChevronDown,
     User,
 } from "lucide-react";
 import { toast } from "sonner";
-import ReactMarkdown from "react-markdown";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { cn } from "@/lib/utils";
 import { useAppLanguage } from "@/contexts/LanguageContext";
+import { MarkdownContent, CopyButton, StreamingCursor } from "@/components/chat/MarkdownRenderer";
 
 
 
@@ -44,86 +40,6 @@ function formatRelativeTime(dateStr: string, language: string): string {
     return date.toLocaleDateString(language === "en" ? "en-US" : "id-ID", { day: "numeric", month: "short" });
 }
 
-// Markdown renderer with syntax highlighting
-function MarkdownContent({ content }: { content: string }) {
-    return (
-        <div className="prose prose-sm dark:prose-invert max-w-none prose-p:my-1.5 prose-headings:my-2.5 prose-ul:my-1.5 prose-ol:my-1.5 prose-li:my-0.5 prose-a:text-violet-500 prose-a:no-underline hover:prose-a:underline">
-            <ReactMarkdown
-                components={{
-                    code({ className, children, ...props }) {
-                        const match = /language-(\w+)/.exec(className || '');
-                        const isInline = !match;
-
-                        if (isInline) {
-                            return (
-                                <code className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono" {...props}>
-                                    {children}
-                                </code>
-                            );
-                        }
-
-                        return (
-                            <div className="relative group my-3">
-                                <div className="flex items-center justify-between px-4 py-2 bg-zinc-800 rounded-t-lg border-b border-zinc-700">
-                                    <span className="text-xs text-zinc-400 font-mono">{match[1]}</span>
-                                    <CopyButton text={String(children)} label />
-                                </div>
-                                <SyntaxHighlighter
-                                    style={oneDark}
-                                    language={match[1]}
-                                    PreTag="div"
-                                    customStyle={{
-                                        margin: 0,
-                                        borderTopLeftRadius: 0,
-                                        borderTopRightRadius: 0,
-                                        borderBottomLeftRadius: '0.5rem',
-                                        borderBottomRightRadius: '0.5rem',
-                                        fontSize: '0.8rem',
-                                    }}
-                                >
-                                    {String(children).replace(/\n$/, '')}
-                                </SyntaxHighlighter>
-                            </div>
-                        );
-                    },
-                }}
-            >
-                {content}
-            </ReactMarkdown>
-        </div>
-    );
-}
-
-// Copy button component
-function CopyButton({ text, className, label }: { text: string; className?: string; label?: boolean }) {
-    const [copied, setCopied] = useState(false);
-
-    const handleCopy = async (e: React.MouseEvent) => {
-        e.stopPropagation();
-        await navigator.clipboard.writeText(text);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-    };
-
-    return (
-        <button
-            onClick={handleCopy}
-            className={cn(
-                "flex items-center gap-1 text-xs transition-colors",
-                copied ? "text-emerald-400" : "text-zinc-400 hover:text-zinc-200",
-                className
-            )}
-        >
-            {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-            {label && <span>{copied ? "Copied!" : "Copy"}</span>}
-        </button>
-    );
-}
-
-// Streaming cursor component
-function StreamingCursor() {
-    return <span className="inline-block w-1.5 h-4 bg-violet-500 animate-pulse ml-0.5 align-text-bottom rounded-sm" />;
-}
 
 // Detect resource type from URL
 function getResourceType(url: string): { type: string; color: string } {
@@ -609,7 +525,7 @@ export function FullScreenChat({
                                                 <div className={cn(
                                                     "h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1",
                                                     isAi
-                                                            ? "bg-black dark:bg-neutral-900 border border-neutral-800 shadow-sm"
+                                                        ? "bg-black dark:bg-neutral-900 border border-neutral-800 shadow-sm"
                                                         : "bg-muted border"
                                                 )}>
                                                     {isAi ? (
@@ -650,11 +566,11 @@ export function FullScreenChat({
                                                             <p className="whitespace-pre-wrap">{message.content}</p>
                                                         ) : isStreaming ? (
                                                             <>
-                                                                <MarkdownContent content={message.content} />
+                                                                <MarkdownContent content={message.content} variant="full" />
                                                                 <StreamingCursor />
                                                             </>
                                                         ) : (
-                                                            <MarkdownContent content={message.content} />
+                                                            <MarkdownContent content={message.content} variant="full" />
                                                         )}
                                                     </div>
 

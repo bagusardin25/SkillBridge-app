@@ -94,7 +94,8 @@ export interface AppTranslations {
     renameFailed: string;
     deleteFailed: string;
     loggedOut: string;
-    deleteAccountSoon: string;
+    accountDeleted: string;
+    deleteAccountFailed: string;
     userNotAuth: string;
     roadmapSaved: string;
     roadmapSaveFailed: string;
@@ -436,7 +437,8 @@ const en: AppTranslations = {
     renameFailed: "Failed to rename project",
     deleteFailed: "Failed to delete project",
     loggedOut: "Logged out successfully",
-    deleteAccountSoon: "Delete account feature coming soon",
+    accountDeleted: "Account deleted successfully",
+    deleteAccountFailed: "Failed to delete account",
     userNotAuth: "User not authenticated",
     roadmapSaved: "Roadmap saved successfully!",
     roadmapSaveFailed: "Failed to save roadmap",
@@ -769,7 +771,8 @@ const id: AppTranslations = {
     renameFailed: "Gagal mengubah nama proyek",
     deleteFailed: "Gagal menghapus proyek",
     loggedOut: "Berhasil keluar",
-    deleteAccountSoon: "Fitur hapus akun akan segera tersedia",
+    accountDeleted: "Akun berhasil dihapus",
+    deleteAccountFailed: "Gagal menghapus akun",
     userNotAuth: "Pengguna tidak terautentikasi",
     roadmapSaved: "Roadmap berhasil disimpan!",
     roadmapSaveFailed: "Gagal menyimpan roadmap",
