@@ -923,23 +923,6 @@ export function ChatPanel() {
                             );
                         })
                     )}
-                    {isLoading && (
-                        <div className="flex gap-3 max-w-[90%]">
-                            <div className="h-8 w-8 rounded-full bg-black dark:bg-neutral-900 border border-neutral-800 flex items-center justify-center flex-shrink-0 shadow-sm">
-                                <Sparkles className="h-4 w-4 text-white animate-pulse" />
-                            </div>
-                            <div className="bg-muted/80 backdrop-blur-sm rounded-2xl rounded-tl-sm p-4 flex flex-col gap-2 min-w-[120px] shadow-sm border border-border/50">
-                                <div className="flex items-center gap-1.5 h-4">
-                                    <span className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                                    <span className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                                    <span className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce"></span>
-                                </div>
-                                <span className="text-[10px] font-medium text-muted-foreground animate-pulse">
-                                    {t.chat.thinking}
-                                </span>
-                            </div>
-                        </div>
-                    )}
                     <div ref={scrollRef} />
                 </div>
             </ScrollArea >

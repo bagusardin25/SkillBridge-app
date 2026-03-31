@@ -674,26 +674,6 @@ export function FullScreenChat({
                                 })
                             )}
 
-                            {/* Typing indicator */}
-                            {isSending && (
-                                <div className="flex gap-3">
-                                    <div className="h-8 w-8 rounded-full bg-black dark:bg-neutral-900 border border-neutral-800 flex items-center justify-center flex-shrink-0 shadow-sm">
-                                        <Sparkles className="h-4 w-4 text-white" />
-                                    </div>
-                                    <div className="flex flex-col gap-1">
-                                        <span className="text-xs font-semibold">AI Tutor</span>
-                                        <div className="bg-card rounded-2xl rounded-tl-sm px-4 py-3 border shadow-sm">
-                                            <div className="flex items-center gap-1.5">
-                                                <span className="w-2 h-2 bg-violet-400/60 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                                                <span className="w-2 h-2 bg-violet-400/60 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                                                <span className="w-2 h-2 bg-violet-400/60 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
-                                                <span className="text-xs text-muted-foreground ml-2">{t.fullScreenChat.typing}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
                             {/* Suggested questions inline (only for welcome/empty state on mobile) */}
                             {!hasRealMessages && !isLoading && (
                                 <div className="md:hidden">
