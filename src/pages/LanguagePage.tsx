@@ -20,7 +20,8 @@ export function LanguagePage() {
         const langName = LANGUAGES.find(l => l.code === selectedLanguage)?.name || selectedLanguage;
         const msg = t.languagePage.languageChanged.replace("{name}", langName);
         toast.success(msg);
-        navigate(-1);
+        // Small delay to let React apply the language change before navigating
+        setTimeout(() => navigate(-1), 100);
     };
 
     return (

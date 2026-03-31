@@ -29,13 +29,13 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const handler = (e: Event) => {
       const detail = (e as CustomEvent).detail;
-      if ((detail === "en" || detail === "id") && detail !== language) {
+      if (detail === "en" || detail === "id") {
         setLanguageState(detail);
       }
     };
     window.addEventListener("languageChange", handler);
     return () => window.removeEventListener("languageChange", handler);
-  }, [language]);
+  }, []);
 
   const t = getAppTranslations(language);
 
