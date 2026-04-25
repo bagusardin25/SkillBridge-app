@@ -25,10 +25,20 @@ async function authFetch(url: string, options: RequestInit = {}): Promise<Respon
   }
   const res = await fetch(url, { ...options, headers });
 
-  // Auto-logout on 401 (expired/invalid token)
+  // Auto-logout on 401 only if it's a token-related error
+  // (avoid logout loop when server has other issues)
   if (res.status === 401 && token) {
-    localStorage.removeItem("auth-storage");
-    window.location.href = "/login?expired=true";
+    try {
+      const cloned = res.clone();
+      const body = await cloned.json();
+      const tokenErrors = ["No token provided", "Invalid token", "Token expired", "User not found"];
+      if (tokenErrors.includes(body?.error)) {
+        localStorage.removeItem("auth-storage");
+        window.location.href = "/login?expired=true";
+      }
+    } catch {
+      // If we can't parse the response, don't auto-logout
+    }
   }
 
   return res;

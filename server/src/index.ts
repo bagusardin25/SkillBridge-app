@@ -25,6 +25,7 @@ for (const envVar of REQUIRED_ENV_VARS) {
 }
 
 const app = express();
+app.set("trust proxy", 1); // Trust first proxy (required for Railway/Vercel)
 const PORT = process.env.PORT || 3001;
 
 // Rate limiter for auth routes
@@ -34,6 +35,7 @@ const authLimiter = rateLimit({
   message: { error: "Too many attempts, please try again later" },
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { xForwardedForHeader: false },
 });
 
 // Rate limiter for AI-consuming endpoints (roadmap generate, chat, quiz generate)
@@ -43,6 +45,7 @@ const aiLimiter = rateLimit({
   message: { error: "Too many AI requests. Please slow down." },
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { xForwardedForHeader: false },
   skip: (req) => {
     // Skip rate limiting for ADMIN users (developers)
     try {
