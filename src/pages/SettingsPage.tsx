@@ -199,9 +199,10 @@ export function SettingsPage() {
                                         <AlertDialogCancel>{t.common.cancel}</AlertDialogCancel>
                                         <AlertDialogAction
                                             onClick={handleDeleteAccount}
+                                            disabled={isDeleting}
                                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                         >
-                                            {t.settingsPage.deleteAccount}
+                                            {isDeleting ? t.common.loading : t.settingsPage.deleteAccount}
                                         </AlertDialogAction>
                                     </AlertDialogFooter>
                                 </AlertDialogContent>
