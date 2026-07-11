@@ -32,8 +32,28 @@ export function AuthCallbackPage() {
         // Fetch user data with token
         const user = await getCurrentUser(token);
 
-        // Set auth state (this also stores token in localStorage)
+        // Set auth state (zustand persist writes localStorage).
+        // Also write immediately so the first post-login requests never race.
         setAuth(user, token);
+        try {
+          const existing = localStorage.getItem("auth-storage");
+          const prev = existing ? JSON.parse(existing) : {};
+          localStorage.setItem(
+            "auth-storage",
+            JSON.stringify({
+              ...prev,
+              state: {
+                ...(prev.state || {}),
+                user,
+                token,
+                isAuthenticated: true,
+              },
+              version: prev.version ?? 0,
+            })
+          );
+        } catch {
+          // non-fatal — persist middleware still has the token
+        }
 
         toast.success("Successfully logged in!");
         navigate("/app");

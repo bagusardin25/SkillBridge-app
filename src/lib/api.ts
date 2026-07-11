@@ -1,8 +1,14 @@
+import { useAuthStore } from "@/store/useAuthStore";
+
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
 
-// Authenticated fetch helper — auto-attaches JWT Bearer token
+// Authenticated fetch helper — auto-attaches JWT Bearer token.
+// Prefer in-memory store (avoids race right after OAuth before persist flushes).
 function getAuthToken(): string | null {
   try {
+    const memToken = useAuthStore.getState().token;
+    if (memToken) return memToken;
+
     const stored = localStorage.getItem("auth-storage");
     if (stored) {
       const parsed = JSON.parse(stored);
@@ -33,6 +39,7 @@ async function authFetch(url: string, options: RequestInit = {}): Promise<Respon
       const body = await cloned.json();
       const tokenErrors = ["No token provided", "Invalid token", "Token expired", "User not found"];
       if (tokenErrors.includes(body?.error)) {
+        useAuthStore.getState().logout();
         localStorage.removeItem("auth-storage");
         window.location.href = "/login?expired=true";
       }
