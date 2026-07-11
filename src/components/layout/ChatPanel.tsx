@@ -71,8 +71,10 @@ export function ChatPanel() {
     const [showPreferences, setShowPreferences] = useState(false);
     const [preferences, setPreferences] = useState<RoadmapPreferences>(defaultPreferences);
     const [lastUserMessage, setLastUserMessage] = useState<string>("");
+    const [chatSearch, setChatSearch] = useState("");
     const scrollRef = useRef<HTMLDivElement>(null);
     const abortControllerRef = useRef<AbortController | null>(null);
+    const seededRef = useRef(false);
     const {
         setNodes,
         setEdges,
@@ -89,7 +91,25 @@ export function ChatPanel() {
     const hasHandledTopic = useRef(false);
     const isCreatingProject = useRef(false);
 
-
+    // Seed goal + prefs from onboarding / landing (5.2)
+    useEffect(() => {
+        if (seededRef.current) return;
+        seededRef.current = true;
+        try {
+            const seed = sessionStorage.getItem("skillbridge_seed_chat");
+            const prefsRaw = sessionStorage.getItem("skillbridge_seed_prefs");
+            if (prefsRaw) {
+                const parsed = JSON.parse(prefsRaw) as RoadmapPreferences;
+                setPreferences((p) => ({ ...p, ...parsed }));
+                setShowPreferences(true);
+                sessionStorage.removeItem("skillbridge_seed_prefs");
+            }
+            if (seed) {
+                setInputValue(seed);
+                sessionStorage.removeItem("skillbridge_seed_chat");
+            }
+        } catch { /* ignore */ }
+    }, []);
 
     // Handle feedback (like/dislike)
     const handleFeedback = useCallback((messageId: string, feedback: "like" | "dislike") => {
@@ -496,42 +516,43 @@ export function ChatPanel() {
     };
 
     return (
-        <div className="flex flex-col h-full bg-background w-full">
+        <div className="flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden bg-background">
             {/* Header */}
-            <div className="h-14 px-4 border-b flex items-center justify-between bg-muted/10">
-                <div className="flex items-center gap-3">
-                    <div className="relative">
-                        <div className="h-8 w-8 rounded-full bg-black dark:bg-neutral-900 border border-neutral-800 flex items-center justify-center shadow-sm">
+            <div className="flex h-12 shrink-0 items-center justify-between border-b bg-muted/10 px-3 sm:h-14 sm:px-4">
+                <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+                    <div className="relative shrink-0">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full border border-neutral-800 bg-black shadow-sm dark:bg-neutral-900">
                             <Bot className="h-5 w-5 text-white" />
                         </div>
-                        <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 border-2 border-background"></span>
+                        <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-background bg-emerald-500"></span>
                     </div>
-                    <div>
-                        <h2 className="text-sm font-semibold leading-none">{t.chat.aiAssistant}</h2>
+                    <div className="min-w-0">
+                        <h2 className="truncate text-sm font-semibold leading-none">{t.chat.aiAssistant}</h2>
                         <span className="text-[10px] text-muted-foreground">{t.chat.poweredBy}</span>
                     </div>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex shrink-0 items-center gap-1">
                     {messages.length > 0 && (
-                        <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={clearChat}>
+                        <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-destructive" onClick={clearChat}>
                             <Trash2 className="h-4 w-4" />
                         </Button>
                     )}
-                    {/* Close button - mobile only */}
+                    {/* Close — always useful on overlay (mobile/tablet) */}
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 md:hidden"
+                        className="h-9 w-9 lg:hidden"
                         onClick={() => useRoadmapStore.getState().toggleAiPanel()}
+                        aria-label={t.common.close}
                     >
                         <X className="h-4 w-4" />
                     </Button>
                 </div>
             </div>
 
-            {/* Chat Area */}
-            <ScrollArea className="flex-1 p-4">
-                <div className="flex flex-col gap-4">
+            {/* Chat Area — only this region scrolls; no horizontal overflow */}
+            <ScrollArea className="min-h-0 min-w-0 flex-1">
+                <div className="flex w-full min-w-0 max-w-full flex-col gap-3 overflow-x-hidden p-3 sm:gap-4 sm:p-4">
                     {messages.length === 0 ? (
                         <div className="flex flex-col items-center justify-center text-center mt-6 space-y-4">
                             <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-2">
@@ -691,54 +712,71 @@ export function ChatPanel() {
                             </div>
                         </div>
                     ) : (
-                        messages.map((msg, index) => {
-                            // Find last AI message index
-                            let lastAiIndex = -1;
+                        (chatSearch.trim()
+                            ? messages.filter((m) =>
+                                  m.content.toLowerCase().includes(chatSearch.trim().toLowerCase())
+                              )
+                            : messages
+                        ).map((msg) => {
+                            // Find last AI message id (stable with search filter)
+                            let lastAiId: string | null = null;
                             for (let i = messages.length - 1; i >= 0; i--) {
                                 if (messages[i].role === "assistant") {
-                                    lastAiIndex = i;
+                                    lastAiId = messages[i].id;
                                     break;
                                 }
                             }
-                            const isLastAiMessage = msg.role === "assistant" && index === lastAiIndex;
+                            const isLastAiMessage = msg.role === "assistant" && msg.id === lastAiId;
 
                             return (
                                 <div
                                     key={msg.id}
                                     className={cn(
-                                        "flex gap-3 max-w-[95%] group",
-                                        msg.role === "user" ? "ml-auto flex-row-reverse" : ""
+                                        "group flex w-full min-w-0 max-w-full gap-2 sm:gap-2.5",
+                                        msg.role === "user" ? "flex-row-reverse" : "flex-row"
                                     )}
                                 >
                                     {msg.role === "assistant" ? (
-                                        <div className="h-8 w-8 rounded-full bg-black dark:bg-neutral-900 border border-neutral-800 flex items-center justify-center flex-shrink-0 shadow-sm">
-                                            <Bot className="h-4 w-4 text-white" />
+                                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-neutral-800 bg-black shadow-sm dark:bg-neutral-900 sm:h-8 sm:w-8">
+                                            <Bot className="h-3.5 w-3.5 text-white sm:h-4 sm:w-4" />
                                         </div>
                                     ) : (
-                                        <Avatar className="h-8 w-8 border flex-shrink-0">
+                                        <Avatar className="h-7 w-7 shrink-0 border sm:h-8 sm:w-8">
                                             <AvatarImage src={user?.avatarUrl || ""} />
-                                            <AvatarFallback className="bg-secondary text-secondary-foreground">
+                                            <AvatarFallback className="bg-secondary text-secondary-foreground text-[10px]">
                                                 {user?.name?.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) || user?.email?.slice(0, 2).toUpperCase() || "ME"}
                                             </AvatarFallback>
                                         </Avatar>
                                     )}
-                                    <div className="flex flex-col gap-1 min-w-0">
-                                        {/* Timestamp */}
+                                    {/*
+                                      Content column: max width leaves room for avatar + gap.
+                                      min-w-0 is required so flex children can shrink and wrap.
+                                    */}
+                                    <div
+                                        className={cn(
+                                            "flex min-w-0 max-w-[calc(100%-2.25rem)] flex-col gap-1 sm:max-w-[calc(100%-2.5rem)]",
+                                            msg.role === "user" ? "items-end" : "items-start"
+                                        )}
+                                    >
                                         {msg.timestamp && (
-                                            <span className={cn(
-                                                "text-[10px] text-muted-foreground",
-                                                msg.role === "user" ? "text-right" : "text-left"
-                                            )}>
+                                            <span
+                                                className={cn(
+                                                    "text-[10px] text-muted-foreground",
+                                                    msg.role === "user" ? "text-right" : "text-left"
+                                                )}
+                                            >
                                                 {formatTime(msg.timestamp)}
                                             </span>
                                         )}
 
                                         <div
                                             className={cn(
-                                                "rounded-lg p-3 text-sm shadow-sm",
+                                                "min-w-0 max-w-full rounded-lg p-2.5 text-sm shadow-sm sm:p-3",
+                                                // Break long tokens / URLs without expanding sidebar
+                                                "overflow-x-hidden break-words [overflow-wrap:anywhere]",
                                                 msg.role === "user"
                                                     ? "bg-primary text-primary-foreground whitespace-pre-wrap"
-                                                    : "bg-muted text-foreground"
+                                                    : "w-full bg-muted text-foreground"
                                             )}
                                         >
                                             {msg.isStreaming ? (
@@ -746,18 +784,18 @@ export function ChatPanel() {
                                                     <MarkdownContent content={msg.content} />
                                                     <StreamingCursor />
                                                 </>
+                                            ) : msg.role === "assistant" ? (
+                                                <MarkdownContent content={msg.content} />
                                             ) : (
-                                                msg.role === "assistant" ? (
-                                                    <MarkdownContent content={msg.content} />
-                                                ) : (
-                                                    msg.content
-                                                )
+                                                <span className="block min-w-0 max-w-full whitespace-pre-wrap break-words [overflow-wrap:anywhere]">
+                                                    {msg.content}
+                                                </span>
                                             )}
                                         </div>
 
                                         {/* Action buttons for AI messages */}
                                         {msg.role === "assistant" && !msg.isStreaming && (
-                                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <div className="flex max-w-full flex-wrap items-center gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
                                                 {/* Copy */}
                                                 <TooltipProvider delayDuration={0}>
                                                     <Tooltip>
@@ -841,16 +879,57 @@ export function ChatPanel() {
                 </div>
             </ScrollArea >
 
-            {/* Input Area */}
-            <div className="p-4 bg-background border-t">
+            {/* Input Area — fixed footer; chips scroll horizontally only */}
+            <div className="min-w-0 shrink-0 space-y-2 overflow-x-hidden border-t bg-background p-2 safe-bottom sm:p-3">
+                {contextualChatTopic && (
+                    <div
+                        className="inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-full border border-violet-500/30 bg-violet-500/10 px-2.5 py-1 text-[11px] font-medium text-violet-700 dark:text-violet-300"
+                        role="status"
+                    >
+                        <Sparkles className="h-3 w-3 shrink-0" />
+                        <span className="min-w-0 truncate">
+                            {t.ux.contextPill.replace("{topic}", contextualChatTopic)}
+                        </span>
+                    </div>
+                )}
+
+                {messages.length > 2 && (
+                    <Input
+                        value={chatSearch}
+                        onChange={(e) => setChatSearch(e.target.value)}
+                        placeholder={t.ux.chatHistorySearch}
+                        className="h-8 min-w-0 max-w-full text-xs"
+                        aria-label={t.ux.chatHistorySearch}
+                    />
+                )}
+
+                <div className="flex max-w-full gap-1.5 overflow-x-auto pb-0.5 no-scrollbar">
+                    {[
+                        t.ux.promptEli5,
+                        t.ux.promptExample,
+                        t.ux.promptPractice,
+                        t.ux.promptRelate,
+                    ].map((prompt) => (
+                        <button
+                            key={prompt}
+                            type="button"
+                            disabled={isLoading}
+                            onClick={() => setInputValue(prompt)}
+                            className="shrink-0 rounded-full border bg-muted/40 px-2.5 py-1 text-[11px] text-foreground transition hover:border-primary/40 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+                        >
+                            {prompt}
+                        </button>
+                    ))}
+                </div>
+
                 <form
-                    className="relative flex w-full items-center bg-muted/40 border border-muted-foreground/30 focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/50 rounded-[24px] p-1.5 shadow-sm transition-all duration-300"
+                    className="relative flex w-full min-w-0 max-w-full items-center rounded-[24px] border border-muted-foreground/30 bg-muted/40 p-1.5 shadow-sm transition-all duration-300 focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/50"
                     onSubmit={handleSendMessage}
                 >
                     <Input
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
-                        className="flex-1 bg-transparent border-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-3 min-h-[44px] shadow-none"
+                        className="min-h-[44px] min-w-0 flex-1 border-0 bg-transparent px-3 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
                         placeholder={t.chat.askAnything}
                         disabled={isLoading}
                     />
@@ -862,11 +941,11 @@ export function ChatPanel() {
                                         type="button"
                                         size="icon"
                                         variant="destructive"
-                                        className="h-10 w-10 rounded-[18px] shrink-0"
+                                        className="h-10 w-10 shrink-0 rounded-[18px]"
                                         onClick={handleStopGeneration}
                                     >
                                         <Square className="h-4 w-4" />
-                                        <span className="sr-only">Stop</span>
+                                        <span className="sr-only">{t.common.stop}</span>
                                     </Button>
                                 </TooltipTrigger>
                                 <TooltipContent><p className="text-xs">{t.chat.stopGenerating}</p></TooltipContent>
@@ -877,10 +956,10 @@ export function ChatPanel() {
                             type="submit"
                             size="icon"
                             disabled={!inputValue.trim()}
-                            className="h-10 w-10 rounded-[18px] shrink-0 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm transition-transform active:scale-95"
+                            className="h-10 w-10 shrink-0 rounded-[18px] bg-primary text-primary-foreground shadow-sm transition-transform hover:bg-primary/90 active:scale-95"
                         >
                             <Send className="h-4 w-4" />
-                            <span className="sr-only">Send</span>
+                            <span className="sr-only">{t.common.send}</span>
                         </Button>
                     )}
                 </form>

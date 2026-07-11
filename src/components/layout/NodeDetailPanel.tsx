@@ -191,6 +191,14 @@ export function NodeDetailPanel() {
                 isCompleted: true,
                 status: "done"
             });
+            // Celebrate milestone (5.6)
+            import("@/components/ui/BadgeCelebration").then(({ celebrateAchievement }) => {
+                celebrateAchievement({
+                    title: t.quiz.congratulations,
+                    description: t.quiz.xpEarned,
+                    icon: "🎯",
+                });
+            });
         }
         setShowQuiz(false);
     };
@@ -311,15 +319,15 @@ export function NodeDetailPanel() {
 
     if (!selectedNode || !data) {
         return (
-            <div className="flex flex-col h-full border-l bg-background w-full md:w-80">
-                <div className="p-4 border-b flex items-center justify-between">
+            <div className="flex h-full w-full min-w-0 flex-col overflow-hidden bg-background">
+                <div className="flex items-center justify-between border-b p-4">
                     <h2 className="text-sm font-semibold">{t.nodeDetail.title}</h2>
-                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={closeDetailPanel}>
+                    <Button variant="ghost" size="icon" className="h-9 w-9" onClick={closeDetailPanel}>
                         <X className="h-4 w-4" />
                     </Button>
                 </div>
-                <div className="flex-1 flex items-center justify-center p-4">
-                    <p className="text-sm text-muted-foreground text-center">
+                <div className="flex flex-1 items-center justify-center p-4">
+                    <p className="text-center text-sm text-muted-foreground">
                         {t.nodeDetail.selectNodePrompt}
                     </p>
                 </div>
@@ -335,54 +343,70 @@ export function NodeDetailPanel() {
     const estimatedTime = data.estimatedTime || (data.category === 'project' ? '4-8 Jam' : data.category === 'core' ? '2-3 Jam' : '1 Jam');
 
     return (
-        <div className="flex flex-col h-full bg-background w-full">
-            {/* Panel Header - Similar to ChatPanel */}
-            <div className="h-14 px-4 border-b bg-muted/10 flex items-center justify-between shrink-0">
-                <div className="flex items-center gap-3">
-                    <div className="relative">
-                        <div className="h-8 w-8 rounded-full bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center border border-violet-200 dark:border-violet-800">
-                            <BookOpen className="h-5 w-5 text-violet-600 dark:text-violet-400" />
+        <div className="flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden bg-background">
+            {/* Panel Header */}
+            <div className="flex h-12 shrink-0 items-center justify-between border-b bg-muted/10 px-3 sm:h-14 sm:px-4">
+                <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+                    <div className="relative shrink-0">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full border border-violet-200 bg-violet-100 dark:border-violet-800 dark:bg-violet-900/30">
+                            <BookOpen className="h-4 w-4 text-violet-600 dark:text-violet-400 sm:h-5 sm:w-5" />
                         </div>
                     </div>
-                    <div>
-                        <h2 className="text-sm font-semibold leading-none">{t.nodeDetail.title}</h2>
+                    <div className="min-w-0">
+                        <h2 className="truncate text-sm font-semibold leading-none">{data.label || t.nodeDetail.title}</h2>
                         <span className="text-[10px] text-muted-foreground">{t.nodeDetail.subtitle}</span>
                     </div>
                 </div>
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={closeDetailPanel}>
+                <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0" onClick={closeDetailPanel}>
                     <X className="h-4 w-4" />
                 </Button>
             </div>
 
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="flex min-h-0 flex-1 flex-col">
                 {/* Tabs Header */}
-                <div className="px-4 pt-2 pb-2 shrink-0 space-y-2">
-                    <TabsList className="h-8 w-full">
-                        <TabsTrigger value="resources" className="text-xs px-2 gap-1 flex-1">
-                            <Heart className="h-3.5 w-3.5" />
-                            <span className="hidden sm:inline">{t.nodeDetail.tabResources}</span>
+                <div className="shrink-0 space-y-2 px-3 pt-2 pb-2 sm:px-4">
+                    <TabsList className="h-9 w-full">
+                        <TabsTrigger value="resources" className="flex-1 gap-1 px-1.5 text-[11px] sm:px-2 sm:text-xs">
+                            <BookOpen className="h-3.5 w-3.5 shrink-0" />
+                            <span className="truncate">{t.ux.tabLearn}</span>
                         </TabsTrigger>
-                        <TabsTrigger value="ai-tutor" className="text-xs px-2 gap-1 flex-1">
-                            <Sparkles className="h-3.5 w-3.5" />
-                            <span className="hidden sm:inline">{t.nodeDetail.tabAiTutor}</span>
+                        <TabsTrigger value="ai-tutor" className="flex-1 gap-1 px-1.5 text-[11px] sm:px-2 sm:text-xs">
+                            <Sparkles className="h-3.5 w-3.5 shrink-0" />
+                            <span className="truncate">{t.nodeDetail.tabAiTutor}</span>
                         </TabsTrigger>
-                        <TabsTrigger value="notes" className="text-xs px-2 gap-1 flex-1">
-                            <StickyNote className="h-3.5 w-3.5" />
-                            <span className="hidden sm:inline">{t.nodeDetail.tabNotes}</span>
+                        <TabsTrigger value="notes" className="flex-1 gap-1 px-1.5 text-[11px] sm:px-2 sm:text-xs">
+                            <StickyNote className="h-3.5 w-3.5 shrink-0" />
+                            <span className="truncate">{t.nodeDetail.tabNotes}</span>
                         </TabsTrigger>
                     </TabsList>
 
-                    {/* Status Badge (read-only) */}
-                    <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium ${isCompleted
-                        ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400"
-                        : "bg-muted text-muted-foreground"
-                        }`}>
-                        {isCompleted ? (
-                            <CheckCircle2 className="h-3 w-3" />
-                        ) : (
-                            <Circle className="h-3 w-3" />
-                        )}
-                        <span>{isCompleted ? t.nodeDetail.statusDone : t.nodeDetail.statusPending}</span>
+                    {/* Compact status row (full checklist only on sm+) */}
+                    <div className="flex flex-wrap items-center gap-1.5">
+                        <div className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium ${isCompleted
+                            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                            : "bg-muted text-muted-foreground"
+                            }`}>
+                            {isCompleted ? (
+                                <CheckCircle2 className="h-3 w-3" />
+                            ) : (
+                                <Circle className="h-3 w-3" />
+                            )}
+                            <span>{isCompleted ? t.nodeDetail.statusDone : t.nodeDetail.statusPending}</span>
+                        </div>
+                        <div className="hidden items-center gap-2 text-[10px] text-muted-foreground sm:flex" aria-label={t.ux.learnChecklist}>
+                            <span className="inline-flex items-center gap-0.5">
+                                {(data.visitedResources?.length || 0) > 0 ? <CheckCircle2 className="h-3 w-3 text-emerald-500" /> : <Circle className="h-3 w-3" />}
+                                {t.ux.resourcesOpened}
+                            </span>
+                            <span className="inline-flex items-center gap-0.5">
+                                {noteContent.trim() ? <CheckCircle2 className="h-3 w-3 text-emerald-500" /> : <Circle className="h-3 w-3" />}
+                                {t.ux.notesWritten}
+                            </span>
+                            <span className="inline-flex items-center gap-0.5">
+                                {isCompleted ? <CheckCircle2 className="h-3 w-3 text-emerald-500" /> : <Circle className="h-3 w-3" />}
+                                {t.ux.quizPassed}
+                            </span>
+                        </div>
                     </div>
                 </div>
 
@@ -728,14 +752,57 @@ export function NodeDetailPanel() {
                                             </div>
                                         </div>
                                     ) : (
-                                        <Button
-                                            onClick={() => setShowQuiz(true)}
-                                            className="w-full h-10 py-2 px-4 text-sm bg-primary hover:bg-primary/90 flex items-center justify-center"
-                                        >
-                                            <GraduationCap className="h-4 w-4 mr-2 flex-shrink-0" />
-                                            <span>{t.nodeDetail.takeQuiz}</span>
-                                        </Button>
+                                        <div className="space-y-3 rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-4">
+                                            <div>
+                                                <p className="text-sm font-semibold">{t.ux.quizPreview}</p>
+                                                <p className="mt-0.5 text-xs text-muted-foreground">
+                                                    {t.ux.quizPreviewMeta}
+                                                </p>
+                                            </div>
+                                            <Button
+                                                onClick={() => setShowQuiz(true)}
+                                                className="flex h-10 w-full items-center justify-center bg-primary px-4 py-2 text-sm hover:bg-primary/90"
+                                            >
+                                                <GraduationCap className="mr-2 h-4 w-4 shrink-0" />
+                                                <span>{t.ux.startQuiz}</span>
+                                            </Button>
+                                        </div>
                                     )}
+                                </div>
+                            )}
+
+                            {/* After quiz fail CTAs (5.4) — show if result exists and not passed */}
+                            {quizResult && !quizResult.passed && !isCompleted && (
+                                <div className="space-y-2 rounded-xl border border-amber-500/30 bg-amber-500/5 p-3">
+                                    <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">
+                                        {t.quiz.notPassed}
+                                    </p>
+                                    <div className="flex flex-col gap-1.5">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="justify-start"
+                                            onClick={() => setShowQuizReview(true)}
+                                        >
+                                            {t.ux.afterFailReview}
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="justify-start"
+                                            onClick={() => setActiveTab("ai-tutor")}
+                                        >
+                                            {t.ux.afterFailAskAi}
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            className="justify-start"
+                                            onClick={() => setShowQuiz(true)}
+                                            disabled={!currentRoadmapId}
+                                        >
+                                            {t.ux.afterFailRetry}
+                                        </Button>
+                                    </div>
                                 </div>
                             )}
 

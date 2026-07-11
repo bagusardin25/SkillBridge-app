@@ -9,6 +9,8 @@ import {
 import type { RoadmapNode, RoadmapEdge } from "@/types/roadmap";
 
 type InteractionMode = "select" | "pan";
+export type ViewMode = "map" | "list";
+export type SaveStatus = "idle" | "saving" | "saved" | "error";
 
 interface RoadmapStore {
     nodes: RoadmapNode[];
@@ -27,6 +29,15 @@ interface RoadmapStore {
     onProjectCreated: ((projectId: string) => void) | null;
     placingNodeType: string | null;
     projectsVersion: number;
+    /** Map (canvas) vs Path list view */
+    viewMode: ViewMode;
+    /** Hide chrome for focus mode */
+    isFocusMode: boolean;
+    /** Autosave status for trust indicator */
+    saveStatus: SaveStatus;
+    lastSavedAt: Date | null;
+    /** Show explore templates overlay */
+    showExploreTemplates: boolean;
     onNodesChange: (changes: NodeChange<RoadmapNode>[]) => void;
     onEdgesChange: (changes: EdgeChange<RoadmapEdge>[]) => void;
     setNodes: (nodes: RoadmapNode[]) => void;
@@ -53,6 +64,12 @@ interface RoadmapStore {
     setOnProjectCreated: (callback: ((projectId: string) => void) | null) => void;
     setPlacingNodeType: (type: string | null) => void;
     incrementProjectsVersion: () => void;
+    setViewMode: (mode: ViewMode) => void;
+    toggleViewMode: () => void;
+    setFocusMode: (on: boolean) => void;
+    toggleFocusMode: () => void;
+    setSaveStatus: (status: SaveStatus, at?: Date | null) => void;
+    setShowExploreTemplates: (show: boolean) => void;
 }
 
 export const useRoadmapStore = create<RoadmapStore>()(
@@ -63,7 +80,8 @@ export const useRoadmapStore = create<RoadmapStore>()(
             selectedNodeIds: [],
             interactionMode: "select" as InteractionMode,
             isEditMode: true,
-            isAiPanelOpen: typeof window !== 'undefined' && window.innerWidth >= 768,
+            // Only auto-open AI dock on large desktops (side panel); mobile/tablet use on-demand overlay
+            isAiPanelOpen: typeof window !== 'undefined' && window.innerWidth >= 1024,
             isDetailPanelOpen: false,
             isSidebarOpen: typeof window !== 'undefined' && window.innerWidth >= 768,
             contextualChatTopic: null,
@@ -76,6 +94,14 @@ export const useRoadmapStore = create<RoadmapStore>()(
             onProjectCreated: null,
             placingNodeType: null,
             projectsVersion: 0,
+            viewMode: (typeof window !== "undefined"
+                ? ((localStorage.getItem("skillbridge_view_mode") as ViewMode | null) ||
+                    (window.innerWidth < 768 ? "list" : "map"))
+                : "map") as ViewMode,
+            isFocusMode: false,
+            saveStatus: "idle" as SaveStatus,
+            lastSavedAt: null,
+            showExploreTemplates: false,
 
             onNodesChange: (changes) => {
                 set({
@@ -250,6 +276,46 @@ export const useRoadmapStore = create<RoadmapStore>()(
 
             incrementProjectsVersion: () => {
                 set({ projectsVersion: get().projectsVersion + 1 });
+            },
+
+            setViewMode: (mode) => {
+                set({ viewMode: mode });
+                try {
+                    localStorage.setItem("skillbridge_view_mode", mode);
+                } catch { /* ignore */ }
+            },
+
+            toggleViewMode: () => {
+                const next = get().viewMode === "map" ? "list" : "map";
+                get().setViewMode(next);
+            },
+
+            setFocusMode: (on) => {
+                set({
+                    isFocusMode: on,
+                    ...(on
+                        ? {
+                            isSidebarOpen: false,
+                            isAiPanelOpen: false,
+                            isDetailPanelOpen: false,
+                        }
+                        : {}),
+                });
+            },
+
+            toggleFocusMode: () => {
+                get().setFocusMode(!get().isFocusMode);
+            },
+
+            setSaveStatus: (status, at) => {
+                set({
+                    saveStatus: status,
+                    lastSavedAt: at !== undefined ? at : get().lastSavedAt,
+                });
+            },
+
+            setShowExploreTemplates: (show) => {
+                set({ showExploreTemplates: show });
             },
         }),
         {

@@ -22,6 +22,8 @@ import { useLearningTimeTracker } from "@/hooks/useLearningTimeTracker";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { Toaster } from "sonner";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { OnboardingWizard } from "@/components/onboarding/OnboardingWizard";
+import { BadgeCelebrationHost } from "@/components/ui/BadgeCelebration";
 
 function App() {
   const { setLoading, isAuthenticated, user } = useAuthStore();
@@ -107,6 +109,7 @@ function App() {
           element={
             <ProtectedRoute>
               <AppLayout>
+                <OnboardingWizard />
                 <FlowCanvas />
               </AppLayout>
             </ProtectedRoute>
@@ -146,6 +149,7 @@ function App() {
         />
       </Routes>
       <Toaster />
+      <BadgeCelebrationHost />
     </BrowserRouter>
     </LanguageProvider>
     </ErrorBoundary>

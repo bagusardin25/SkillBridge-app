@@ -78,72 +78,152 @@ interface MarkdownContentProps {
     content: string;
     /** "compact" = smaller spacing (side/node chat), "full" = richer (full-screen chat) */
     variant?: "compact" | "full";
+    className?: string;
 }
 
-export function MarkdownContent({ content, variant = "compact" }: MarkdownContentProps) {
+const CODE_BLOCK_STYLE = {
+    margin: 0,
+    borderRadius: "0.5rem",
+    fontSize: "0.75rem",
+    maxWidth: "100%",
+    overflowX: "auto" as const,
+    // Prevent Prism/pre from forcing parent wider
+    whiteSpace: "pre" as const,
+    wordBreak: "normal" as const,
+    overflowWrap: "normal" as const,
+};
+
+export function MarkdownContent({ content, variant = "compact", className }: MarkdownContentProps) {
     const proseClasses = variant === "full"
-        ? "prose prose-sm dark:prose-invert max-w-none prose-p:my-1.5 prose-headings:my-2.5 prose-ul:my-1.5 prose-ol:my-1.5 prose-li:my-0.5 prose-a:text-violet-500 prose-a:no-underline hover:prose-a:underline"
-        : "prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-ol:my-1 prose-li:my-0";
+        ? "prose prose-sm dark:prose-invert max-w-full prose-p:my-1.5 prose-headings:my-2.5 prose-headings:break-words prose-ul:my-1.5 prose-ol:my-1.5 prose-li:my-0.5 prose-a:text-violet-500 prose-a:no-underline hover:prose-a:underline prose-pre:max-w-full prose-pre:overflow-x-auto"
+        : "prose prose-sm dark:prose-invert max-w-full prose-p:my-1 prose-headings:my-2 prose-headings:break-words prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-pre:max-w-full prose-pre:overflow-x-auto";
 
     const showLanguageBar = variant === "full";
 
     return (
-        <div className={proseClasses}>
+        <div
+            className={cn(
+                proseClasses,
+                // Critical: never expand parent flex/sidebar
+                "min-w-0 max-w-full overflow-x-hidden break-words [overflow-wrap:anywhere]",
+                // Tables / pre / code stay constrained
+                "[&_pre]:max-w-full [&_pre]:overflow-x-auto",
+                "[&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto",
+                "[&_img]:max-w-full [&_img]:h-auto",
+                "[&_a]:break-all",
+                className
+            )}
+        >
             <ReactMarkdown
                 components={{
+                    p({ children }) {
+                        return <p className="min-w-0 max-w-full break-words [overflow-wrap:anywhere]">{children}</p>;
+                    },
+                    h1({ children }) {
+                        return <h1 className="min-w-0 max-w-full break-words [overflow-wrap:anywhere] text-base font-bold">{children}</h1>;
+                    },
+                    h2({ children }) {
+                        return <h2 className="min-w-0 max-w-full break-words [overflow-wrap:anywhere] text-sm font-bold">{children}</h2>;
+                    },
+                    h3({ children }) {
+                        return <h3 className="min-w-0 max-w-full break-words [overflow-wrap:anywhere] text-sm font-semibold">{children}</h3>;
+                    },
+                    li({ children }) {
+                        return <li className="min-w-0 break-words [overflow-wrap:anywhere]">{children}</li>;
+                    },
+                    a({ href, children }) {
+                        return (
+                            <a
+                                href={href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="break-all [overflow-wrap:anywhere]"
+                            >
+                                {children}
+                            </a>
+                        );
+                    },
+                    // Fenced blocks: react-markdown wraps code in pre — pass through so only code paints the block
+                    pre({ children }) {
+                        return <>{children}</>;
+                    },
                     code({ className, children, ...props }) {
-                        const match = /language-(\w+)/.exec(className || '');
-                        const isInline = !match;
+                        const match = /language-(\w+)/.exec(className || "");
+                        const codeText = String(children).replace(/\n$/, "");
+                        const isBlock =
+                            !!match ||
+                            codeText.includes("\n") ||
+                            Boolean(className?.includes("language-"));
 
-                        if (isInline) {
+                        if (!isBlock) {
                             return (
-                                <code className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono" {...props}>
+                                <code
+                                    className="break-all rounded bg-muted px-1.5 py-0.5 font-mono text-xs [overflow-wrap:anywhere]"
+                                    {...props}
+                                >
                                     {children}
                                 </code>
                             );
                         }
 
-                        if (showLanguageBar) {
+                        const language = match?.[1] || "text";
+
+                        if (showLanguageBar && match) {
                             return (
-                                <div className="relative group my-3">
-                                    <div className="flex items-center justify-between px-4 py-2 bg-zinc-800 rounded-t-lg border-b border-zinc-700">
-                                        <span className="text-xs text-zinc-400 font-mono">{match[1]}</span>
-                                        <CopyButton text={String(children)} label />
+                                <div className="group relative my-2 min-w-0 max-w-full overflow-hidden rounded-lg">
+                                    <div className="flex items-center justify-between border-b border-zinc-700 bg-zinc-800 px-3 py-2">
+                                        <span className="truncate font-mono text-xs text-zinc-400">{language}</span>
+                                        <CopyButton text={codeText} label />
                                     </div>
-                                    <SyntaxHighlighter
-                                        style={oneDark}
-                                        language={match[1]}
-                                        PreTag="div"
-                                        customStyle={{
-                                            margin: 0,
-                                            borderTopLeftRadius: 0,
-                                            borderTopRightRadius: 0,
-                                            borderBottomLeftRadius: '0.5rem',
-                                            borderBottomRightRadius: '0.5rem',
-                                            fontSize: '0.8rem',
-                                        }}
-                                    >
-                                        {String(children).replace(/\n$/, '')}
-                                    </SyntaxHighlighter>
+                                    <div className="min-w-0 max-w-full overflow-x-auto">
+                                        <SyntaxHighlighter
+                                            style={oneDark}
+                                            language={language}
+                                            PreTag="div"
+                                            customStyle={{
+                                                ...CODE_BLOCK_STYLE,
+                                                borderTopLeftRadius: 0,
+                                                borderTopRightRadius: 0,
+                                                borderBottomLeftRadius: "0.5rem",
+                                                borderBottomRightRadius: "0.5rem",
+                                                fontSize: "0.8rem",
+                                            }}
+                                            codeTagProps={{
+                                                style: {
+                                                    whiteSpace: "pre",
+                                                    wordBreak: "normal",
+                                                },
+                                            }}
+                                        >
+                                            {codeText}
+                                        </SyntaxHighlighter>
+                                    </div>
                                 </div>
                             );
                         }
 
                         return (
-                            <div className="relative group my-2">
-                                <SyntaxHighlighter
-                                    style={oneDark}
-                                    language={match[1]}
-                                    PreTag="div"
-                                    customStyle={{
-                                        margin: 0,
-                                        borderRadius: '0.5rem',
-                                        fontSize: '0.75rem',
-                                    }}
-                                >
-                                    {String(children).replace(/\n$/, '')}
-                                </SyntaxHighlighter>
-                                <CopyButton text={String(children)} className="absolute top-2 right-2 opacity-0 group-hover:opacity-100" />
+                            <div className="group relative my-2 min-w-0 max-w-full overflow-hidden rounded-lg">
+                                <div className="min-w-0 max-w-full overflow-x-auto">
+                                    <SyntaxHighlighter
+                                        style={oneDark}
+                                        language={language}
+                                        PreTag="div"
+                                        customStyle={CODE_BLOCK_STYLE}
+                                        codeTagProps={{
+                                            style: {
+                                                whiteSpace: "pre",
+                                                wordBreak: "normal",
+                                            },
+                                        }}
+                                    >
+                                        {codeText}
+                                    </SyntaxHighlighter>
+                                </div>
+                                <CopyButton
+                                    text={codeText}
+                                    className="absolute right-2 top-2 opacity-0 group-hover:opacity-100"
+                                />
                             </div>
                         );
                     },
@@ -158,5 +238,5 @@ export function MarkdownContent({ content, variant = "compact" }: MarkdownConten
 // ── Streaming Cursor ───────────────────────────────────────
 
 export function StreamingCursor() {
-    return <span className="inline-block w-1.5 h-4 bg-violet-500 animate-pulse ml-0.5 align-text-bottom rounded-sm" />;
+    return <span className="ml-0.5 inline-block h-4 w-1.5 animate-pulse rounded-sm bg-violet-500 align-text-bottom" />;
 }

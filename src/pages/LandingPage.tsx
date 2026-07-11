@@ -402,6 +402,9 @@ function HeroSection({ t }: { t: Translations }) {
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         if (searchQuery.trim()) {
+            try {
+                localStorage.setItem("skillbridge_pending_goal", searchQuery.trim());
+            } catch { /* ignore */ }
             navigate(`/register?goal=${encodeURIComponent(searchQuery.trim())}`);
         } else {
             navigate("/register");
@@ -1143,6 +1146,9 @@ function PricingSection({ t }: { t: Translations }) {
                     </h2>
                     <p className="mt-4 text-muted-foreground dark:text-gray-400 text-lg max-w-2xl mx-auto transition-colors">
                         {t.pricing.sectionDescription}
+                        <span className="mt-2 block text-sm text-violet-600 dark:text-violet-400">
+                            Free forever · Pro $9.99/mo when billing launches
+                        </span>
                     </p>
                 </div>
 

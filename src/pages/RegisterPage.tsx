@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Mail, Lock, User, ArrowRight, Target, BookOpen, Trophy } from "lucide-react";
@@ -7,6 +7,7 @@ import { registerUser } from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "sonner";
 import { Logo } from "@/components/ui/Logo";
+import { setPendingGoal, getPendingGoal } from "@/lib/learningUtils";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
 
@@ -49,8 +50,19 @@ export function RegisterPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [pendingGoalLabel, setPendingGoalLabel] = useState<string | null>(null);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const setAuth = useAuthStore((state) => state.setAuth);
+
+  // Persist goal from landing URL (5.2)
+  useEffect(() => {
+    const goal = searchParams.get("goal") || getPendingGoal();
+    if (goal) {
+      setPendingGoal(goal);
+      setPendingGoalLabel(goal);
+    }
+  }, [searchParams]);
 
   const handleGoogleLogin = () => {
     window.location.href = `${API_URL}/auth/google`;
@@ -154,6 +166,11 @@ export function RegisterPage() {
             <p className="text-muted-foreground">
               Start your learning journey with SkillBridge
             </p>
+            {pendingGoalLabel && (
+              <p className="mx-auto mt-2 max-w-sm rounded-lg border border-violet-500/20 bg-violet-500/5 px-3 py-2 text-sm text-violet-700 dark:text-violet-300">
+                Goal: <span className="font-semibold">“{pendingGoalLabel}”</span>
+              </p>
+            )}
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">

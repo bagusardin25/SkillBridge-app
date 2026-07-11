@@ -14,7 +14,12 @@ const ScrollArea = React.forwardRef<
     className={cn("relative overflow-hidden", className)}
     {...props}
   >
-    <ScrollAreaPrimitive.Viewport className="h-full w-full rounded-[inherit]">
+    {/*
+      Radix viewport wraps children in a `display: table; min-width: 100%` node.
+      That makes wide content (code, long URLs) expand the whole panel.
+      Force min-width: 0 so chat bubbles wrap inside fixed sidebars.
+    */}
+    <ScrollAreaPrimitive.Viewport className="h-full w-full rounded-[inherit] [&>div]:!block [&>div]:!min-w-0 [&>div]:w-full">
       {children}
     </ScrollAreaPrimitive.Viewport>
     <ScrollBar />

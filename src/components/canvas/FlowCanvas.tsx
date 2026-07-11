@@ -20,9 +20,13 @@ import { CustomNode } from "@/components/nodes/CustomNode";
 import { ImageNode } from "@/components/nodes/ImageNode";
 import { LabeledEdge } from "@/components/edges/LabeledEdge";
 import { TemplateSelector } from "@/components/roadmap/TemplateSelector";
+import { PathListView } from "@/components/roadmap/PathListView";
+import { NextStepChip } from "@/components/roadmap/NextStepChip";
 import { updateRoadmap } from "@/lib/api";
 import { convertToReactFlowNodes } from "@/lib/layoutUtils";
 import type { RoadmapTemplate } from "@/data/roadmapTemplates";
+import { getNextRecommendedNode } from "@/lib/learningUtils";
+import { useAppLanguage } from "@/contexts/LanguageContext";
 
 const nodeTypes = {
     default: CustomNode,
@@ -66,9 +70,28 @@ export function FlowCanvas() {
         setNodes,
         setEdges: setStoreEdges,
         isDarkMode,
+        viewMode,
+        showExploreTemplates,
+        setShowExploreTemplates,
+        setSelectedNodeIds: storeSetSelected,
+        openDetailPanel: storeOpenDetail,
+        toggleAiPanel: storeToggleAi,
+        isAiPanelOpen: storeAiOpen,
+        toggleViewMode,
+        toggleFocusMode,
+        setSaveStatus,
+        closeDetailPanel,
     } = useRoadmapStore();
 
+    const { t } = useAppLanguage();
     const [showMiniMap, setShowMiniMap] = useState(false);
+    const [showCoachMark, setShowCoachMark] = useState(() => {
+        try {
+            return localStorage.getItem("skillbridge_coach_node") !== "1";
+        } catch {
+            return false;
+        }
+    });
     const { undo, redo } = useTemporalStore();
     const { screenToFlowPosition, setCenter, fitView } = useReactFlow();
     const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -111,13 +134,15 @@ export function FlowCanvas() {
             clearTimeout(saveTimeoutRef.current);
         }
 
-        // Debounced save
+        // Debounced save with status indicator (5.3 trust)
+        setSaveStatus("saving");
         saveTimeoutRef.current = setTimeout(async () => {
             try {
                 await updateRoadmap(currentRoadmapId, { nodes, edges });
-                console.log("Roadmap auto-saved");
+                setSaveStatus("saved", new Date());
             } catch (error) {
                 console.error("Failed to auto-save roadmap:", error);
+                setSaveStatus("error");
             }
         }, AUTO_SAVE_DELAY);
 
@@ -174,22 +199,76 @@ export function FlowCanvas() {
         animated: true,
     }), []);
 
-    // Keyboard shortcuts
+    // Keyboard shortcuts (5.3): undo/redo + N next, Q quiz panel, C chat, F focus, L list
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
+            const target = event.target as HTMLElement | null;
+            const typing =
+                target &&
+                (target.tagName === "INPUT" ||
+                    target.tagName === "TEXTAREA" ||
+                    target.isContentEditable);
+
             if ((event.ctrlKey || event.metaKey) && event.key === "z") {
                 event.preventDefault();
                 undo();
+                return;
             }
             if ((event.ctrlKey || event.metaKey) && event.key === "y") {
                 event.preventDefault();
                 redo();
+                return;
+            }
+
+            if (typing || event.ctrlKey || event.metaKey || event.altKey) return;
+
+            const key = event.key.toLowerCase();
+            if (key === "l") {
+                event.preventDefault();
+                toggleViewMode();
+            } else if (key === "f") {
+                event.preventDefault();
+                toggleFocusMode();
+            } else if (key === "c") {
+                event.preventDefault();
+                if (!storeAiOpen) storeToggleAi();
+                closeDetailPanel();
+            } else if (key === "n") {
+                event.preventDefault();
+                const next = getNextRecommendedNode(nodes, edges);
+                if (next) {
+                    storeSetSelected([next.id]);
+                    storeOpenDetail();
+                    const x = next.position.x + 160;
+                    const y = next.position.y + 60;
+                    setCenter(x, y, { zoom: 1.2, duration: 600 });
+                }
+            } else if (key === "q") {
+                event.preventDefault();
+                const next = getNextRecommendedNode(nodes, edges);
+                if (next) {
+                    storeSetSelected([next.id]);
+                    storeOpenDetail();
+                }
             }
         };
 
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [undo, redo]);
+    }, [
+        undo,
+        redo,
+        toggleViewMode,
+        toggleFocusMode,
+        storeAiOpen,
+        storeToggleAi,
+        closeDetailPanel,
+        nodes,
+        edges,
+        storeSetSelected,
+        storeOpenDetail,
+        setCenter,
+    ]);
 
     const onConnect = useCallback(
         (connection: Connection) => {
@@ -381,19 +460,61 @@ export function FlowCanvas() {
         };
     });
 
+    const handleFocusNode = useCallback(
+        (nodeId: string) => {
+            const target = nodes.find((n) => n.id === nodeId);
+            if (!target) return;
+            const x = target.position.x + (target.width || 320) / 2;
+            const y = target.position.y + (target.height || 120) / 2;
+            setCenter(x, y, { zoom: 1.2, duration: 800 });
+        },
+        [nodes, setCenter]
+    );
+
+    const dismissCoach = () => {
+        setShowCoachMark(false);
+        try {
+            localStorage.setItem("skillbridge_coach_node", "1");
+        } catch { /* ignore */ }
+    };
+
+    // List view (mobile-first)
+    if (viewMode === "list" && nodes.length > 0) {
+        return (
+            <div className="relative h-full w-full min-w-0 overflow-hidden">
+                <PathListView />
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-center px-3 pb-3 safe-bottom">
+                    <NextStepChip
+                        className="max-w-full w-full sm:w-auto sm:max-w-[22rem]"
+                        onFocusNode={handleFocusNode}
+                    />
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <div className="w-full h-full relative">
-            {nodes.length === 0 && !hideTemplateSelector && (
-                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center pointer-events-none">
-                    <div className="pointer-events-auto">
+        <div className="relative h-full w-full min-w-0 overflow-hidden">
+            {(nodes.length === 0 && !hideTemplateSelector) || showExploreTemplates ? (
+                <div className="pointer-events-none absolute inset-0 z-10 flex items-stretch justify-center overflow-y-auto p-3 sm:items-center sm:p-4">
+                    <div className="pointer-events-auto my-auto w-full max-w-2xl">
                         <TemplateSelector
-                            onSelectTemplate={handleSelectTemplate}
-                            onAskAi={handleOpenAi}
-                            onClose={() => setHideTemplateSelector(true)}
+                            onSelectTemplate={(tpl) => {
+                                handleSelectTemplate(tpl);
+                                setShowExploreTemplates(false);
+                            }}
+                            onAskAi={() => {
+                                handleOpenAi();
+                                setShowExploreTemplates(false);
+                            }}
+                            onClose={() => {
+                                setHideTemplateSelector(true);
+                                setShowExploreTemplates(false);
+                            }}
                         />
                     </div>
                 </div>
-            )}
+            ) : null}
 
             <ReactFlow
                 nodes={nodes}
@@ -426,59 +547,76 @@ export function FlowCanvas() {
                 className={`bg-background ${placingNodeType ? "cursor-crosshair" : interactionMode === "pan" ? "cursor-grab active:cursor-grabbing" : "cursor-default"}`}
             >
                 <Background variant={BackgroundVariant.Dots} gap={20} size={1} />
-                <Controls className="bg-background border-border" />
+                <Controls className="bg-background border-border" showInteractive={false} />
                 <Panel position="top-center" className="mt-4 flex flex-col items-center gap-3" aria-label="Global progress indicator">
                     {totalNodesCount > 0 ? (
-                        <div className="bg-card/90 backdrop-blur border border-border rounded-full shadow-md px-4 py-2 flex items-center gap-4 cursor-default animate-node-appear">
-                            <span className="text-xs font-semibold whitespace-nowrap">
-                                🚀 {completedNodesCount} / {totalNodesCount} Topik
+                        <div className="flex cursor-default items-center gap-4 rounded-full border border-border bg-card/90 px-4 py-2 shadow-md backdrop-blur animate-node-appear">
+                            <span className="whitespace-nowrap text-xs font-semibold">
+                                🚀 {completedNodesCount} / {totalNodesCount}
                             </span>
-                            <div className="w-32 h-2.5 bg-muted rounded-full overflow-hidden shadow-inner hidden sm:block">
+                            <div className="hidden h-2.5 w-32 overflow-hidden rounded-full bg-muted shadow-inner sm:block">
                                 <div
-                                    className="h-full bg-emerald-500 rounded-full transition-all duration-1000 ease-out"
+                                    className="h-full rounded-full bg-emerald-500 transition-all duration-1000 ease-out"
                                     style={{ width: `${progressPercentage}%` }}
+                                    role="progressbar"
+                                    aria-valuenow={progressPercentage}
+                                    aria-valuemin={0}
+                                    aria-valuemax={100}
                                 />
                             </div>
-                            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 min-w-[32px] text-right">
+                            <span className="min-w-[32px] text-right text-xs font-bold text-emerald-600 dark:text-emerald-400">
                                 {progressPercentage}%
                             </span>
                         </div>
-                    ) : (
-                        <div className="bg-card/90 backdrop-blur border border-border rounded-full shadow-md px-4 py-2 flex items-center gap-4 cursor-default">
-                            <span className="text-xs font-semibold whitespace-nowrap text-muted-foreground">
-                                🚀 0 / 0 Topik — 0%
-                            </span>
+                    ) : null}
+                    {showCoachMark && nodes.length > 0 && (
+                        <div className="max-w-xs rounded-xl border bg-background/95 px-3 py-2 text-center text-xs shadow-lg backdrop-blur">
+                            <p className="text-muted-foreground">{t.ux.coachMarkNode}</p>
+                            <button
+                                type="button"
+                                className="mt-1 text-[11px] font-semibold text-primary underline-offset-2 hover:underline"
+                                onClick={dismissCoach}
+                            >
+                                OK
+                            </button>
                         </div>
                     )}
                 </Panel>
-                <Panel position="bottom-center" className="mb-4 flex flex-col items-center gap-3">
+                <Panel position="bottom-center" className="mb-2 flex w-[min(100vw-1.5rem,24rem)] flex-col items-center gap-2 sm:mb-4">
                     {nodes.length > 0 && (
-                        <button
-                            onClick={handleFocusCurrentStep}
-                            className="px-4 py-2 bg-primary text-primary-foreground font-medium rounded-full shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all text-sm flex items-center gap-2 group"
-                            title="Locate Current Step"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:animate-pulse">
-                                <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="2" />
-                            </svg>
-                            Focus Current Step
-                        </button>
+                        <>
+                            <NextStepChip
+                                className="w-full max-w-full"
+                                onFocusNode={handleFocusNode}
+                            />
+                            <button
+                                onClick={handleFocusCurrentStep}
+                                className="group hidden items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:flex"
+                                title="Locate Current Step"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:animate-pulse" aria-hidden>
+                                    <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="2" />
+                                </svg>
+                                Focus Current Step
+                            </button>
+                            <p className="hidden text-[10px] text-muted-foreground lg:block">{t.ux.shortcutsHint}</p>
+                        </>
                     )}
                 </Panel>
                 <Panel position="bottom-right" className="mb-4 mr-4 hidden sm:block">
                     <button
                         onClick={() => setShowMiniMap(!showMiniMap)}
-                        className="px-3 py-1.5 bg-card/80 backdrop-blur border border-border text-foreground font-medium rounded-full shadow-sm hover:bg-muted transition-all text-xs flex items-center gap-2"
+                        className="flex items-center gap-2 rounded-full border border-border bg-card/80 px-3 py-1.5 text-xs font-medium text-foreground shadow-sm backdrop-blur transition-all hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         title="Toggle Minimap"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z" /><path d="M15 5.764v15" /><path d="M9 3.236v15" /></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z" /><path d="M15 5.764v15" /><path d="M9 3.236v15" /></svg>
                         {showMiniMap ? "Hide Map" : "Map"}
                     </button>
                 </Panel>
                 {nodes.length > 0 && showMiniMap && (
                     <MiniMap
                         position="bottom-right"
-                        className="!bg-card !border !border-border rounded-lg shadow-lg !m-4 !mb-16 hidden sm:block"
+                        className="!m-4 !mb-16 hidden rounded-lg !border !border-border !bg-card shadow-lg sm:block"
                         maskColor={isDarkMode ? "rgba(0, 0, 0, 0.7)" : "rgba(255, 255, 255, 0.5)"}
                         zoomable
                         pannable
@@ -487,14 +625,14 @@ export function FlowCanvas() {
                             const data = node.data as { isCompleted?: boolean; quizPassed?: boolean } | undefined;
                             const isCompleted = data?.isCompleted || data?.quizPassed;
 
-                            if (isCompleted) return "#10b981"; // emerald-500 for completed
+                            if (isCompleted) return "#10b981";
 
                             switch (node.type) {
-                                case "decision": return isDarkMode ? "#d97706" : "#f59e0b"; // amber
-                                case "start-end": return isDarkMode ? "#4f46e5" : "#6366f1"; // indigo
-                                case "project": return isDarkMode ? "#7c3aed" : "#8b5cf6"; // violet
-                                case "image": return isDarkMode ? "#0891b2" : "#06b6d4"; // cyan
-                                default: return isDarkMode ? "#4f46e5" : "#6366f1"; // indigo
+                                case "decision": return isDarkMode ? "#d97706" : "#f59e0b";
+                                case "start-end": return isDarkMode ? "#4f46e5" : "#6366f1";
+                                case "project": return isDarkMode ? "#7c3aed" : "#8b5cf6";
+                                case "image": return isDarkMode ? "#0891b2" : "#06b6d4";
+                                default: return isDarkMode ? "#4f46e5" : "#6366f1";
                             }
                         }}
                     />

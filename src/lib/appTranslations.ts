@@ -342,6 +342,72 @@ export interface AppTranslations {
     saveRoadmapFirst: string;
     answerAllFirst: string;
   };
+
+  // UI/UX enhancements (5.1–5.10)
+  ux: {
+    pathListTitle: string;
+    emptyPathList: string;
+    generalPhase: string;
+    minutes: string;
+    lockedUntil: string;
+    readyToLearn: string;
+    continueLearning: string;
+    go: string;
+    mapView: string;
+    listView: string;
+    focusMode: string;
+    exitFocus: string;
+    savedJustNow: string;
+    saving: string;
+    saveError: string;
+    lastSaved: string;
+    next: string;
+    skipForNow: string;
+    generateRoadmap: string;
+    yourGoal: string;
+    goalPlaceholder: string;
+    goalHint: string;
+    readyToGenerate: string;
+    onboardingStep1Title: string;
+    onboardingStep1Desc: string;
+    onboardingStep2Title: string;
+    onboardingStep2Desc: string;
+    onboardingStep3Title: string;
+    onboardingStep3Desc: string;
+    shareAchievement: string;
+    level: string;
+    xpToNextLevel: string;
+    homeContinue: string;
+    homeNoProgress: string;
+    exploreTemplates: string;
+    weeklyReport: string;
+    weeklyTopics: string;
+    weeklyTime: string;
+    weeklyStreak: string;
+    learnChecklist: string;
+    resourcesOpened: string;
+    notesWritten: string;
+    quizPassed: string;
+    quizPreview: string;
+    quizPreviewMeta: string;
+    startQuiz: string;
+    afterFailReview: string;
+    afterFailAskAi: string;
+    afterFailRetry: string;
+    suggestedPrompts: string;
+    promptEli5: string;
+    promptExample: string;
+    promptPractice: string;
+    promptRelate: string;
+    contextPill: string;
+    chatHistorySearch: string;
+    shortcutsHint: string;
+    coachMarkNode: string;
+    pricingOnLanding: string;
+    usageSoftWarning: string;
+    tabLearn: string;
+    primaryActionGenerate: string;
+  };
 }
 
 const en: AppTranslations = {
@@ -676,6 +742,71 @@ const en: AppTranslations = {
     saveRoadmapFirst: "Save your roadmap first (Ctrl+S)",
     answerAllFirst: "Please answer all questions before submitting",
   },
+
+  ux: {
+    pathListTitle: "Learning path",
+    emptyPathList: "No topics yet. Generate a roadmap or pick a template.",
+    generalPhase: "Topics",
+    minutes: "min",
+    lockedUntil: "Complete first: {topics}",
+    readyToLearn: "Ready",
+    continueLearning: "Continue",
+    go: "Go",
+    mapView: "Map",
+    listView: "List",
+    focusMode: "Focus mode",
+    exitFocus: "Exit focus",
+    savedJustNow: "Saved",
+    saving: "Saving…",
+    saveError: "Save failed",
+    lastSaved: "Saved {time}",
+    next: "Next",
+    skipForNow: "Skip for now",
+    generateRoadmap: "Generate my roadmap",
+    yourGoal: "What do you want to learn?",
+    goalPlaceholder: "e.g. Become a React developer from zero",
+    goalHint: "Be specific — skill, timeline, or job target works best.",
+    readyToGenerate: "We will build a path for:",
+    onboardingStep1Title: "Set your learning goal",
+    onboardingStep1Desc: "Describe what you want to achieve. AI will turn it into a visual path.",
+    onboardingStep2Title: "Personalize the path",
+    onboardingStep2Desc: "Tell us your level, time budget, and learning style.",
+    onboardingStep3Title: "Generate & start",
+    onboardingStep3Desc: "One click creates your interactive roadmap with resources and quizzes.",
+    shareAchievement: "Share achievement",
+    level: "Level",
+    xpToNextLevel: "{xp} XP to next level",
+    homeContinue: "Continue learning",
+    homeNoProgress: "Start a project to track progress here",
+    exploreTemplates: "Explore templates",
+    weeklyReport: "This week",
+    weeklyTopics: "topics",
+    weeklyTime: "hours",
+    weeklyStreak: "streak",
+    learnChecklist: "Topic progress",
+    resourcesOpened: "Resources opened",
+    notesWritten: "Notes written",
+    quizPassed: "Quiz passed",
+    quizPreview: "Ready for the quiz?",
+    quizPreviewMeta: "5 questions · ~8 min · Pass 90%",
+    startQuiz: "Start quiz",
+    afterFailReview: "Review answers",
+    afterFailAskAi: "Ask AI to explain",
+    afterFailRetry: "Try quiz again",
+    suggestedPrompts: "Try asking",
+    promptEli5: "Explain simply",
+    promptExample: "Show a code example",
+    promptPractice: "Give me a practice exercise",
+    promptRelate: "Relate to previous topics",
+    contextPill: "Answering about: {topic}",
+    chatHistorySearch: "Search chat…",
+    shortcutsHint: "Shortcuts: N next · Q quiz · C chat · F focus · L list · ⌘S save",
+    coachMarkNode: "Click a topic to open resources, tutor, and quiz",
+    pricingOnLanding: "Simple pricing — Free forever, Pro when you need unlimited AI",
+    usageSoftWarning: "You are approaching your AI usage limit",
+    tabLearn: "Learn",
+    primaryActionGenerate: "Generate roadmap with AI",
+  },
 };
 
 const id: AppTranslations = {
@@ -1009,6 +1140,71 @@ const id: AppTranslations = {
     submitAnswers: "Kirim Jawaban",
     saveRoadmapFirst: "Simpan roadmap terlebih dahulu (Ctrl+S)",
     answerAllFirst: "Jawab semua pertanyaan terlebih dahulu sebelum mengirim",
+  },
+
+  ux: {
+    pathListTitle: "Jalur belajar",
+    emptyPathList: "Belum ada topik. Generate roadmap atau pilih template.",
+    generalPhase: "Topik",
+    minutes: "mnt",
+    lockedUntil: "Selesaikan dulu: {topics}",
+    readyToLearn: "Siap",
+    continueLearning: "Lanjutkan",
+    go: "Mulai",
+    mapView: "Peta",
+    listView: "Daftar",
+    focusMode: "Mode fokus",
+    exitFocus: "Keluar fokus",
+    savedJustNow: "Tersimpan",
+    saving: "Menyimpan…",
+    saveError: "Gagal simpan",
+    lastSaved: "Disimpan {time}",
+    next: "Lanjut",
+    skipForNow: "Lewati dulu",
+    generateRoadmap: "Buat roadmap saya",
+    yourGoal: "Apa yang ingin kamu pelajari?",
+    goalPlaceholder: "cth. Jadi React developer dari nol",
+    goalHint: "Semakin spesifik semakin baik — skill, target waktu, atau pekerjaan.",
+    readyToGenerate: "Kami akan membuat jalur untuk:",
+    onboardingStep1Title: "Tentukan tujuan belajar",
+    onboardingStep1Desc: "Jelaskan apa yang ingin dicapai. AI akan mengubahnya jadi jalur visual.",
+    onboardingStep2Title: "Personalisasi jalur",
+    onboardingStep2Desc: "Isi level, waktu belajar, dan gaya belajar kamu.",
+    onboardingStep3Title: "Generate & mulai",
+    onboardingStep3Desc: "Satu klik membuat roadmap interaktif dengan resource dan quiz.",
+    shareAchievement: "Bagikan pencapaian",
+    level: "Level",
+    xpToNextLevel: "{xp} XP ke level berikutnya",
+    homeContinue: "Lanjutkan belajar",
+    homeNoProgress: "Mulai proyek untuk melihat progress di sini",
+    exploreTemplates: "Jelajahi template",
+    weeklyReport: "Minggu ini",
+    weeklyTopics: "topik",
+    weeklyTime: "jam",
+    weeklyStreak: "streak",
+    learnChecklist: "Progress topik",
+    resourcesOpened: "Resource dibuka",
+    notesWritten: "Catatan ditulis",
+    quizPassed: "Quiz lulus",
+    quizPreview: "Siap kuis?",
+    quizPreviewMeta: "5 soal · ~8 mnt · Lulus 90%",
+    startQuiz: "Mulai quiz",
+    afterFailReview: "Tinjau jawaban",
+    afterFailAskAi: "Minta penjelasan AI",
+    afterFailRetry: "Coba quiz lagi",
+    suggestedPrompts: "Coba tanya",
+    promptEli5: "Jelaskan sederhana",
+    promptExample: "Tampilkan contoh kode",
+    promptPractice: "Beri latihan",
+    promptRelate: "Kaitkan dengan topik sebelumnya",
+    contextPill: "Menjawab tentang: {topic}",
+    chatHistorySearch: "Cari chat…",
+    shortcutsHint: "Pintasan: N next · Q quiz · C chat · F fokus · L list · ⌘S simpan",
+    coachMarkNode: "Klik topik untuk buka resource, tutor, dan quiz",
+    pricingOnLanding: "Harga sederhana — Free selamanya, Pro saat butuh AI tanpa batas",
+    usageSoftWarning: "Kamu mendekati batas penggunaan AI",
+    tabLearn: "Belajar",
+    primaryActionGenerate: "Generate roadmap dengan AI",
   },
 };
 

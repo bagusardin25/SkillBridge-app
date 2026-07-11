@@ -29,12 +29,12 @@ export function TemplateSelector({ onSelectTemplate, onAskAi, onClose }: Templat
         : roadmapTemplates;
 
     return (
-        <div className="relative bg-background/80 backdrop-blur-sm border border-border p-4 rounded-xl shadow-xl max-w-2xl text-center">
+        <div className="relative mx-auto w-full max-w-2xl rounded-xl border border-border bg-background/95 p-3 text-center shadow-xl backdrop-blur-sm sm:p-4">
             {/* Close Button */}
             {onClose && (
                 <button
                     onClick={onClose}
-                    className="absolute top-3 right-3 p-1 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                    className="absolute right-2 top-2 rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:right-3 sm:top-3"
                     title="Close"
                     aria-label="Close"
                     data-testid="template-selector-close"
@@ -43,24 +43,33 @@ export function TemplateSelector({ onSelectTemplate, onAskAi, onClose }: Templat
                 </button>
             )}
 
-            <div className="relative h-16 w-16 mx-auto mb-4 flex items-center justify-center">
-                <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full" />
-                <div className="relative bg-background border shadow-sm h-full w-full rounded-2xl flex items-center justify-center transform rotate-3 hover:rotate-6 transition-all">
-                    <LayoutTemplate className="h-7 w-7 text-primary" />
+            <div className="relative mx-auto mb-3 flex h-12 w-12 items-center justify-center sm:mb-4 sm:h-16 sm:w-16">
+                <div className="absolute inset-0 rounded-full bg-primary/20 blur-xl" />
+                <div className="relative flex h-full w-full rotate-3 items-center justify-center rounded-2xl border bg-background shadow-sm transition-all hover:rotate-6">
+                    <LayoutTemplate className="h-6 w-6 text-primary sm:h-7 sm:w-7" />
                 </div>
             </div>
             
-            <h3 className="text-xl font-bold tracking-tight mb-2">{t.templateSelector.startJourney}</h3>
-            <p className="text-sm text-muted-foreground mb-6 max-w-[80%] mx-auto">
+            <h3 className="mb-1 px-6 text-lg font-bold tracking-tight sm:mb-2 sm:text-xl">{t.templateSelector.startJourney}</h3>
+            <p className="mx-auto mb-3 max-w-[95%] text-xs text-muted-foreground sm:mb-4 sm:max-w-[80%] sm:text-sm">
                 {t.templateSelector.description}
             </p>
+            {/* Primary action */}
+            <Button
+                onClick={onAskAi}
+                className="mb-4 h-11 w-full max-w-sm rounded-full shadow-md shadow-primary/20 sm:mb-6"
+                size="lg"
+            >
+                <Sparkles className="mr-2 h-4 w-4 shrink-0" />
+                <span className="truncate">{t.ux.primaryActionGenerate}</span>
+            </Button>
 
-            {/* Category Filter */}
-            <div className="flex flex-wrap justify-center gap-2 mb-6">
+            {/* Category Filter — horizontal scroll on narrow screens */}
+            <div className="mb-4 flex gap-2 overflow-x-auto pb-1 sm:mb-6 sm:flex-wrap sm:justify-center sm:overflow-visible">
                 <Button
                     variant={selectedCategory === null ? "default" : "secondary"}
                     size="sm"
-                    className={`rounded-full px-4 ${selectedCategory === null ? "shadow-md shadow-primary/20" : "hover:bg-primary/10 hover:text-primary bg-muted/50"}`}
+                    className={`shrink-0 rounded-full px-4 ${selectedCategory === null ? "shadow-md shadow-primary/20" : "bg-muted/50 hover:bg-primary/10 hover:text-primary"}`}
                     onClick={() => setSelectedCategory(null)}
                 >
                     {t.templateSelector.all}
@@ -70,7 +79,7 @@ export function TemplateSelector({ onSelectTemplate, onAskAi, onClose }: Templat
                         key={cat}
                         variant={selectedCategory === cat ? "default" : "secondary"}
                         size="sm"
-                        className={`rounded-full px-4 ${selectedCategory === cat ? "shadow-md shadow-primary/20" : "hover:bg-primary/10 hover:text-primary bg-muted/50"}`}
+                        className={`shrink-0 rounded-full px-4 ${selectedCategory === cat ? "shadow-md shadow-primary/20" : "bg-muted/50 hover:bg-primary/10 hover:text-primary"}`}
                         onClick={() => setSelectedCategory(cat)}
                     >
                         {cat}
@@ -79,8 +88,8 @@ export function TemplateSelector({ onSelectTemplate, onAskAi, onClose }: Templat
             </div>
 
             {/* Templates Grid */}
-            <ScrollArea className="h-[200px] mb-3">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-1">
+            <ScrollArea className="mb-3 h-[min(40vh,220px)] sm:h-[240px]">
+                <div className="grid grid-cols-1 gap-2 p-1 sm:grid-cols-2">
                     {filteredTemplates.map(template => (
                         <Card
                             key={template.id}

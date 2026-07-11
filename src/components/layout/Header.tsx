@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Save, MessageSquare, PanelRightClose, Sun, Moon, Download, Loader2, Menu } from "lucide-react";
+import { Save, MessageSquare, PanelRightClose, Sun, Moon, Download, Loader2, Menu, LayoutList, Map, Focus, Check } from "lucide-react";
 import { toPng } from "html-to-image";
 import { getNodesBounds, useReactFlow } from "@xyflow/react";
 import { Button } from "@/components/ui/button";
@@ -7,13 +7,6 @@ import { useRoadmapStore } from "@/store/useRoadmapStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "@/components/ui/tooltip";
-
 import { SaveProjectDialog } from "@/components/ui/SaveProjectDialog";
 import { CertificateModal } from "@/components/ui/CertificateModal";
 import { ProgressDashboard } from "@/components/ui/ProgressDashboard";
@@ -27,6 +20,8 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAppLanguage } from "@/contexts/LanguageContext";
+import { formatRelativeTime } from "@/lib/learningUtils";
+import { cn } from "@/lib/utils";
 
 export function Header() {
     const {
@@ -45,10 +40,16 @@ export function Header() {
         setCurrentRoadmapId,
         onProjectCreated,
         incrementProjectsVersion,
+        viewMode,
+        setViewMode,
+        isFocusMode,
+        toggleFocusMode,
+        saveStatus,
+        lastSavedAt,
     } = useRoadmapStore();
 
     const { user } = useAuthStore();
-    const { t } = useAppLanguage();
+    const { t, language } = useAppLanguage();
     const [showSaveDialog, setShowSaveDialog] = useState(false);
     const [showCertificate, setShowCertificate] = useState(false);
     const [showDashboard, setShowDashboard] = useState(false);
@@ -273,25 +274,54 @@ export function Header() {
         }
     };
 
-    return (
-        <header className="h-14 border-b border-b-muted/40 bg-background/80 backdrop-blur-xl flex items-center justify-between px-4 sticky top-0 z-50">
-            <div className="flex items-center gap-3">
-                {/* Mobile: Hamburger menu for sidebar - Hide when right panel is open */}
-                {!(isAiPanelOpen || isDetailPanelOpen) && (
+    // Focus mode: slim chrome
+    if (isFocusMode) {
+        return (
+            <header className="sticky top-0 z-50 flex h-12 min-w-0 items-center justify-between gap-2 border-b border-b-muted/40 bg-background/90 px-2 backdrop-blur-xl sm:px-3">
+                <div className="flex min-w-0 flex-1 items-center gap-2">
+                    <span className="truncate text-sm font-bold">{currentProjectTitle || "SkillBridge"}</span>
+                    {totalNodes > 0 && (
+                        <span className="shrink-0 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                            {progressPercentage}%
+                        </span>
+                    )}
+                </div>
+                <div className="flex shrink-0 items-center gap-1">
+                    <Button variant="secondary" size="sm" className="h-8 px-2 text-xs sm:px-3" onClick={toggleFocusMode}>
+                        {t.ux.exitFocus}
+                    </Button>
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="md:hidden h-9 w-9"
-                        onClick={toggleSidebar}
+                        className="h-8 w-8"
+                        onClick={toggleAiPanel}
+                        aria-label={t.common.ai}
                     >
-                        <Menu className="h-5 w-5" />
+                        <MessageSquare className="h-4 w-4" />
                     </Button>
-                )}
+                </div>
+            </header>
+        );
+    }
 
-                {/* Project Title / Breadcrumb */}
-                <div className="flex items-center gap-2 text-sm">
-                    <span className="font-semibold text-muted-foreground hidden sm:inline-block">SkillBridge</span>
-                    <span className="text-muted-foreground hidden sm:inline-block">/</span>
+    return (
+        <header className="sticky top-0 z-50 flex h-14 min-w-0 items-center justify-between gap-1 border-b border-b-muted/40 bg-background/80 px-2 backdrop-blur-xl sm:gap-2 sm:px-3 md:px-4">
+            {/* Left: menu + title (can shrink) */}
+            <div className="flex min-w-0 flex-1 items-center gap-1.5 sm:gap-2">
+                {/* Always available on mobile so user can open projects while on canvas */}
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 w-9 shrink-0 md:hidden"
+                    onClick={toggleSidebar}
+                    aria-label={t.sidebar.openMenu}
+                >
+                    <Menu className="h-5 w-5" />
+                </Button>
+
+                <div className="flex min-w-0 items-center gap-1.5 text-sm">
+                    <span className="hidden shrink-0 font-semibold text-muted-foreground lg:inline-block">SkillBridge</span>
+                    <span className="hidden text-muted-foreground lg:inline-block">/</span>
                     {isEditingTitle ? (
                         <input
                             type="text"
@@ -299,130 +329,168 @@ export function Header() {
                             onChange={(e) => setEditTitleValue(e.target.value)}
                             onBlur={handleTitleSubmit}
                             onKeyDown={handleTitleKeyDown}
-                            className="h-7 px-2 py-1 text-sm font-bold bg-muted border border-primary/50 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30 w-32 sm:w-auto"
+                            className="h-7 w-full max-w-[10rem] rounded-md border border-primary/50 bg-muted px-2 py-1 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/30 sm:max-w-[14rem]"
                             autoFocus
                         />
                     ) : (
                         <span
-                            className="font-bold text-foreground truncate max-w-[120px] sm:max-w-none cursor-pointer hover:underline decoration-primary/50"
+                            className="cursor-pointer truncate font-bold text-foreground decoration-primary/50 hover:underline"
                             onClick={() => setIsEditingTitle(true)}
                             title="Click to edit project name"
                         >
-                            {currentProjectTitle}
+                            {currentProjectTitle || "SkillBridge"}
                         </span>
                     )}
                 </div>
 
+                {totalNodes > 0 && (
+                    <div className="hidden min-w-0 items-center gap-2 xl:flex" title={`${completedNodes}/${totalNodes}`}>
+                        <div className="h-1.5 w-16 overflow-hidden rounded-full bg-muted">
+                            <div
+                                className="h-full rounded-full bg-emerald-500 transition-all"
+                                style={{ width: `${progressPercentage}%` }}
+                            />
+                        </div>
+                        <span className="text-[11px] font-semibold text-muted-foreground">{progressPercentage}%</span>
+                    </div>
+                )}
 
-
-                {/* Certificate Button - Show separately when 100% complete */}
-                {progressPercentage === 100 && (
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowCertificate(true)}
-                        className="hidden md:flex ml-2 text-emerald-600 border-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950"
+                {currentRoadmapId && (
+                    <span
+                        className="hidden items-center gap-1 text-[10px] text-muted-foreground xl:inline-flex"
+                        aria-live="polite"
                     >
-                        <Award className="h-4 w-4 mr-1" />
-                        <span className="hidden lg:inline">{t.header.certificate}</span>
-                    </Button>
+                        {saveStatus === "saving" && (
+                            <>
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                                {t.ux.saving}
+                            </>
+                        )}
+                        {saveStatus === "saved" && (
+                            <>
+                                <Check className="h-3 w-3 text-emerald-500" />
+                                {lastSavedAt
+                                    ? t.ux.lastSaved.replace(
+                                          "{time}",
+                                          formatRelativeTime(lastSavedAt, language === "id" ? "id" : "en")
+                                      )
+                                    : t.ux.savedJustNow}
+                            </>
+                        )}
+                        {saveStatus === "error" && (
+                            <span className="text-destructive">{t.ux.saveError}</span>
+                        )}
+                    </span>
                 )}
             </div>
 
-            <div className="flex items-center gap-2 sm:gap-3">
+            {/* Right: actions (never shrink) */}
+            <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
+                {/* Map / List — compact */}
+                {nodes.length > 0 && (
+                    <div className="flex items-center rounded-lg border bg-muted/40 p-0.5">
+                        <Button
+                            variant={viewMode === "map" ? "secondary" : "ghost"}
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => setViewMode("map")}
+                            aria-label={t.ux.mapView}
+                            aria-pressed={viewMode === "map"}
+                        >
+                            <Map className="h-4 w-4" />
+                        </Button>
+                        <Button
+                            variant={viewMode === "list" ? "secondary" : "ghost"}
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => setViewMode("list")}
+                            aria-label={t.ux.listView}
+                            aria-pressed={viewMode === "list"}
+                        >
+                            <LayoutList className="h-4 w-4" />
+                        </Button>
+                    </div>
+                )}
 
-                {/* Save Button (Consolidated) */}
-                <TooltipProvider delayDuration={300}>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={handleSave}
-                                disabled={isSaving || nodes.length === 0}
-                                className="flex"
-                            >
-                                {isSaving ? (
-                                    <Loader2 className="h-4 w-4 sm:mr-2 animate-spin" />
-                                ) : (
-                                    <Save className="h-4 w-4 sm:mr-2" />
-                                )}
-                                <span className="hidden sm:inline">{isSaving ? t.common.saving : t.header.saveProject}</span>
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>{t.header.saveProjectShortcut}</TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="hidden h-9 w-9 lg:flex"
+                    onClick={toggleFocusMode}
+                    aria-label={t.ux.focusMode}
+                >
+                    <Focus className="h-4 w-4" />
+                </Button>
 
-                {/* Theme Toggle - Hidden on mobile */}
-                <TooltipProvider delayDuration={300}>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme" className="hidden sm:flex h-9 w-9">
-                                {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>{t.header.switchTheme}</TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
+                <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handleSave}
+                    disabled={isSaving || nodes.length === 0}
+                    className="h-9 w-9"
+                    aria-label={t.header.saveProject}
+                >
+                    {isSaving ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                        <Save className="h-4 w-4" />
+                    )}
+                </Button>
 
-                <Separator orientation="vertical" className="hidden sm:block h-6 mx-1" />
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={toggleTheme}
+                    aria-label="Toggle theme"
+                    className="hidden h-9 w-9 sm:flex"
+                >
+                    {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                </Button>
 
-                {/* More Options Dropdown (Consolidated Export, Share, Clear Canvas) */}
+                {/* Overflow menu: share/export/clear + mobile-only extras */}
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="hidden sm:flex h-9 w-9">
+                        <Button variant="ghost" size="icon" className="h-9 w-9">
                             <MoreVertical className="h-4 w-4" />
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
+                        {progressPercentage === 100 && (
+                            <DropdownMenuItem onClick={() => setShowCertificate(true)}>
+                                <Award className="mr-2 h-4 w-4" />
+                                {t.header.certificate}
+                            </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem onClick={() => setShowShare(true)} disabled={nodes.length === 0}>
-                            <Share2 className="h-4 w-4 mr-2" />
+                            <Share2 className="mr-2 h-4 w-4" />
                             {t.header.shareRoadmap}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={handleExport} disabled={isExporting || nodes.length === 0}>
-                            {isExporting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
+                            {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
                             {t.header.exportToPng}
                         </DropdownMenuItem>
+                        <DropdownMenuItem onClick={toggleFocusMode} className="lg:hidden">
+                            <Focus className="mr-2 h-4 w-4" />
+                            {t.ux.focusMode}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setShowDashboard(true)}>
+                            <BarChart3 className="mr-2 h-4 w-4" />
+                            {t.header.progressDashboard}
+                        </DropdownMenuItem>
                         <Separator className="my-1" />
-                        <DropdownMenuItem onClick={handleClearCanvas} className="text-destructive focus:text-destructive group">
-                            <Trash2 className="h-4 w-4 mr-2 group-hover:animate-pulse" />
+                        <DropdownMenuItem onClick={handleClearCanvas} className="text-destructive focus:text-destructive">
+                            <Trash2 className="mr-2 h-4 w-4" />
                             {t.header.clearCanvas}
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
 
-                {/* Mobile: Certificate Button - Show when 100% complete */}
-                {progressPercentage === 100 && (
-                    <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => setShowCertificate(true)}
-                        className="sm:hidden h-9 w-9 text-emerald-600 border-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950 animate-pulse"
-                    >
-                        <Award className="h-4 w-4" />
-                    </Button>
-                )}
-
-                {/* AI Panel Toggle - Mobile: Only show when panel is closed and detail isn't open */}
-                {!isAiPanelOpen && !isDetailPanelOpen && (
-                    <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={toggleAiPanel}
-                        className="sm:hidden h-9 w-9 shadow-sm bg-black dark:bg-neutral-900 text-white hover:bg-neutral-800 dark:hover:bg-neutral-800 hover:text-white border-transparent"
-                    >
-                        <MessageSquare className="h-4 w-4" />
-                    </Button>
-                )}
-                {/* Desktop: With text */}
+                {/* AI toggle — icon on small, labeled on lg+ */}
                 <Button
-                    variant={(isAiPanelOpen || isDetailPanelOpen) ? "secondary" : "outline"}
-                    size="sm"
+                    variant={(isAiPanelOpen || isDetailPanelOpen) ? "secondary" : "default"}
+                    size="icon"
                     onClick={() => {
                         if (isDetailPanelOpen && !isAiPanelOpen) {
-                            // If detail is open but AI is not, close detail
-                            // or could switch to AI, but user requested close sync
                             useRoadmapStore.getState().closeDetailPanel();
                         } else {
                             toggleAiPanel();
@@ -431,51 +499,45 @@ export function Header() {
                             }
                         }
                     }}
-                    className={`hidden sm:flex ${!(isAiPanelOpen || isDetailPanelOpen) ? "shadow-sm bg-black dark:bg-neutral-900 text-white hover:bg-neutral-800 dark:hover:bg-neutral-800 hover:text-white border-transparent" : ""}`}
+                    className={cn(
+                        "h-9 w-9 shrink-0 lg:hidden",
+                        !(isAiPanelOpen || isDetailPanelOpen) &&
+                            "bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
+                    )}
+                    aria-label={t.common.ai}
                 >
                     {(isAiPanelOpen || isDetailPanelOpen) ? (
-                        <PanelRightClose className="h-4 w-4 mr-2" />
+                        <PanelRightClose className="h-4 w-4" />
                     ) : (
-                        <MessageSquare className="h-4 w-4 mr-2" />
+                        <MessageSquare className="h-4 w-4" />
+                    )}
+                </Button>
+                <Button
+                    variant={(isAiPanelOpen || isDetailPanelOpen) ? "secondary" : "default"}
+                    size="sm"
+                    onClick={() => {
+                        if (isDetailPanelOpen && !isAiPanelOpen) {
+                            useRoadmapStore.getState().closeDetailPanel();
+                        } else {
+                            toggleAiPanel();
+                            if (isAiPanelOpen) {
+                                useRoadmapStore.getState().closeDetailPanel();
+                            }
+                        }
+                    }}
+                    className={cn(
+                        "hidden h-9 lg:inline-flex",
+                        !(isAiPanelOpen || isDetailPanelOpen) &&
+                            "bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
+                    )}
+                >
+                    {(isAiPanelOpen || isDetailPanelOpen) ? (
+                        <PanelRightClose className="mr-2 h-4 w-4" />
+                    ) : (
+                        <MessageSquare className="mr-2 h-4 w-4" />
                     )}
                     {(isAiPanelOpen || isDetailPanelOpen) ? t.common.close : t.common.ai}
                 </Button>
-
-                {/* User Avatar Menu */}
-                {user && (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="md:hidden h-9 w-9 rounded-full ml-1 overflow-hidden border">
-                                {user.avatarUrl ? (
-                                    <img src={user.avatarUrl} alt={user.name || "User avatar"} className="h-full w-full object-cover" />
-                                ) : (
-                                    <div className="h-full w-full bg-primary/10 text-primary flex items-center justify-center font-semibold text-xs">
-                                        {(user.name || user.email || 'U').substring(0, 2).toUpperCase()}
-                                    </div>
-                                )}
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-56">
-                            <div className="px-2 py-1.5 text-sm">
-                                <div className="font-semibold">{user.name || "Learner"}</div>
-                                <div className="text-xs text-muted-foreground truncate">{user.email}</div>
-                            </div>
-                            <Separator className="my-1" />
-                            <DropdownMenuItem onClick={() => setShowDashboard(true)}>
-                                <BarChart3 className="h-4 w-4 mr-2" />
-                                {t.header.progressDashboard}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => toast.info(t.toasts.settingsComingSoon)}>
-                                <Save className="h-4 w-4 mr-2" />
-                                {t.header.mySettings}
-                            </DropdownMenuItem>
-                            <Separator className="my-1" />
-                            <DropdownMenuItem onClick={() => useAuthStore.getState().logout()} className="text-destructive focus:text-destructive">
-                                {t.common.logOut}
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                )}
             </div>
 
             {/* Save Project Dialog */}

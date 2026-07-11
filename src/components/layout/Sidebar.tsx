@@ -2,7 +2,9 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Folder, MoreHorizontal, Settings, LogOut, User, Globe, CreditCard, Trash2, Pencil, PanelLeftClose, PanelLeft, Search, X } from "lucide-react";
+import { Plus, Folder, MoreHorizontal, Settings, LogOut, User, Globe, CreditCard, Trash2, Pencil, PanelLeftClose, PanelLeft, Search, X, LayoutTemplate, Play, ArrowRight } from "lucide-react";
+import { LevelProgressBar } from "@/components/ui/LevelProgressBar";
+import { getNextRecommendedNode, getRoadmapProgress } from "@/lib/learningUtils";
 
 import { cn } from "@/lib/utils";
 import { useRoadmapStore } from "@/store/useRoadmapStore";
@@ -36,7 +38,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuthStore } from "@/store/useAuthStore";
 import { NewProjectDialog } from "@/components/ui/NewProjectDialog";
 import { Logo } from "@/components/ui/Logo";
-import { createProject, getProjects, deleteProject, updateProject, getQuizResultsForRoadmap, type Project } from "@/lib/api";
+import { createProject, getProjects, deleteProject, updateProject, getQuizResultsForRoadmap, getProfile, type Project } from "@/lib/api";
 import { mergeNodesWithQuizResults } from "@/lib/roadmapUtils";
 import { toast } from "sonner";
 import { useAppLanguage } from "@/contexts/LanguageContext";
@@ -51,8 +53,11 @@ export function Sidebar({ className }: { className?: string }) {
     const [newTitle, setNewTitle] = useState("");
     const [newProjectId, setNewProjectId] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
+    const [xp, setXp] = useState(0);
+    const [level, setLevel] = useState(1);
     const {
         currentProjectId,
+        currentProjectTitle,
         setCurrentProject,
         setNodes,
         setEdges,
@@ -62,10 +67,23 @@ export function Sidebar({ className }: { className?: string }) {
         isSidebarOpen,
         toggleSidebar,
         projectsVersion,
+        nodes,
+        edges,
+        setSelectedNodeIds,
+        openDetailPanel,
+        setShowExploreTemplates,
+        toggleAiPanel,
+        isAiPanelOpen,
     } = useRoadmapStore();
     const { user, logout } = useAuthStore();
     const navigate = useNavigate();
     const { t } = useAppLanguage();
+
+    const roadmapProgress = useMemo(() => getRoadmapProgress(nodes), [nodes]);
+    const nextNode = useMemo(
+        () => (nodes.length ? getNextRecommendedNode(nodes, edges) : null),
+        [nodes, edges]
+    );
 
     // Filter projects based on search query
     const filteredProjects = useMemo(() => {
@@ -90,6 +108,12 @@ export function Sidebar({ className }: { className?: string }) {
     useEffect(() => {
         if (user?.id) {
             fetchProjects();
+            getProfile(user.id)
+                .then((p) => {
+                    setXp(p.user.xp ?? 0);
+                    setLevel(p.user.level ?? 1);
+                })
+                .catch(() => { /* silent */ });
         }
     }, [user?.id]);
 
@@ -393,22 +417,81 @@ export function Sidebar({ className }: { className?: string }) {
                     </div>
                 </div>
 
-                <div className="space-y-4 py-4 flex-1 overflow-y-auto w-full">
-                    <div className="px-4">
-                        <div className="space-y-1">
+                <div className="w-full flex-1 space-y-4 overflow-y-auto py-4">
+                    {/* Home: Continue learning (5.10) */}
+                    <div className="space-y-2 px-4">
+                        <h2 className="px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                            {t.ux.homeContinue}
+                        </h2>
+                        {nextNode && currentProjectId ? (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setSelectedNodeIds([nextNode.id]);
+                                    openDetailPanel();
+                                    if (window.innerWidth < 768 && isSidebarOpen) toggleSidebar();
+                                }}
+                                className="w-full rounded-xl border border-primary/20 bg-gradient-to-br from-primary/10 to-violet-500/5 p-3 text-left transition hover:border-primary/40 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                            >
+                                <p className="truncate text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                                    {currentProjectTitle}
+                                    {roadmapProgress.total > 0 && (
+                                        <span className="ml-1">· {roadmapProgress.percentage}%</span>
+                                    )}
+                                </p>
+                                <div className="mt-1 flex items-center justify-between gap-2">
+                                    <p className="truncate text-sm font-semibold">
+                                        {nextNode.data?.label || nextNode.id}
+                                    </p>
+                                    <ArrowRight className="h-4 w-4 shrink-0 text-primary" />
+                                </div>
+                            </button>
+                        ) : (
+                            <div className="rounded-xl border border-dashed bg-muted/20 p-3 text-center text-xs text-muted-foreground">
+                                {t.ux.homeNoProgress}
+                            </div>
+                        )}
+                        <div className="grid grid-cols-1 gap-1">
                             <Button
                                 variant="secondary"
-                                className="w-full justify-start shadow-sm hover:shadow-md transition-shadow"
+                                className="w-full justify-start shadow-sm transition-shadow hover:shadow-md"
                                 onClick={() => setIsDialogOpen(true)}
                             >
                                 <Plus className="mr-2 h-4 w-4" />
                                 {t.sidebar.newProject}
                             </Button>
+                            <Button
+                                variant="outline"
+                                className="w-full justify-start"
+                                onClick={() => {
+                                    setShowExploreTemplates(true);
+                                    if (!isAiPanelOpen) {
+                                        /* keep AI closed; templates overlay on canvas */
+                                    }
+                                    if (window.innerWidth < 768 && isSidebarOpen) toggleSidebar();
+                                    navigate("/app");
+                                }}
+                            >
+                                <LayoutTemplate className="mr-2 h-4 w-4" />
+                                {t.ux.exploreTemplates}
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                className="w-full min-w-0 justify-start text-muted-foreground"
+                                onClick={() => {
+                                    if (!isAiPanelOpen) toggleAiPanel();
+                                    if (window.innerWidth < 768 && isSidebarOpen) toggleSidebar();
+                                    navigate("/app");
+                                }}
+                            >
+                                <Play className="mr-2 h-4 w-4 shrink-0" />
+                                <span className="truncate">{t.ux.primaryActionGenerate}</span>
+                            </Button>
                         </div>
                     </div>
 
                     <div className="px-2">
-                        <h2 className="mb-3 px-4 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                        <h2 className="mb-3 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                             {t.sidebar.yourProjects}
                         </h2>
                         <div className="space-y-1 px-2">
@@ -482,18 +565,19 @@ export function Sidebar({ className }: { className?: string }) {
                     </div>
                 </div>
 
-                {/* User Profile Section */}
+                {/* User Profile Section + level progress (5.6 / 5.10) */}
                 {user && (
-                    <div className="px-3 py-2 mt-auto">
-                        <div className="p-3 border-t">
+                    <div className="mt-auto px-3 py-2">
+                        <LevelProgressBar xp={xp} level={level} className="mb-2" />
+                        <div className="border-t p-3">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                    <Avatar className="h-8 w-8 border flex-shrink-0">
+                                    <Avatar className="h-8 w-8 shrink-0 border">
                                         <AvatarImage src={user.avatarUrl || ""} alt={user.name || user.email} />
                                         <AvatarFallback>{getInitials(user.name, user.email)}</AvatarFallback>
                                     </Avatar>
-                                    <div className="flex flex-col min-w-0">
-                                        <span className="text-sm font-medium truncate">{user.name || user.email}</span>
+                                    <div className="flex min-w-0 flex-col">
+                                        <span className="truncate text-sm font-medium">{user.name || user.email}</span>
                                         <span className="text-xs text-muted-foreground">{getTierLabel(user.tier)}</span>
                                     </div>
                                 </div>

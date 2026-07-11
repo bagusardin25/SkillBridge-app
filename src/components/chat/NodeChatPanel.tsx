@@ -253,16 +253,16 @@ export function NodeChatPanel({ nodeId, topic, onExpand }: NodeChatPanelProps) {
                             return (
                                 <div
                                     key={message.id}
-                                    className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+                                    className={`flex w-full min-w-0 max-w-full ${message.role === "user" ? "justify-end" : "justify-start"}`}
                                 >
                                     <div
-                                        className={`max-w-[90%] rounded-2xl px-4 py-3 text-sm shadow-sm border ${message.role === "user"
-                                            ? "bg-primary text-primary-foreground border-primary rounded-tr-sm"
-                                            : "bg-background/60 backdrop-blur-md dark:bg-background/40 text-foreground border-violet-200/50 dark:border-violet-800/50 rounded-tl-sm ring-1 ring-violet-500/10 dark:ring-violet-400/10 shadow-[0_2px_10px_-3px_rgba(139,92,246,0.1)]"
+                                        className={`min-w-0 max-w-[min(100%,90%)] overflow-x-hidden break-words rounded-2xl border px-3 py-2.5 text-sm shadow-sm [overflow-wrap:anywhere] sm:px-4 sm:py-3 ${message.role === "user"
+                                            ? "rounded-tr-sm border-primary bg-primary text-primary-foreground"
+                                            : "rounded-tl-sm border-violet-200/50 bg-background/60 text-foreground shadow-[0_2px_10px_-3px_rgba(139,92,246,0.1)] ring-1 ring-violet-500/10 backdrop-blur-md dark:border-violet-800/50 dark:bg-background/40 dark:ring-violet-400/10"
                                             }`}
                                     >
                                         {message.role === "user" ? (
-                                            <p className="whitespace-pre-wrap">{message.content}</p>
+                                            <p className="min-w-0 max-w-full whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{message.content}</p>
                                         ) : isStreaming ? (
                                             <>
                                                 <MarkdownContent content={message.content} />

@@ -58,9 +58,25 @@
     @apply border-border;
   }
 
+  html,
+  body,
+  #root {
+    height: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
   body {
     @apply bg-background text-foreground;
     transition: background-color 0.3s ease, color 0.3s ease;
+    /* Prevent iOS rubber-band from revealing empty gutters */
+    overscroll-behavior-x: none;
+  }
+
+  /* 5.9 Accessibility: visible focus for keyboard users */
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
   }
 
   /* Smooth dark mode transition for major elements */
@@ -75,6 +91,23 @@
   [class*="bg-muted"] {
     transition: background-color 0.3s ease, border-color 0.3s ease, color 0.2s ease;
   }
+}
+
+/* 5.9 prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Safe area for mobile thumb zone CTAs */
+.safe-bottom {
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
 }
 
 /* Edge flow animation */
